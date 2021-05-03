@@ -1,0 +1,15 @@
+Package: healthyAddress
+Title: Convert Addresses to Standard Inputs 
+Version: 0.0.1.0
+Authors@R: 
+    person(given = "Hugh",
+           family = "Parsonage",
+           role = c("aut", "cre"),
+           email = "hugh.parsonage@gmail.com.com")
+Description: What the package does (one paragraph).
+License: GPL-2
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    data.table
