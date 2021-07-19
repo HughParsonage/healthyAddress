@@ -1,24 +1,188 @@
+
 #include "healthyAddress.h"
 #include "streetcodes.h"
 
 /*
-static const unsigned char letters[26] =
-  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-   'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-*/
+ static const unsigned char letters[26] =
+ {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+ 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+ */
+
 
 static const unsigned char LETTERS[26] =
   {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
-static inline unsigned char toupper1(unsigned char x) {
+static unsigned char toupper1(unsigned char x) {
   unsigned int xi = x - 'a';
   return (xi < 26) ? LETTERS[xi] : x;
+}
+
+static const char * touppers(const char * x, int len) {
+  char a[len + 1];
+  for (int i = 0; i < len; ++i) {
+    unsigned char xi = x[i];
+    a[i] = toupper1(xi);
+  }
+  a[len] = '\0';
+  char * ans = a;
+  return ans;
 }
 
 bool char_is_number(unsigned char x) {
   return x - '0' <= 9U;
 }
+
+bool char_is_LETTER(unsigned char x) {
+  // assumes AZ contiguous and in order 
+  return x - 'A' <= 25;
+}
+
+int next_nonnumber(const char * x, int from) {
+  while (char_is_number(x[from])) {
+    ++from;
+  }
+  return from;
+}
+
+int digit_of_from(const char * x, int * j, unsigned char barrier, int len) {
+  // x a string of length len from which the digit is sought from
+  // position j, terminating whenever barrier occurs
+  int o = 0;
+  int k = j[0];
+  while (k < len && x[k] != barrier) {
+    unsigned int xk = x[k] - '0';
+    if (xk > 9U) {
+      break;
+    }
+    o *= 10;
+    o += xk;
+    ++k;
+  }
+  j[0] = k;
+  return o;
+}
+
+// VIC->2
+int ste_as_int(const char * x, int ii) {
+  int i = ii;
+  // we don't know 
+  while (!char_is_LETTER(x[i])) {
+    ++i;
+  }
+  unsigned char xi = x[i];
+  switch(xi) {
+  case 'N':
+    switch(x[i + 1]) {
+    case 'T':
+      return 7;
+    case 'S':
+      return (x[i + 2] == 'W') ? 1 : 0;
+    }
+    break;
+  case 'V':
+    return (x[i + 1] == 'I' && x[i + 2] == 'C') ? 2 : 0;
+    break;
+  case 'Q':
+    return (x[i + 1] == 'L' && x[i + 2] == 'D') ? 3 : 0;
+    break;
+  case 'S':
+    return (x[i + 1] == 'A') ? 4 : 0;
+    break;
+  case 'W':
+    return (x[i + 1] == 'A') ? 5 : 0;
+    break;
+  case 'T':
+    return (x[i + 1] == 'A' && x[i + 2] == 'S') ? 6 : 0;
+    break;
+  case 'A':
+    return (x[i + 1] == 'C' && x[i + 2] == 'T') ? 8 : 0;
+    break;
+  case 'O':
+    return (x[i + 1] == 'T') ? 9 : 0;
+  }
+  return 0;
+}
+
+bool has_postcode(const char * x, int n) {
+  if (n < 4) {
+    return 0;
+  }
+  int k = n - 4;
+  return
+    char_is_number(x[k]) &&
+      char_is_number(x[k + 1]) &&
+      char_is_number(x[k + 2]) &&
+      char_is_number(x[k + 3]);
+}
+
+bool has_postcode_from(const char * x, int k) {
+  return
+  char_is_number(x[k]) &&
+    char_is_number(x[k + 1]) &&
+    char_is_number(x[k + 2]) &&
+    char_is_number(x[k + 3]);
+}
+
+
+int xpostcode_unsafe(const char * x, int n) {
+  // unsafe = don't check that length is sufficient
+  int o = 0;
+  unsigned char x1 = x[n - 1];
+  unsigned char x2 = x[n - 2];
+  unsigned char x3 = x[n - 3];
+  unsigned char x4 = x[n - 4];
+  unsigned int d1 = x1 - '0';
+  unsigned int d2 = x2 - '0';
+  unsigned int d3 = x3 - '0';
+  unsigned int d4 = x4 - '0';
+  int is_digit = (d1 < 10) & (d2 < 10) & (d3 < 10) & (d4 < 10);
+  o = d1 + 10u * d2 + 100u * d3 + 1000u * d4;
+  return is_digit ? o : 0;
+}
+
+
+
+int n_spaces(const char * x, int n) {
+  int o = 0;
+  for (int i = 0; i < n; ++i) {
+    o += x[i] == ' ';
+  }
+  return o;
+}
+
+bool has_ste_postcode(const char * x, int n) {
+  // <STE> <nnnn>
+  // location of space before
+  if (n < 4 + 1 + 3) {
+    return false;
+  } 
+  // n - 8
+  if (x[n - 8] == ' ') {
+    // two char
+    return ste_as_int(x, n - 7) && has_postcode(x, n);
+  } 
+  return ste_as_int(x, n - 8) && has_postcode(x, n);
+}
+
+
+
+SEXP fast_nchar(SEXP x, SEXP na) {
+  if (TYPEOF(x) != STRSXP || TYPEOF(na) != INTSXP || xlength(na) != 1) {
+    error("fast_nchar only accepts STRSXP,INTSXP");
+  }
+  const int nai = asInteger(na);
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    SEXP xi = STRING_ELT(x, i);
+    ansp[i] = xi == NA_STRING ? nai : length(xi);
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 
 SEXP CToUpperBasic(SEXP x) {
   R_xlen_t N = xlength(x);
@@ -46,23 +210,7 @@ SEXP CToUpperBasic(SEXP x) {
   return ans;
 }
 
-inline int digit_of_from(const char * x, int * j, unsigned char barrier, int len) {
-  // x a string of length len from which the digit is sought from
-  // position j, terminating whenever barrier occurs
-  int o = 0;
-  int k = j[0];
-  while (k < len && x[k] != barrier) {
-    unsigned int xk = x[k] - '0';
-    if (xk > 9U) {
-      break;
-    }
-    o *= 10;
-    o += xk;
-    ++k;
-  }
-  j[0] = k;
-  return o;
-}
+
 
 SEXP Ctest_digit_of_from(SEXP X, SEXP J, SEXP Barrier) {
   if (!isString(X)) {
@@ -177,6 +325,11 @@ static int whichStreetName3(const char * x, unsigned int len) {
       return ST_CODE_GROVE;
     }
     break;
+  case 'H':
+    if (x2 == 'W' && x3 == 'Y') {
+      return ST_CODE_HIGHWAY;
+    }
+    break;
   case 'P':
     if ((x2 == 'D' && x3 == 'E') ||
         (x2 == 'R' && x3 == 'D')) {
@@ -242,6 +395,10 @@ static void whichStreetName(const char * x, unsigned int len, int ans[]) {
     ans[0] = len - 3;
     unsigned char x1 = x[len - 2];
     unsigned char x2 = x[len - 1];
+    if (x1 == 'D' && x2 == 'R') {
+      ans[1] = ST_CODE_DRIVE;
+      return;
+    }
     if (x1 == 'R') {
       if (x2 == 'D') {
         ans[1] = 1;
@@ -1645,27 +1802,32 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
     error("TYPEOF(street_names) != STRSXP");
   }
 
-  SEXP street_name = PROTECT(allocVector(STRSXP, N));
+
   SEXP flat_number = PROTECT(allocVector(INTSXP, N));
-  SEXP street_type = PROTECT(allocVector(INTSXP, N));
+
   SEXP number_first = PROTECT(allocVector(INTSXP, N));
+  SEXP number_final = PROTECT(allocVector(INTSXP, N));
+  SEXP street_name = PROTECT(allocVector(STRSXP, N));
+  SEXP street_type = PROTECT(allocVector(INTSXP, N));
 
   int * restrict flat_numberp = INTEGER(flat_number);
   int * restrict street_typep = INTEGER(street_type);
   int * restrict number_firstp = INTEGER(number_first);
+  int * restrict number_finalp = INTEGER(number_final);
 
   for (R_xlen_t i = 0; i < N; ++i) {
+    flat_numberp[i] = NA_INTEGER;
+    street_typep[i] = NA_INTEGER;
+    number_firstp[i] = NA_INTEGER;
     SEXP xi = STRING_ELT(address, i);
     if (xi == NA_STRING || length(xi) == 0) {
-      flat_numberp[i] = NA_INTEGER;
-      street_typep[i] = NA_INTEGER;
-      number_firstp[i] = NA_INTEGER;
+
       SET_STRING_ELT(street_name, i, NA_STRING);
       continue;
     }
     int unit_no = NA_INTEGER;
     int len = length(xi);
-    const char * xc = CHAR(xi);
+    const char * xc = touppers(CHAR(xi), len);
     int j = 0;
     int J[1] = {0};
     unsigned char xcj = xc[j];
@@ -1700,7 +1862,6 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
         unit_no = digit_of_from(xc, j1, '/', len);
         j = j1[0] + 1;
       }
-
     }
 
     // street numbers
@@ -1715,13 +1876,32 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
     int street_name_pos[2] = {j, NA_INTEGER};
     whichStreetName(xc, len, street_name_pos);
 
+    int a = J[0], b = street_name_pos[0];
+    if (b <= a) {
+      b = len;
+    }
+    // trimws
+    while (a < b && xc[a] == ' ') {
+      ++a;
+    }
+    while (b > a && xc[b - 1] == ' ') {
+      --b;
+    }
+    int nchar_street_names = b - a;
+    if (nchar_street_names <= 0) {
+      SET_STRING_ELT(street_name, i, mkCharCE("", CE_UTF8));
+    } else {
+      char nom[nchar_street_names + 1];
+      for (int jj = a; jj < b; ++jj) {
+        nom[jj - a] = xc[jj];
+      }
+      nom[nchar_street_names] = '\0';
+      SET_STRING_ELT(street_name, i, mkCharCE((const char *)nom, CE_UTF8));
+    }
 
     flat_numberp[i] = unit_no;
     number_firstp[i] = street_number;
     street_typep[i] = street_name_pos[1];
-
-    SET_STRING_ELT(street_name, i, mkCharCE("", CE_UTF8));
-
   }
   SEXP ans = PROTECT(allocVector(VECSXP, 4));
   SET_VECTOR_ELT(ans, 0, flat_number);
@@ -1730,8 +1910,69 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
   SET_VECTOR_ELT(ans, 3, number_first);
   UNPROTECT(5);
 
-
-
   return ans;
 }
+
+#define FMT_N__ST_LOC_POA 1
+#define FMT_NS_ST_LOC_POA 2
+
+SEXP Cidentify_address_format(SEXP xx) {
+  R_xlen_t N = xlength(xx);
+  if (TYPEOF(xx) != STRSXP) {
+    error("TYPEOF(xx) != STRSXP");
+  }
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    SEXP CX = STRING_ELT(xx, i);
+    int n = length(CX);
+    const char * x = touppers(CHAR(CX), n);
+    unsigned char x0 = (unsigned char)x[0];
+    bool no_unit = x0 != 'U';
+    ansp[i] = 0;
+    if (has_ste_postcode(x, n)) {
+      if (char_is_number(x0)) {
+        ansp[i] = FMT_N__ST_LOC_POA;
+      }
+    }
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP CFindLocality(SEXP xx) {
+  R_xlen_t N = xlength(xx);
+  int np = 0;
+
+  SEXP Spostcode = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict Postcode = INTEGER(Spostcode);
+  SEXP SState = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict State = INTEGER(SState);
+  SEXP SLocality = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict Locality = INTEGER(SLocality);
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    SEXP CX = STRING_ELT(xx, i);
+    int n = length(CX);
+    const char * x = touppers(CHAR(CX), n);
+    Postcode[i] = NA_INTEGER;
+    State[i] = NA_INTEGER;
+    Locality[i] = NA_INTEGER;
+    if (n <= 8) {
+      continue;
+    }
+    Postcode[i] = xpostcode_unsafe(x, n);
+    State[i] = ste_as_int(x, n - 8);
+  }
+  SEXP ans = PROTECT(allocVector(VECSXP, 3)); np++;
+  SET_VECTOR_ELT(ans, 0, Spostcode);
+  SET_VECTOR_ELT(ans, 1, SState);
+  SET_VECTOR_ELT(ans, 2, SLocality);
+  UNPROTECT(np);
+  return ans;
+}
+
+
+
 

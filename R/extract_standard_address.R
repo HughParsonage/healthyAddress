@@ -350,6 +350,7 @@ street_cd <- function(ADDRESS) {
 
   # 'ST' (i.e. ST GEORGE) may not always be street
   ADDRESS <- sub("\\bST$", "STREET", ADDRESS)
+  permitted_street_type_ord <- .permitted_street_type_ord()
   for (i in seq_along(permitted_street_type_ord)) {
     street_cdi <- permitted_street_type_ord[i]
     # if the address ends with this street code, note that
@@ -419,3 +420,14 @@ CwhichStreetName3_ <- function(x) {
   stopifnot(is.character(x))
   .Call("CwhichStreetName3", x, PACKAGE = packageName())
 }
+
+Identify_address_format <- function(x) {
+  .Call("Cidentify_address_format", x, PACKAGE = packageName())
+}
+
+FindLocality <- function(x) {
+  .Call("CFindLocality", x, PACKAGE = packageName())
+}
+
+
+
