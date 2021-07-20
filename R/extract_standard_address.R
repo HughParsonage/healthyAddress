@@ -381,32 +381,10 @@ toupper_basic <- function(x) {
   .Call("CToUpperBasic", x, PACKAGE = packageName())
 }
 
-extract_standard_address <- function(address) {
-
-  ADDRESS <- gsub("[^A-Z0-9 /]", "", toupper(trimws(address)))
-
-  unit_no <-
-    fcase(grepl("^U(NIT)? [0-9]", ADDRESS),
-          as.integer(sub("^U(?:NIT)? ([0-9]+)[^0-9].*$", "\\1", ADDRESS)),
-
-          # e.g. G02/56 Felmington
-          grepl("^G?[0-9]+\\s*/\\s*[0-9]+\\s*", ADDRESS),
-          as.integer(sub("^G?([0-9]+)\\s*/.*$", "\\1", ADDRESS)),
-          default = NA_integer_)
+extract_standard_address <- function(address, LocalityByPostcode = NULL) {
+  LocStePoa <- FindLocality(address)
 
 
-  # for things like 85-89 just use 85
-  has_number <- grepl("[0-9]", address)
-  street_no <- fifelse(has_number,
-                       sub("^[^0-9]*([0-9]+).*$", "\\1", address, perl = TRUE),
-                       "")
-
-  ans <- street_cd(ADDRESS)
-  ans[, "street_no" := street_no]
-  ans[, "address" := address]
-  ans[, "flat_number" := unit_no]
-  .set_cols_first(ans, "address")
-  ans[]
 }
 
 .set_cols_first <- function(DT, cols) {
@@ -427,6 +405,57 @@ Identify_address_format <- function(x) {
 
 FindLocality <- function(x) {
   .Call("CFindLocality", x, PACKAGE = packageName())
+}
+
+FindSentence <- function(x, word1, word2) {
+  .Call("CFindSentence", x, word1, word2, PACKAGE = packageName())
+}
+
+
+# Returns the
+LocalityGivenPostcode <- function(address, poa) {
+
+  # We want to load the namespace
+  if (!requireNamespace("PSMA", quietly = TRUE)) {
+    stop("Package PSMA is required. See library(PSMA.foyer) for installation details.")
+  }
+
+  stopifnot(is.character(address), is.integer(poa), length(address) == length(poa))
+  stopifnot(isNamespaceLoaded("PSMA"))
+  if (is.null(cache_env)) {
+    cache_env <- getOption("PSMA_env", new.env())
+  }
+
+  LOCALITY_vs_LOCALITY_PID <- PSMA::get_fst("LOCALITY_vs_LOCALITY_PID",
+                                            cache_env = cache_env)
+  LOCALITY_VS_POSTCODE <- PSMA::get_fst("LOCALITY_VS_POSTCODE")
+  STREET_BY_POSTCODE <- PSMA::get_fst("STREET_BY_POSTCODE")
+
+  FullNamedAddressData <-
+    if (exists("FullNamedAddressData", envir = cache_env, inherits = FALSE)) {
+      get("FullNamedAddressData", envir = cache_env, inherits = FALSE)
+    } else {
+      assign("FullNamedAddressData",
+             PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")[
+               PSMA::get_fst("STREET_ID_vs_ADDRESS_ID"),
+               on = "STREET_LOCALITY_INTRNL_ID"],
+             envir = cache_env)
+    }
+
+
+  i <- min_i <- max_i <- NULL
+  STREET_BY_POSTCODE[, i := 0:(.N - 1L)]
+  minmax_i <- STREET_BY_POSTCODE[, .(min_i = min(i), max_i = max(i)), keyby = "POSTCODE"]
+
+  # Create a table such that poa_by_r[p] = postcode
+  poa_by_r <- data.table(POSTCODE = 0:(STREET_BY_POSTCODE[, max(POSTCODE)]))
+  setkeyv(poa_by_r, "POSTCODE")
+  minmax_i[poa_by_r, on = "POSTCODE"]
+
+  FullNamedAddressData
+
+
+
 }
 
 
