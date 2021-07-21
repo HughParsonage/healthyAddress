@@ -8,6 +8,8 @@
 */
 
 /* .Call calls */
+extern SEXP CEncodeStCd(SEXP, SEXP, SEXP, SEXP);
+extern SEXP CEnsureUC(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindLocality(SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
@@ -17,6 +19,8 @@ extern SEXP CToUpperBasic(SEXP);
 extern SEXP CwhichStreetName3(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
+    {"CEncodeStCd",              (DL_FUNC) &CEncodeStCd,              4},
+    {"CEnsureUC",                (DL_FUNC) &CEnsureUC,                1},
     {"CExtractStdAddress",       (DL_FUNC) &CExtractStdAddress,       2},
     {"CFindLocality",            (DL_FUNC) &CFindLocality,            1},
     {"CFindSentence",            (DL_FUNC) &CFindSentence,            3},

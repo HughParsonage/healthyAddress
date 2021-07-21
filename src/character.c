@@ -1,5 +1,32 @@
 #include "healthyAddress.h"
 
+// space unless a number or letter then uppercase
+static const unsigned char UPPERS_SPACE_HYPHEN[256] =
+  {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','-',' ',' ',
+   '0','1','2','3','4','5','6','7','8','9',' ',' ',' ',' ',' ',' ',
+   ' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+   'P','Q','R','S','T','U','V','W','X','Y','Z',' ',' ',' ',' ',' ',
+   ' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+   'P','Q','R','S','T','U','V','W','X','Y','Z',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+   ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+
+bool is_uppercase_or_space_or_hyphen(unsigned char x) {
+  return ((x - 'A') <= 26u) || x == ' ' || x == '-';
+}
+
+unsigned char toupper_hyphen_or_space(unsigned char x, unsigned char a) {
+  return is_uppercase_or_space_or_hyphen(x) ? x : a;
+}
+
 
 
 
@@ -141,4 +168,97 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
   UNPROTECT(np);
   return ans;
 }
+
+
+
+
+
+
+bool isUC(SEXP x) {
+  R_xlen_t N = xlength(x);
+  if (TYPEOF(x) != STRSXP) {
+    error("Internal error(EnsureUC): TYPEOF(x) != STRSXP.");
+  }
+  bool all_uc = true;
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(STRING_ELT(x, i));
+    const char * xi = CHAR(STRING_ELT(x, i));
+    for (int j = 0; j < n; ++j) {
+      unsigned char xij = xi[j];
+      if (!is_uppercase_or_space_or_hyphen(xij)) {
+        all_uc = false;
+        break;
+      }
+    }
+  }
+  return all_uc;
+}
+
+SEXP CEnsureUC(SEXP x) {
+  if (TYPEOF(x) != STRSXP) {
+    error("Internal error(EnsureUC): TYPEOF(x) != STRSXP.");
+  }
+  if (isUC(x)) {
+    return x;
+  }
+  R_xlen_t N = xlength(x);
+
+  SEXP ans = PROTECT(allocVector(STRSXP, N));
+  for (R_xlen_t i = 0; i < N; ++i) {
+    const char * xi = CHAR(STRING_ELT(x, i));
+    int n = length(STRING_ELT(x, i));
+    char oi[n + 1];
+    for (int j = 0; j < n; ++j) {
+      oi[j] = toupper_hyphen_or_space(xi[j], ' ');
+    }
+    oi[n] = '\0';
+    const char * oic = (const char *)oic;
+    SET_STRING_ELT(ans, i, mkCharCE(oic, CE_UTF8));
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+// x a string of street codes like 'STREET' but also 'ST'
+// m mathches on a table of
+// street codes in a fixed order, but only 'STREET'
+// returns an integer vector
+SEXP CEncodeStCd(SEXP x, SEXP m, SEXP Abbrev, SEXP Abbrevi) {
+  if (TYPEOF(x) != STRSXP ||
+      TYPEOF(m) != INTSXP ||
+      TYPEOF(Abbrev) != STRSXP ||
+      TYPEOF(Abbrevi) != INTSXP ||
+      xlength(Abbrev) != xlength(Abbrevi)) {
+    error("Wrong types."); // # nocov
+  }
+  R_xlen_t N = xlength(x);
+  int an = length(Abbrev);
+  const int * mp = INTEGER(m);
+  const int * Abbrevip = INTEGER(Abbrevi);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int mpi = mp[i];
+    ansp[i] = mpi;
+    if (mpi) {
+      // already matched
+      continue;
+    }
+    int ni = length(STRING_ELT(x, i));
+    const char * xi = CHAR(STRING_ELT(x, i));
+    for (int a = 0; a < an; ++a) {
+      const char * aa = CHAR(STRING_ELT(Abbrev, a));
+      if (!strcmp(aa, xi)) {
+        ansp[i] = Abbrevip[a];
+        break;
+      }
+    }
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+
+
+
 

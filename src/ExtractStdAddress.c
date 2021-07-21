@@ -8,24 +8,7 @@
  'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
  */
 
-// space unless a number or letter then uppercase
-static const unsigned char UPPERS[255] = 
-{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-'0','1','2','3','4','5','6','7','8','9',' ',' ',' ',' ',' ',' ',
-' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-'P','Q','R','S','T','U','V','W','X','Y','Z',' ',' ',' ',' ',' ',
-' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-'P','Q','R','S','T','U','V','W','X','Y','Z',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
-' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+
 
 
 static const unsigned char LETTERS[26] =
@@ -53,7 +36,7 @@ bool char_is_number(unsigned char x) {
 }
 
 bool char_is_LETTER(unsigned char x) {
-  // assumes AZ contiguous and in order 
+  // assumes AZ contiguous and in order
   return x - 'A' <= 25;
 }
 
@@ -85,7 +68,7 @@ int digit_of_from(const char * x, int * j, unsigned char barrier, int len) {
 // VIC->2
 int ste_as_int(const char * x, int ii) {
   int i = ii;
-  // we don't know 
+  // we don't know
   while (!char_is_LETTER(x[i])) {
     ++i;
   }
@@ -175,12 +158,12 @@ bool has_ste_postcode(const char * x, int n) {
   // location of space before
   if (n < 4 + 1 + 3) {
     return false;
-  } 
+  }
   // n - 8
   if (x[n - 8] == ' ') {
     // two char
     return ste_as_int(x, n - 7) && has_postcode(x, n);
-  } 
+  }
   return ste_as_int(x, n - 8) && has_postcode(x, n);
 }
 

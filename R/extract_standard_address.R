@@ -426,22 +426,26 @@ LocalityGivenPostcode <- function(address, poa) {
     cache_env <- getOption("PSMA_env", new.env())
   }
 
-  LOCALITY_vs_LOCALITY_PID <- PSMA::get_fst("LOCALITY_vs_LOCALITY_PID",
-                                            cache_env = cache_env)
-  LOCALITY_VS_POSTCODE <- PSMA::get_fst("LOCALITY_VS_POSTCODE")
-  STREET_BY_POSTCODE <- PSMA::get_fst("STREET_BY_POSTCODE")
+  # LOCALITY_vs_LOCALITY_PID <- PSMA::get_fst("LOCALITY_vs_LOCALITY_PID",
+  #                                           cache_env = cache_env)
+  # LOCALITY_VS_POSTCODE <- PSMA::get_fst("LOCALITY_VS_POSTCODE")
+  # STREET_BY_POSTCODE <- PSMA::get_fst("STREET_BY_POSTCODE")
 
   FullNamedAddressData <-
     if (exists("FullNamedAddressData", envir = cache_env, inherits = FALSE)) {
       get("FullNamedAddressData", envir = cache_env, inherits = FALSE)
     } else {
+      X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
+      Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
+      Z <- X[Y,
+             .(POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST),
+             on = .(STREET_LOCALITY_INTRNL_ID)]
+      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))
       assign("FullNamedAddressData",
-             PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")[
-               PSMA::get_fst("STREET_ID_vs_ADDRESS_ID"),
-               on = "STREET_LOCALITY_INTRNL_ID"],
+             Z,
              envir = cache_env)
     }
-
+  setkeyv(FullNamedAddressData, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))
 
   i <- min_i <- max_i <- NULL
   STREET_BY_POSTCODE[, i := 0:(.N - 1L)]
@@ -458,5 +462,16 @@ LocalityGivenPostcode <- function(address, poa) {
 
 }
 
+EnsureUC <- function(x) {
+  .Call("CEnsureUC", x, PACKAGE = packageName())
+}
+
+do_EncodeStreet <- function(x) {
+  x <- EnsureUC(x)
+  m <- chmatch(x, .permitted_street_type_ord(), nomatch = 0L)
+  Abbrev <- PSMA::street_type_decoder$street_abbrev
+  Abbrevi <- chmatch(PSMA::street_type_decoder$street_type, .permitted_street_type_ord(), nomatch = 0L)
+  .Call("CEncodeStCd", x, m, Abbrev, Abbrevi, PACKAGE = packageName())
+}
 
 
