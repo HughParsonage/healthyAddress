@@ -11,33 +11,24 @@
 
 
 
-static const unsigned char LETTERS[26] =
+static const char LETTERS[26] =
   {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
-static unsigned char toupper1(unsigned char x) {
+static char toupper1(char x) {
   unsigned int xi = x - 'a';
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
-static const char * touppers(const char * x, int len) {
-  char a[len + 1];
-  for (int i = 0; i < len; ++i) {
-    unsigned char xi = x[i];
-    a[i] = toupper1(xi);
-  }
-  a[len] = '\0';
-  char * ans = a;
-  return ans;
+bool char_is_number(char x) {
+  unsigned int xi = x - '0';
+  return xi <= 9U;
 }
 
-bool char_is_number(unsigned char x) {
-  return x - '0' <= 9U;
-}
-
-bool char_is_LETTER(unsigned char x) {
+bool char_is_LETTER(char x) {
   // assumes AZ contiguous and in order
-  return x - 'A' <= 25;
+  unsigned int xi = x - 'A';
+  return xi <= 25u;
 }
 
 bool jchar_is_LETTER(const char * x, int j) {
@@ -1849,10 +1840,10 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
     }
     int unit_no = NA_INTEGER;
     int len = length(xi);
-    const char * xc = touppers(CHAR(xi), len);
+    const char * xc = CHAR(xi);
     int j = 0;
     int J[1] = {0};
-    unsigned char xcj = xc[j];
+    char xcj = toupper1(xc[j]);
     // trim whitespace
     while (xcj == ' ') {
       ++j;
@@ -1953,7 +1944,7 @@ SEXP CFindLocality(SEXP xx) {
   for (R_xlen_t i = 0; i < N; ++i) {
     SEXP CX = STRING_ELT(xx, i);
     int n = length(CX);
-    const char * x = touppers(CHAR(CX), n);
+    const char * x = CHAR(CX);
     Postcode[i] = NA_INTEGER;
     State[i] = NA_INTEGER;
     Locality[i] = NA_INTEGER;
@@ -1970,7 +1961,7 @@ SEXP CFindLocality(SEXP xx) {
 
     int j = n - 8;
     // j >= 5 because whichstreetname requires it
-    unsigned char xj = x[j];
+    char xj = x[j];
     while (j >= 5 && xj != ' ') {
       xj = x[j];
       --j;
@@ -2015,6 +2006,24 @@ int whichIsntValidStreetType(SEXP x) {
     }
   }
   return 0;
+}
+
+SEXP Ctest_touppers(SEXP xx) {
+  if (!isString(xx)) {
+    error("Not string");
+  }
+  SEXP ans = PROTECT(allocVector(STRSXP, 1));
+  const char * xp = CHAR(STRING_ELT(xx, 0));
+  int len = length(STRING_ELT(xx, 0));
+  char o[len + 1];
+  for (int i = 0; i < len; ++i) {
+    o[i] = toupper1(xp[i]);
+  }
+  o[len] = '\0';
+  const char * yp = (const char *)o;
+  SET_STRING_ELT(ans, 0, mkCharCE(yp, CE_UTF8));
+  UNPROTECT(1);
+  return ans;
 }
 
 
@@ -2076,12 +2085,11 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
     if (n < 10) {
       continue;
     }
-    const char * x = touppers(CHAR(STRING_ELT(xx, i)), n);
+    const char * x = CHAR(STRING_ELT(xx, i));
+
     int postcodei = xpostcode_unsafe(x, n);
-    Rprintf("postcodei = %d\n", postcodei);
     const int postcode_start = postcode_starts[postcodei];
     const int postcode_final = postcode_finals[postcodei];
-    Rprintf("_%d_%d___\n", postcode_start, postcode_final);
     // find spaces and first string of non-numbers
     int space_locs[8] = {0}; // the position of spaces as words boundaries
     int word_widths[8] = {0}; // the width of every word following space_locs
@@ -2089,8 +2097,10 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
     int s_j = 0;
     // j < n - 4 to avoid numbers in postcode
     for (int j = 1; j < (n - 4); ++j) {
+      Rprintf("j = %d / %d\t%c\t\n", j, n - 4, x[j], x[j - 1]);
       unsigned char xj = x[j];
       unsigned char xj0 = x[j - 1];
+
       if (xj0 == ' ') {
         continue;
       }
@@ -2114,6 +2124,7 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
       // of the words proper (and not numbers).
       int j_min = space_locs[sj] + 1;
       int j_max = sj == 7 ? n : space_locs[sj + 1];
+      Rprintf("j_min = %d,%d ", j_min, j_max);
       for (int j = j_min; j < j_max; ++j) {
         Rprintf("j = %d, c = %c, jl = %d\n", j, (char)x[j], jchar_is_LETTER(x, j));
         word_widths[sj] += jchar_is_LETTER(x, j);

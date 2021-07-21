@@ -472,4 +472,7 @@ Extract2_ <- function(xx, id, Postcodes, StreetTypes, StreetNames, Numbers) {
   .Call("Extract2", xx, id, Postcodes, StreetTypes, StreetNames, Numbers, PACKAGE = packageName())
 }
 
+test_touppers <- function(x) {
+  .Call("Ctest_touppers", x, PACKAGE = packageName())
+}
 
