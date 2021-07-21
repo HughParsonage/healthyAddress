@@ -10,4 +10,6 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define N_POSTCODES 2640
+
 #endif

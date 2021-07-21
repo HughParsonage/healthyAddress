@@ -212,7 +212,7 @@ SEXP CEnsureUC(SEXP x) {
       oi[j] = toupper_hyphen_or_space(xi[j], ' ');
     }
     oi[n] = '\0';
-    const char * oic = (const char *)oic;
+    const char * oic = (const char *)oi;
     SET_STRING_ELT(ans, i, mkCharCE(oic, CE_UTF8));
   }
   UNPROTECT(1);
@@ -244,7 +244,6 @@ SEXP CEncodeStCd(SEXP x, SEXP m, SEXP Abbrev, SEXP Abbrevi) {
       // already matched
       continue;
     }
-    int ni = length(STRING_ELT(x, i));
     const char * xi = CHAR(STRING_ELT(x, i));
     for (int a = 0; a < an; ++a) {
       const char * aa = CHAR(STRING_ELT(Abbrev, a));

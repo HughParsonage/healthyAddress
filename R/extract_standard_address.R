@@ -399,13 +399,7 @@ CwhichStreetName3_ <- function(x) {
   .Call("CwhichStreetName3", x, PACKAGE = packageName())
 }
 
-Identify_address_format <- function(x) {
-  .Call("Cidentify_address_format", x, PACKAGE = packageName())
-}
 
-FindLocality <- function(x) {
-  .Call("CFindLocality", x, PACKAGE = packageName())
-}
 
 FindSentence <- function(x, word1, word2) {
   .Call("CFindSentence", x, word1, word2, PACKAGE = packageName())
@@ -438,7 +432,7 @@ LocalityGivenPostcode <- function(address, poa) {
       X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
       Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
       Z <- X[Y,
-             .(POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST),
+             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST),
              on = .(STREET_LOCALITY_INTRNL_ID)]
       setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))
       assign("FullNamedAddressData",
@@ -472,6 +466,10 @@ do_EncodeStreet <- function(x) {
   Abbrev <- PSMA::street_type_decoder$street_abbrev
   Abbrevi <- chmatch(PSMA::street_type_decoder$street_type, .permitted_street_type_ord(), nomatch = 0L)
   .Call("CEncodeStCd", x, m, Abbrev, Abbrevi, PACKAGE = packageName())
+}
+
+Extract2_ <- function(xx, id, Postcodes, StreetTypes, StreetNames, Numbers) {
+  .Call("Extract2", xx, id, Postcodes, StreetTypes, StreetNames, Numbers, PACKAGE = packageName())
 }
 
 
