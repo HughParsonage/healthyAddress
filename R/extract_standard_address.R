@@ -382,7 +382,7 @@ toupper_basic <- function(x) {
 }
 
 extract_standard_address <- function(address, LocalityByPostcode = NULL) {
-  LocStePoa <- FindLocality(address)
+  # LocStePoa <- FindLocality(address)
 
 
 }
@@ -468,8 +468,12 @@ do_EncodeStreet <- function(x) {
   .Call("CEncodeStCd", x, m, Abbrev, Abbrevi, PACKAGE = packageName())
 }
 
+
+
 Extract2_ <- function(xx, id, Postcodes, StreetTypes, StreetNames, Numbers) {
-  .Call("Extract2", xx, id, Postcodes, StreetTypes, StreetNames, Numbers, PACKAGE = packageName())
+  .Call("Extract2", xx, id, Postcodes, StreetTypes, StreetNames, Numbers,
+        chmatch(StreetTypes, .permitted_street_type_ord(), nomatch = 0L),
+        PACKAGE = packageName())
 }
 
 test_touppers <- function(x) {

@@ -2,6 +2,7 @@
 #include "healthyAddress.h"
 #include "streetcodes.h"
 
+#include <omp.h>
 /*
  static const unsigned char letters[26] =
  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -1927,80 +1928,34 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
 }
 
 
-SEXP CFindLocality(SEXP xx) {
-  if (TYPEOF(xx) != STRSXP) {
-    error("(CFindLocality): TYPEOF(xx) != STRSXP"); // # nocov
-  }
-  R_xlen_t N = xlength(xx);
-  int np = 0;
 
-  SEXP Spostcode = PROTECT(allocVector(INTSXP, N)); np++;
-  int * restrict Postcode = INTEGER(Spostcode);
-  SEXP SState = PROTECT(allocVector(INTSXP, N)); np++;
-  int * restrict State = INTEGER(SState);
-  SEXP SLocality = PROTECT(allocVector(INTSXP, N)); np++;
-  int * restrict Locality = INTEGER(SLocality);
-
-  for (R_xlen_t i = 0; i < N; ++i) {
-    SEXP CX = STRING_ELT(xx, i);
-    int n = length(CX);
-    const char * x = CHAR(CX);
-    Postcode[i] = NA_INTEGER;
-    State[i] = NA_INTEGER;
-    Locality[i] = NA_INTEGER;
-    if (n <= 8) {
-      continue;
-    }
-    Postcode[i] = xpostcode_unsafe(x, n);
-    State[i] = ste_as_int(x, n - 8);
-    // Press backward from end
-    // for each space char, see whether
-    // it's plausibly a street type
-    // then assume it's the locality
-    // mark the position
-
-    int j = n - 8;
-    // j >= 5 because whichstreetname requires it
-    char xj = x[j];
-    while (j >= 5 && xj != ' ') {
-      xj = x[j];
-      --j;
-    }
-    ++j;
-    int which_street_namei[2] = {0};
-    whichStreetName(x, j, which_street_namei);
-    while (which_street_namei[1] == 0 && j >= 5 && xj != ' ') {
-      j = x[j];
-      --j;
-    }
-    whichStreetName(x, j, which_street_namei);
-    if (which_street_namei[1]) {
-      Locality[i] = j;
-    }
-  }
-  SEXP ans = PROTECT(allocVector(VECSXP, 3)); np++;
-  SET_VECTOR_ELT(ans, 0, Spostcode);
-  SET_VECTOR_ELT(ans, 1, SState);
-  SET_VECTOR_ELT(ans, 2, SLocality);
-  UNPROTECT(np);
-  return ans;
-}
-
-int whichIsntValidStreetType(SEXP x) {
+int whichIsntValidStreetType(SEXP x, SEXP yy) {
   R_xlen_t N = xlength(x);
+  if (TYPEOF(yy) == INTSXP && N == xlength(yy)) {
+
+    const int * y = INTEGER(yy);
+    int miny = 1;
+#pragma omp parallel for num_threads(8) reduction(min : miny)
+    for (R_xlen_t i = 1; i < N; ++i) {
+      if (miny > y[i]) {
+        miny = y[i];
+      }
+    }
+    return miny > 0 ? 0 : 1;
+  }
+
   if (TYPEOF(x) != STRSXP) {
     return 1;
   }
   for (R_xlen_t i = 0; i < N; ++i) {
     SEXP CX = STRING_ELT(x, i);
-    if (__builtin_expect(CX == NA_STRING, 0)) {
-      return i + 1;
-    }
+    // if (__builtin_expect(CX == NA_STRING, 0)) {
+    //   return i + 1;
+    // }
     int n = length(CX);
     const char * xp = CHAR(CX);
     for (int j = 0; j < n; ++j) {
-      int nok = !jchar_is_LETTER_or_hyphen(xp, j);
-      if (__builtin_expect(nok, 0)) {
+      if (!jchar_is_LETTER_or_hyphen(xp, j)) {
         return i + 1;
       }
     }
@@ -2027,7 +1982,8 @@ SEXP Ctest_touppers(SEXP xx) {
 }
 
 
-SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNames, SEXP Numbers) {
+SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNames, SEXP Numbers,
+              SEXP StreetTypeCd) {
   if (TYPEOF(xx) != STRSXP ||
       TYPEOF(id) != INTSXP ||
       TYPEOF(Postcodes) != INTSXP ||
@@ -2055,17 +2011,17 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
   if (postcodes[M - 1] > 8192) {
     error("postcodes[M - 1] = %d > 8192", postcodes[M - 1]);
   }
-  int wrong_street_type = whichIsntValidStreetType(StreetTypes);
+  int wrong_street_type = whichIsntValidStreetType(StreetTypes, StreetTypeCd);
   if (wrong_street_type) {
     error("StreetTypes had invalid street type (not uppercase or hyphen) at position %d ", wrong_street_type);
   }
 
-
   // 8192 > max(POSTCODE)
-  unsigned short int postcode_starts[8192] = {0};
-  unsigned short int postcode_finals[8192] = {0};
+  unsigned int postcode_starts[8192] = {0};
+  unsigned int postcode_finals[8192] = {0};
 
   postcode_starts[postcodes[0]] = 0;
+#pragma omp parallel for
   for (int i = 1; i < M; ++i) {
     int p0 = postcodes[i - 1];
     int p1 = postcodes[i];
@@ -2075,6 +2031,7 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
     }
   }
   postcode_finals[postcodes[M - 1]] = M;
+
 
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
@@ -2097,9 +2054,8 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
     int s_j = 0;
     // j < n - 4 to avoid numbers in postcode
     for (int j = 1; j < (n - 4); ++j) {
-      Rprintf("j = %d / %d\t%c\t\n", j, n - 4, x[j], x[j - 1]);
-      unsigned char xj = x[j];
-      unsigned char xj0 = x[j - 1];
+      char xj = x[j];
+      char xj0 = x[j - 1];
 
       if (xj0 == ' ') {
         continue;
@@ -2113,7 +2069,6 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
       }
     }
     for (int sj = 0; sj < 8; ++sj) {
-      Rprintf("== space_locs[sj] = %d ===\n", space_locs[sj]);
       if (!space_locs[sj]) {
         continue;
       }
@@ -2124,12 +2079,9 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
       // of the words proper (and not numbers).
       int j_min = space_locs[sj] + 1;
       int j_max = sj == 7 ? n : space_locs[sj + 1];
-      Rprintf("j_min = %d,%d ", j_min, j_max);
       for (int j = j_min; j < j_max; ++j) {
-        Rprintf("j = %d, c = %c, jl = %d\n", j, (char)x[j], jchar_is_LETTER(x, j));
         word_widths[sj] += jchar_is_LETTER(x, j);
       }
-      Rprintf(">> word_width[%d] = %d\n", sj, word_widths[sj]);
     }
 
     // now look from the pos last number and see if it's street name street type
@@ -2148,11 +2100,9 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
       int len_this_word = word_widths[sj];
       int len_next_word = word_widths[sj + 1];
       if (len_this_word) {
-        Rprintf("%d=%d-%d\n", j, len_this_word, len_next_word);
       } else {
         continue;
       }
-      Rprintf("s1-s2 [%d,%d)\n", postcode_start, postcode_final);
 
       // We are now at the first character of a candidate
       // street name. Designate s as the index of StreetNames,StreetType
@@ -2164,7 +2114,6 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
         const char * street_type_s = CHAR(STRING_ELT(StreetTypes, s));
         int len_name = length(STRING_ELT(StreetNames, s));
         int len_type = length(STRING_ELT(StreetTypes, s));
-        Rprintf("len_name = %d, len_type = %d\n", len_name, len_type);
 
         int wcis = which_char_is_space(street_name_s, len_name);
         if (!wcis) {
@@ -2180,6 +2129,7 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
             unsigned char yjk = street_name_s[k];
             if (xjk != yjk) {
               matched = false;
+              break;
             }
           }
           if (!matched) {
@@ -2190,6 +2140,7 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
             unsigned char yjk = street_type_s[k];
             if (xjk != yjk) {
               matched = false;
+              break;
             }
           }
         }

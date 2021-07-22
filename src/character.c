@@ -257,7 +257,82 @@ SEXP CEncodeStCd(SEXP x, SEXP m, SEXP Abbrev, SEXP Abbrevi) {
   return ans;
 }
 
+SEXP Cmatch_word(SEXP xx, SEXP yy) {
+  int np = 0;
+  if (TYPEOF(xx) != STRSXP || TYPEOF(yy) != STRSXP) {
+    error("Wrong types"); // # nocov
+  }
+  R_xlen_t N = xlength(xx);
+  R_xlen_t M = xlength(yy);
+  SEXP nchar_yy = PROTECT(allocVector(INTSXP, M)); np++;
+  int * restrict nchar_yyp = INTEGER(nchar_yy);
+  for (R_xlen_t j = 0; j < M; ++j) {
+    nchar_yyp[j] = length(STRING_ELT(yy, j));
+  }
+  SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = NA_INTEGER;
+    int n = length(STRING_ELT(xx, i));
+    const char * x = CHAR(STRING_ELT(xx, i));
+    int word_sizes[8] = {0};
+    int word_positions[8] = {0};
+    int j = 0;
+    unsigned int wsk = 0, wpk = 0; // index of word_sizes
+    word_sizes[0] = 1;
+    while (++j < n && x[j] != ' ') {
+      word_sizes[0] += 1;
+    }
+    wsk = 1, wpk = 1;
+    while (++j < n) {
+      bool is_LETTER = x[j] >= 'A' && x[j] <= 'Z';
+      bool follows_space = x[j - 1] == ' ';
+      bool eow = x[j] == ' ' && !follows_space;
+      bool sow = is_LETTER && follows_space;
+      word_sizes[wsk] += is_LETTER;
+      word_positions[wpk] = j;
+      wsk += eow;
+      wsk &= 7u;
+      wpk += sow;
+      wpk &= 7u;
+    }
+    j = 0;
+    bool matched = false;
+    for (int w = 0; w < 8; ++w) {
+      if (matched) {
+        break;
+      }
+      int len_word_i = word_sizes[w];
 
+      for (R_xlen_t k = 0; k < M; ++k) {
+        if (matched) {
+          break;
+        }
+        int len_k = nchar_yyp[k];
+        if (len_k != len_word_i) {
+          continue;
+        }
+        matched = true; // provisional
+        const char * y = CHAR(STRING_ELT(yy, k));
+        const int wpw = word_positions[w];
+        for (int c = 0; c < len_k; ++c) {
+          unsigned char xc = x[c + wpw];
+          unsigned char yc = y[c];
+          if (xc != yc) {
+            matched = false;
+            break;
+          }
+        }
+        if (matched) {
+          ansp[i] = k + 1;
+        }
+      }
+    }
+
+  }
+  UNPROTECT(np);
+  return ans;
+}
 
 
 
