@@ -2,7 +2,6 @@
 #include "healthyAddress.h"
 #include "streetcodes.h"
 
-#include <omp.h>
 /*
  static const unsigned char letters[26] =
  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -1935,7 +1934,6 @@ int whichIsntValidStreetType(SEXP x, SEXP yy) {
 
     const int * y = INTEGER(yy);
     int miny = 1;
-#pragma omp parallel for num_threads(8) reduction(min : miny)
     for (R_xlen_t i = 1; i < N; ++i) {
       if (miny > y[i]) {
         miny = y[i];
@@ -1981,6 +1979,18 @@ SEXP Ctest_touppers(SEXP xx) {
   return ans;
 }
 
+SEXP CExtractPostcode(SEXP x) {
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(STRING_ELT(x, i));
+    const char * xp = CHAR(STRING_ELT(x, i));
+    ansp[i] = n > 4 ? xpostcode_unsafe(xp, n) : NA_INTEGER;
+  }
+  UNPROTECT(1);
+  return ans;
+}
 
 SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNames, SEXP Numbers,
               SEXP StreetTypeCd) {
@@ -2019,9 +2029,7 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
   // 8192 > max(POSTCODE)
   unsigned int postcode_starts[8192] = {0};
   unsigned int postcode_finals[8192] = {0};
-
   postcode_starts[postcodes[0]] = 0;
-#pragma omp parallel for
   for (int i = 1; i < M; ++i) {
     int p0 = postcodes[i - 1];
     int p1 = postcodes[i];
@@ -2031,7 +2039,6 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
     }
   }
   postcode_finals[postcodes[M - 1]] = M;
-
 
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
@@ -2156,6 +2163,204 @@ SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNam
   UNPROTECT(1);
   return ans;
 }
+
+
+SEXP MAX_uN_STCDs(SEXP x) {
+  return ScalarInteger(MAX_NUMBER_STREET_TYPES_ANY_POSTCODE);
+}
+SEXP C_N_STREET_TYPES(SEXP x) {
+  return ScalarInteger(N_STREET_TYPES);
+}
+
+
+SEXP CExtractAddressID(SEXP xx,
+                       SEXP xxPostcodes,
+                       SEXP id,
+                       SEXP Postcodes,
+                       SEXP StreetTypesCd, SEXP StreetNames, SEXP Numbers,
+                       SEXP Postcode2,
+                       SEXP StreetTypes2,
+                       SEXP Checks) {
+  int np = 0;
+  const bool check = asLogical(Checks);
+  R_xlen_t N = xlength(xx);
+  if (TYPEOF(xx) != STRSXP ||
+      TYPEOF(xxPostcodes) != INTSXP ||
+      xlength(xxPostcodes) != N) {
+    error("(ExtractAddressID_AA): wrong types.");
+  }
+  if (TYPEOF(id) != INTSXP) {
+    error("id not INTSXP");
+  }
+  if (TYPEOF(Postcodes) != INTSXP) {
+    error("Postcodes not INTSXP");
+  }
+  if (TYPEOF(StreetTypesCd) != INTSXP) {
+    error("(ExtractAddressID_AA): StreetTypesCd != INTSXP.");
+  }
+  if (TYPEOF(StreetNames) != STRSXP ||
+      TYPEOF(Numbers) != INTSXP) {
+    error("(ExtractAddressID_B): wrong types.");
+  }
+  int M = length(id);
+  if (M != xlength(StreetTypesCd) ||
+      M != xlength(Postcodes) ||
+      M != xlength(StreetNames) ||
+      M != xlength(Numbers)) {
+    error("(ExtractAddressID):Wrong lengths.");
+  }
+  int M2 = length(Postcode2);
+  if (TYPEOF(Postcode2) != INTSXP) {
+    error("Postcode2 is not INT");
+  }
+  if (TYPEOF(StreetTypes2) != INTSXP) {
+    error("StreetTypes2 not INTSXP");
+  }
+  if (xlength(StreetTypes2) != M2) {
+    error("(ExtractAddressID): (2) wrong types.");
+  }
+
+  if (check && isnt_sorted_asc(xxPostcodes)) {
+    error("Addresses were not sorted by their (extracted) postcodes at position %d",
+          isnt_sorted_asc(xxPostcodes));
+  }
+  if (check && isnt_sorted_asc(Postcodes)) {
+    error("Postcodes was not sorted at position %d.", isnt_sorted_asc(Postcodes));
+  }
+
+  const int * xxpostcodes = INTEGER(xxPostcodes);
+  const int * idp = INTEGER(id);
+  const int * postcodes = INTEGER(Postcodes);
+  const int * street_types_cd = INTEGER(StreetTypesCd);
+  const int * numbers = INTEGER(Numbers);
+
+  unsigned int postcode_starts[8192] = {0};
+  unsigned int postcode_finals[8192] = {0};
+  postcode_starts[postcodes[0]] = 0;
+  for (int i = 1; i < M; ++i) {
+    int p0 = postcodes[i - 1];
+    int p1 = postcodes[i];
+    if (p0 != p1) {
+      postcode_starts[p1] = i;
+      postcode_finals[p0] = i;
+    }
+  }
+  postcode_finals[postcodes[M - 1]] = M;
+
+  const int * postcodes2 = INTEGER(Postcode2);
+  const int * street_types2 = INTEGER(StreetTypes2);
+
+  unsigned int postcode2_starts[8192] = {0};
+  unsigned int postcode2_finals[8192] = {0};
+  postcode2_starts[postcodes2[0]] = 0;
+  for (int i = 1; i < M2; ++i) {
+    int p0 = postcodes2[i - 1];
+    int p1 = postcodes2[i];
+    if (p0 != p1) {
+      postcode2_starts[p1] = i;
+      postcode2_finals[p0] = i;
+    }
+  }
+  postcode2_finals[postcodes2[M2 - 1]] = M2;
+
+
+
+  SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict ansp = INTEGER(ans);
+
+  // Now we create a vector where
+  //                                      /   1  if street_type exists in postcode
+  //   v[i * postcode + street_type_cd] = |
+  //                                      \   0 if not
+  unsigned int npostcode_nsttype = SUP_POSTCODES * N_STREET_TYPES;
+  SEXP ST_TYPES_POSTCODE = PROTECT(allocVector(RAWSXP, npostcode_nsttype)); np++;
+  unsigned char * ST_TYPES_POSTCODEp = RAW(ST_TYPES_POSTCODE);
+  for (unsigned int k = 0; k < npostcode_nsttype; ++k) {
+    ST_TYPES_POSTCODEp[k] = 0;
+  }
+  if (false) {
+  Rprintf("xxx");
+  for (int i = 0; i < M2; ++i) {
+    unsigned int postcode2i = postcodes2[i];
+    unsigned int street_type_enc = street_types2[i];
+    unsigned int k = postcode2i * SUP_POSTCODES + street_type_enc;
+    if (i == 0)
+      Rprintf("%u,%u,%u\n", k);
+
+    ST_TYPES_POSTCODEp[k] = 1;
+  }
+  Rprintf("000");
+  }
+
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = NA_INTEGER;
+    int postcodei = xxpostcodes[i];
+    if (postcodei == NA_INTEGER) {
+      continue;
+    }
+    int postcode2_start = postcode2_starts[postcodei];
+    int postcode2_final = postcode2_finals[postcodei];
+
+    int n = length(STRING_ELT(xx, i));
+    if (n < 10) {
+      continue;
+    }
+    const char * x = CHAR(STRING_ELT(xx, i));
+    if (has_ROAD(x, n)) {
+      ansp[i] = ST_CODE_ROAD;
+      continue;
+    }
+    if (has_STREET(x, n)) {
+      ansp[i] = ST_CODE_STREET;
+      continue;
+    }
+    if (has_COURT(x, n)) {
+      ansp[i] = ST_CODE_COURT;
+      continue;
+    }
+    if (has_DRIVE(x, n)) {
+      ansp[i] = ST_CODE_DRIVE;
+      continue;
+    }
+    if (has_AVENUE(x, n)) {
+      ansp[i] = ST_CODE_AVENUE;
+      continue;
+    }
+    if (has_PLACE(x, n)) {
+      ansp[i] = ST_CODE_PLACE;
+      continue;
+    }
+    if (has_LANE(x, n)) {
+      ansp[i] = ST_CODE_LANE;
+      continue;
+    }
+    if (has_WAY(x, n)) {
+      ansp[i] = ST_CODE_WAY;
+      continue;
+    }
+    if (has_CLOSE(x, n)) {
+      ansp[i] = ST_CODE_CLOSE;
+      continue;
+    }
+
+    // for (int k = n - 4; k >= 1; --k) {
+    //
+    //   unsigned char xk0 = x[k - 1];
+    //   unsigned char xk1 = x[k];
+    //   unsigned char xk2 = x[k + 1];
+    //
+    //   int street_cd_k = 0;
+    // }
+
+  }
+
+
+  UNPROTECT(np);
+  return ans;
+}
+
+
 
 
 

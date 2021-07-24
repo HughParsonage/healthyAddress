@@ -8,28 +8,38 @@
 */
 
 /* .Call calls */
+extern SEXP C_N_STREET_TYPES(SEXP);
 extern SEXP CEncodeStCd(SEXP, SEXP, SEXP, SEXP);
 extern SEXP CEnsureUC(SEXP);
+extern SEXP CExtractAddressID(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP CExtractPostcode(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
+extern SEXP CStreetCd2Str(SEXP);
 extern SEXP Ctest_digit_of_from(SEXP, SEXP, SEXP);
 extern SEXP Ctest_touppers(SEXP);
 extern SEXP CToUpperBasic(SEXP);
 extern SEXP CwhichStreetName3(SEXP);
 extern SEXP Extract2(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"CEncodeStCd",         (DL_FUNC) &CEncodeStCd,         4},
-    {"CEnsureUC",           (DL_FUNC) &CEnsureUC,           1},
-    {"CExtractStdAddress",  (DL_FUNC) &CExtractStdAddress,  2},
-    {"CFindSentence",       (DL_FUNC) &CFindSentence,       3},
-    {"Cmatch_word",         (DL_FUNC) &Cmatch_word,         2},
-    {"Ctest_digit_of_from", (DL_FUNC) &Ctest_digit_of_from, 3},
-    {"Ctest_touppers",      (DL_FUNC) &Ctest_touppers,      1},
-    {"CToUpperBasic",       (DL_FUNC) &CToUpperBasic,       1},
-    {"CwhichStreetName3",   (DL_FUNC) &CwhichStreetName3,   1},
-    {"Extract2",            (DL_FUNC) &Extract2,            7},
+    {"C_N_STREET_TYPES",    (DL_FUNC) &C_N_STREET_TYPES,     1},
+    {"CEncodeStCd",         (DL_FUNC) &CEncodeStCd,          4},
+    {"CEnsureUC",           (DL_FUNC) &CEnsureUC,            1},
+    {"CExtractAddressID",   (DL_FUNC) &CExtractAddressID,   10},
+    {"CExtractPostcode",    (DL_FUNC) &CExtractPostcode,     1},
+    {"CExtractStdAddress",  (DL_FUNC) &CExtractStdAddress,   2},
+    {"CFindSentence",       (DL_FUNC) &CFindSentence,        3},
+    {"Cmatch_word",         (DL_FUNC) &Cmatch_word,          2},
+    {"CStreetCd2Str",       (DL_FUNC) &CStreetCd2Str,        1},
+    {"Ctest_digit_of_from", (DL_FUNC) &Ctest_digit_of_from,  3},
+    {"Ctest_touppers",      (DL_FUNC) &Ctest_touppers,       1},
+    {"CToUpperBasic",       (DL_FUNC) &CToUpperBasic,        1},
+    {"CwhichStreetName3",   (DL_FUNC) &CwhichStreetName3,    1},
+    {"Extract2",            (DL_FUNC) &Extract2,             7},
+    {"MAX_uN_STCDs",        (DL_FUNC) &MAX_uN_STCDs,         1},
     {NULL, NULL, 0}
 };
 

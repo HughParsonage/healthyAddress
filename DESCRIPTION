@@ -12,7 +12,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
-    data.table
+    data.table,
+    fastmatch
 Suggests: 
     PSMA,
     tinytest

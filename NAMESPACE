@@ -3,4 +3,5 @@
 export(match_word)
 export(toupper_basic)
 import(data.table)
+importFrom(PSMA,get_fst)
 useDynLib(healthyAddress, .registration = TRUE)
