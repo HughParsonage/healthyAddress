@@ -15,6 +15,8 @@
 #define SUP_POSTCODES 8192
 #define MAX_NUMBER_STREET_TYPES_ANY_POSTCODE 64
 #define N_STREET_TYPES 201
+#define MAX_POSTCODE 7470
+#define N_UNIQUE_STREET_CODES 201
 
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
@@ -29,5 +31,7 @@ bool has_CLOSE(const char * x, int n);
 bool has_PLACE(const char * x, int n);
 bool has_LANE(const char * x, int n);
 bool has_GROVE(const char * x, int n);
+bool poa_has_street_type(int poa, int type);
+
 
 #endif
