@@ -41,14 +41,22 @@ get_FullNamedAddressData <- function(envir = NULL) {
   .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())
 }
 
+extract_street_code <- function(address, poa) {
+  avbl_street_codes <- .Call("Cpoa_has_stcd", as.integer(poa), PACKAGE = packageName())
+  head(avbl_street_codes)
+}
+
 extract_standard_address <- function(address,
                                      .check = TRUE) {
   xxPostcodes <- extract_postcode(address)
   min_postcode <- min(xxPostcodes, na.rm = TRUE)
   max_postcode <- max(xxPostcodes, na.rm = TRUE)
+  PSTO <- .permitted_street_type_ord()
+
   DT <-
     list(address = address,
          xxPostcodes = xxPostcodes,
+         xxStreetNameCd = match_word(address, PSTO),
          orig_order = seq_along(address))
   setDT(DT)
   setkey(DT, xxPostcodes)
@@ -63,6 +71,8 @@ extract_standard_address <- function(address,
   if (observed_max_stcds_any_postcode > .MAX_uN_STCDs()) {
     stop("Internal error: Number of street codes per postcode exceeded.")
   }
+
+
 
   xx <- address
   id <- .subset2(FF, "ADDRESS_DETAIL_INTRNL_ID")
@@ -235,4 +245,19 @@ test_touppers <- function(x) {
   .Call("Ctest_touppers", x, PACKAGE = packageName())
 }
 
+PoaHasSt <- function(x, y) {
+  .Call("CPoaHasSt", x, y, PACKAGE = packageName())
+}
 
+
+NamePresent <- function(j, x, Names = NULL, from = 0L, to = length(Names) - 1L) {
+  if (is.null(Names)) {
+    Names <- get_FullNamedAddressData()[["STREET_NAME"]]
+    i <- seq_along(Names)
+    nd <- !duplicated(Names)
+    Nnd <- Names[nd]
+    ind <- i[nd]
+    o <- .Call("CNamePresent", j, x, Nnd, from, to, PACKAGE = packageName())
+  }
+  .Call("CNamePresent", j, x, Names, from, to, PACKAGE = packageName())
+}

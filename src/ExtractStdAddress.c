@@ -178,6 +178,32 @@ bool has_ste_postcode(const char * x, int n) {
   return ste_as_int(x, n - 8) && has_postcode(x, n);
 }
 
+SEXP CPoaHasSt(SEXP Poa, SEXP Type) {
+  R_xlen_t N = xlength(Poa);
+  if (TYPEOF(Poa) != INTSXP || xlength(Type) != N) {
+    return R_NilValue;
+  }
+  if (TYPEOF(Type) != INTSXP) {
+    if (TYPEOF(Type) != STRSXP) {
+      return R_NilValue;
+    }
+    return R_NilValue;
+  }
+
+  
+  if (N != xlength(Type)) {
+    return R_NilValue;
+  }
+  const int * poap = INTEGER(Poa);
+  const int * typep = INTEGER(Type);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = poa_has_street_type(poap[i], typep[i]);
+  }
+  UNPROTECT(1);
+  return ans;
+}
 
 
 SEXP fast_nchar(SEXP x, SEXP na) {
@@ -2172,6 +2198,53 @@ SEXP C_N_STREET_TYPES(SEXP x) {
   return ScalarInteger(N_STREET_TYPES);
 }
 
+int NamePresent(int j, const char * x, int n, SEXP Names, int from, int to) {
+  if (!char_is_LETTER(x[j])) {
+    return NA_INTEGER;
+  }
+  const char first_letter = x[j];
+
+  for (int k = from; k < to; ++k) {
+    int nk = length(STRING_ELT(Names, k));
+    if (j + nk > n) {
+      continue;
+    }
+    if (x[j + nk] != ' ') {
+      continue;
+    }
+    const char * nomk = CHAR(STRING_ELT(Names, k));
+    if (nomk[0] != first_letter) {
+      continue;
+    }
+    bool matched = true; // provisional
+    for (int kk = 1; kk < nk; ++nk) {
+      if (nomk[kk] != x[j + kk]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) {
+      return k;
+    }
+  }
+  return NA_INTEGER;
+}
+
+SEXP CNamePresent(SEXP J, SEXP X, SEXP Names, SEXP From, SEXP To) {
+  const int j = asInteger(J);
+  if (TYPEOF(X) != STRSXP || xlength(X) != 1 || TYPEOF(Names) != STRSXP) {
+    error("TYPEOF(X) != STRSXP");
+  }
+  const int from = asInteger(From);
+  const int to = asInteger(To);
+  if (from > to || to >= xlength(Names)) {
+    error("from,to bad");
+  }
+  int n = length(STRING_ELT(X, 0));
+  const char * x = CHAR(STRING_ELT(X, 0));
+  int o = NamePresent(j, x, n, Names, from, to);
+  return ScalarInteger(o);
+}
 
 SEXP CExtractAddressID(SEXP xx,
                        SEXP xxPostcodes,
@@ -2307,11 +2380,23 @@ SEXP CExtractAddressID(SEXP xx,
       continue;
     }
     const char * x = CHAR(STRING_ELT(xx, i));
-    if (has_ROAD(x, n)) {
+    int pos_last_number = n - 4;
+      for (; pos_last_number >= 0; --pos_last_number) {
+        if (char_is_number(x[pos_last_number])) {
+          break;
+        }
+      }
+
+    if (poa_has_ROAD(postcodei) && has_ROAD(x, n)) {
       ansp[i] = ST_CODE_ROAD;
       continue;
     }
-    if (has_STREET(x, n)) {
+    if (poa_has_street_type(postcodei, ST_CODE_STREET) && has_STREET(x, n)) {
+      for (int j = pos_last_number; j < n; ++j) {
+        char xj = x[j];
+        
+      }
+
       ansp[i] = ST_CODE_STREET;
       continue;
     }

@@ -1,5 +1,6 @@
 #include "healthyAddress.h"
-int IntrnlPoa_to_POSTCODE[] = { 800,  810,  812,  820,  822,  828,  829,  830,  832,  834,
+int IntrnlPoa_to_POSTCODE[] = {
+ 800,  810,  812,  820,  822,  828,  829,  830,  832,  834,
  835,  836,  837,  838,  839,  840,  841,  845,  846,  847,
  850,  852,  853,  854,  860,  862,  870,  872,  873,  874,
  875,  880,  885,  886, 2000, 2007, 2008, 2009, 2010, 2011,
@@ -263,7 +264,9 @@ int IntrnlPoa_to_POSTCODE[] = { 800,  810,  812,  820,  822,  828,  829,  830,  
 7268, 7270, 7275, 7276, 7277, 7290, 7291, 7292, 7300, 7301,
 7302, 7303, 7304, 7305, 7306, 7307, 7310, 7315, 7316, 7320,
 7321, 7322, 7325, 7330, 7331, 7466, 7467, 7468, 7469, 7470};
-int POSTCODE_to_IntrnlPoa[] = {   0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+
+int POSTCODE_to_IntrnlPoa[] = {
+   0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
@@ -1011,9 +1014,10 @@ int POSTCODE_to_IntrnlPoa[] = {   0,    0,    0,    0,    0,    0,    0,    0,  
    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
    0,    0,    0,    0,    0, 2635, 2636, 2637, 2638, 2639};
 
-int postcode2intrnl(int poa) {
- return POSTCODE_to_IntrnlPoa[poa];
- }
-int intrnl2postcode(int ipoa) {
- return IntrnlPoa_to_POSTCODE[ipoa];
- }
+int postcode2intrnl(unsigned int poa) {
+ return POSTCODE_to_IntrnlPoa[(poa - 1u) & SUP_POSTCODE_];
+}
+
+int intrnl2postcode(unsigned int ipoa) {
+ return IntrnlPoa_to_POSTCODE[ipoa % N_POSTCODES];
+}

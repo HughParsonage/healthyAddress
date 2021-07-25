@@ -1,10 +1,11 @@
 library(PSMA)
 library(data.table)
+library(magrittr)
 library(hutils)
 library(hutilscpp)
 stopifnot(dir.exists("data-raw"), file.exists("DESCRIPTION"),
           desc::desc_get("Package") == "healthyAddress")
-# devtools::load_all()
+devtools::load_all()
 
 insert_define_into_header <- function(text1, text2, header.file = "./src/healthyAddress.h") {
   stopifnot(file.exists(header.file), !startsWith(text1, "#"))
@@ -62,6 +63,8 @@ insert_define_into_header("N_POSTCODES", length(all_postcodes), header.file = "s
 insert_define_into_header("MAX_POSTCODE", max_postcode, header.file = "src/healthyAddress.h")
 insert_define_into_header("N_STREET_TYPES", FF[, uniqueN(STREET_TYPE_CODE)],
                           header.file = "src/healthyAddress.h")
+MAX_STREET_CODE <- length(.permitted_street_type_ord())
+insert_define_into_header("MAX_STREET_CODE", MAX_STREET_CODE)
 
 cat("int IntrnlPoa_to_POSTCODE[] = {",
     toString10(all_postcodes),
@@ -130,18 +133,21 @@ CJ_POSTCODE_StreetType_Exists <-
   .[]
 CJX_POSTCODE_StreetType_Exists <-
   CJ_POSTCODE_StreetType_Exists[CJ(IntrnlPostcode = unique(CJ_POSTCODE_StreetType_Exists$IntrnlPostcode),
-                                   STREET_TYPE = seq_len(max(CJ_POSTCODE_StreetType_Exists$STREET_TYPE)))]
+                                   STREET_TYPE = seq_len(MAX_STREET_CODE))]
 CJX_POSTCODE_StreetType_Exists[, Exists := coalesce(Exists, 0L)]
 
 ca <- function(...) cat(..., sep = "", file = "src/street-type-exists.c", append = TRUE)
 cat("#include", '"healthyAddress.h"\n', file = "src/street-type-exists.c")
-ca("static const unsigned char PoaStr[N_POSTCODES][N_STREET_TYPES] = {\n")
+ca("static const unsigned char PoaStr[N_POSTCODES][MAX_STREET_CODE] = {\n")
 for (p in seq_along(all_postcodes)) {
-  ca("{", toString10(CJX_POSTCODE_StreetType_Exists[.(p - 1L)]$Exists), "},\n")
+  if (nrow(CJX_POSTCODE_StreetType_Exists[.(p - 1L)]) != MAX_STREET_CODE) {
+    stop(nrow(CJX_POSTCODE_StreetType_Exists[.(p - 1L)]), " ", MAX_STREET_CODE)
+  }
+  ca("{", paste0(CJX_POSTCODE_StreetType_Exists[.(p - 1L)]$Exists, collapse = ","), "},\n")
 }
-ca("};")
+ca("};\n")
 ca("bool poa_has_street_type(int poa, int type) {\n")
-ca("int intrnl_poa = postcode2intrnl(poa);\n")
+ca("  int intrnl_poa = postcode2intrnl(poa);\n")
 ca("return PoaStr[poa][type];\n")
 ca("}\n")
 

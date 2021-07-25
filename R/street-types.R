@@ -399,8 +399,10 @@ street_cd_from_int <- function(x) {
 N_STREET_TYPES <- function() {
   .Call("C_N_STREET_TYPES", NULL, PACKAGE = packageName())
 }
-
-
+encode_street_name <- function(x) {
+  stopifnot(is.character(x))
+  .Call("CStreet2StreetCode", x, PACKAGE = packageName())
+}
 
 
 

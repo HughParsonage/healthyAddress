@@ -271,34 +271,42 @@ SEXP Cmatch_word(SEXP xx, SEXP yy) {
   }
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
   int * restrict ansp = INTEGER(ans);
+
+  // order to look for words
+  const int W_ORD[16] = { 3,  4,  5,  2,  6, 0, 1, 7,
+                         11, 12, 13, 10, 14, 8, 9, 15};
+
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = NA_INTEGER;
     int n = length(STRING_ELT(xx, i));
     const char * x = CHAR(STRING_ELT(xx, i));
-    int word_sizes[8] = {0};
-    int word_positions[8] = {0};
+    int word_sizes[16] = {0};
+    int word_positions[16] = {0};
     int j = 0;
     unsigned int wsk = 0, wpk = 0; // index of word_sizes
     word_sizes[0] = 1;
     while (++j < n && x[j] != ' ') {
       word_sizes[0] += 1;
     }
+    j = n - 1;
     wsk = 1, wpk = 1;
-    while (++j < n) {
-      bool is_LETTER = x[j] >= 'A' && x[j] <= 'Z';
+    while (--j >= 1) {
+      bool isnt_space = x[j] != ' ';
       bool follows_space = x[j - 1] == ' ';
-      bool eow = x[j] == ' ' && !follows_space;
-      bool sow = is_LETTER && follows_space;
-      word_sizes[wsk] += is_LETTER;
+      bool eow = !isnt_space && !follows_space;
+      bool sow = isnt_space && follows_space;
+      word_sizes[wsk] += isnt_space;
       word_positions[wpk] = j;
       wsk += eow;
-      wsk &= 7u;
+      wsk &= 15u;
       wpk += sow;
-      wpk &= 7u;
+      wpk &= 15u;
     }
     j = 0;
     bool matched = false;
-    for (int w = 0; w < 8; ++w) {
+    for (int w_ = 0; w_ < 16; ++w_) {
+      int w = W_ORD[w_];
+
       if (matched) {
         break;
       }
@@ -334,5 +342,15 @@ SEXP Cmatch_word(SEXP xx, SEXP yy) {
   return ans;
 }
 
-
+bool string_equal(const char * x, int n, const char * y, int m) {
+  if (n != m) {
+    return false;
+  }
+  for (int i = 0; i < n; ++i) {
+    if (x[i] != y[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 

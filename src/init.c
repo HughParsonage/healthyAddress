@@ -16,6 +16,10 @@ extern SEXP CExtractPostcode(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
+extern SEXP CNamePresent(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP Cpoa_has_stcd(SEXP);
+extern SEXP CPoaHasSt(SEXP, SEXP);
+extern SEXP CStreet2StreetCode(SEXP);
 extern SEXP CStreetCd2Str(SEXP);
 extern SEXP Ctest_digit_of_from(SEXP, SEXP, SEXP);
 extern SEXP Ctest_touppers(SEXP);
@@ -33,6 +37,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"CExtractStdAddress",  (DL_FUNC) &CExtractStdAddress,   2},
     {"CFindSentence",       (DL_FUNC) &CFindSentence,        3},
     {"Cmatch_word",         (DL_FUNC) &Cmatch_word,          2},
+    {"CNamePresent",        (DL_FUNC) &CNamePresent,         5},
+    {"Cpoa_has_stcd",       (DL_FUNC) &Cpoa_has_stcd,        1},
+    {"CPoaHasSt",           (DL_FUNC) &CPoaHasSt,            2},
+    {"CStreet2StreetCode",  (DL_FUNC) &CStreet2StreetCode,   1},
     {"CStreetCd2Str",       (DL_FUNC) &CStreetCd2Str,        1},
     {"Ctest_digit_of_from", (DL_FUNC) &Ctest_digit_of_from,  3},
     {"Ctest_touppers",      (DL_FUNC) &Ctest_touppers,       1},
