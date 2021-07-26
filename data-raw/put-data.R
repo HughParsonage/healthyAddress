@@ -42,6 +42,7 @@ insert_function_into_header <- function(text1,
 
 # Populate
 FF <- get_FullNamedAddressData()
+FF[, i := .I]
 
 all_postcodes <- FF[, unique(POSTCODE)]
 max_postcode <- FF[, max(POSTCODE)]
@@ -152,6 +153,12 @@ ca("return PoaStr[poa][type];\n")
 ca("}\n")
 
 insert_function_into_header("bool poa_has_street_type(int poa, int type);\n")
+
+Street_by_POSTCODE <-
+  unique(FF, by = key(FF)[1:3]) %>%
+  .[, STREET_TYPE_CODE_INT := encode_street_name(STREET_TYPE_CODE)] %>%
+  .[]
+
 
 
 

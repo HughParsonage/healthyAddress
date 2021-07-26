@@ -190,7 +190,7 @@ SEXP CPoaHasSt(SEXP Poa, SEXP Type) {
     return R_NilValue;
   }
 
-  
+
   if (N != xlength(Type)) {
     return R_NilValue;
   }
@@ -2352,17 +2352,15 @@ SEXP CExtractAddressID(SEXP xx,
     ST_TYPES_POSTCODEp[k] = 0;
   }
   if (false) {
-  Rprintf("xxx");
-  for (int i = 0; i < M2; ++i) {
-    unsigned int postcode2i = postcodes2[i];
-    unsigned int street_type_enc = street_types2[i];
-    unsigned int k = postcode2i * SUP_POSTCODES + street_type_enc;
-    if (i == 0)
-      Rprintf("%u,%u,%u\n", k);
 
-    ST_TYPES_POSTCODEp[k] = 1;
-  }
-  Rprintf("000");
+    for (int i = 0; i < M2; ++i) {
+      unsigned int postcode2i = postcodes2[i];
+      unsigned int street_type_enc = street_types2[i];
+      unsigned int k = postcode2i * SUP_POSTCODES + street_type_enc;
+
+
+      ST_TYPES_POSTCODEp[k] = 1;
+    }
   }
 
 
@@ -2381,11 +2379,11 @@ SEXP CExtractAddressID(SEXP xx,
     }
     const char * x = CHAR(STRING_ELT(xx, i));
     int pos_last_number = n - 4;
-      for (; pos_last_number >= 0; --pos_last_number) {
-        if (char_is_number(x[pos_last_number])) {
-          break;
-        }
+    for (; pos_last_number >= 0; --pos_last_number) {
+      if (char_is_number(x[pos_last_number])) {
+        break;
       }
+    }
 
     if (poa_has_ROAD(postcodei) && has_ROAD(x, n)) {
       ansp[i] = ST_CODE_ROAD;
@@ -2394,7 +2392,7 @@ SEXP CExtractAddressID(SEXP xx,
     if (poa_has_street_type(postcodei, ST_CODE_STREET) && has_STREET(x, n)) {
       for (int j = pos_last_number; j < n; ++j) {
         char xj = x[j];
-        
+
       }
 
       ansp[i] = ST_CODE_STREET;

@@ -2645,7 +2645,6 @@ bool poa_has_street_type(int poa, int type) {
 	int intrnl_poa = postcode2intrnl(poa);
 	unsigned int k = type - 1;
 	k %= MAX_STREET_CODE;
-	Rprintf("%d[]%d ", intrnl_poa, k);
 	return PoaStr[intrnl_poa][k];
 }
 

@@ -9,6 +9,8 @@
 #include <math.h>
 #include "streetcodes.h"
 
+#include <omp.h>
+
 #define N_POSTCODES 2640
 #define SUP_POSTCODES 8192
 #define SUP_POSTCODE_ 8191

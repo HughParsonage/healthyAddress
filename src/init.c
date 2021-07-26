@@ -9,12 +9,17 @@
 
 /* .Call calls */
 extern SEXP C_N_STREET_TYPES(SEXP);
+extern SEXP CDecodeWord_16_2(SEXP);
+extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CEncodeStCd(SEXP, SEXP, SEXP, SEXP);
+extern SEXP CEncodeWord_16_2(SEXP);
 extern SEXP CEnsureUC(SEXP);
 extern SEXP CExtractAddressID(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
+extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP Cmatch_StreetType(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
 extern SEXP CNamePresent(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cpoa_has_stcd(SEXP);
@@ -30,12 +35,17 @@ extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"C_N_STREET_TYPES",    (DL_FUNC) &C_N_STREET_TYPES,     1},
+    {"CDecodeWord_16_2",    (DL_FUNC) &CDecodeWord_16_2,     1},
+    {"Cdigit256",           (DL_FUNC) &Cdigit256,            2},
     {"CEncodeStCd",         (DL_FUNC) &CEncodeStCd,          4},
+    {"CEncodeWord_16_2",    (DL_FUNC) &CEncodeWord_16_2,     1},
     {"CEnsureUC",           (DL_FUNC) &CEnsureUC,            1},
     {"CExtractAddressID",   (DL_FUNC) &CExtractAddressID,   10},
     {"CExtractPostcode",    (DL_FUNC) &CExtractPostcode,     1},
     {"CExtractStdAddress",  (DL_FUNC) &CExtractStdAddress,   2},
     {"CFindSentence",       (DL_FUNC) &CFindSentence,        3},
+    {"Cmatch_StreetName",   (DL_FUNC) &Cmatch_StreetName,    6},
+    {"Cmatch_StreetType",   (DL_FUNC) &Cmatch_StreetType,    3},
     {"Cmatch_word",         (DL_FUNC) &Cmatch_word,          2},
     {"CNamePresent",        (DL_FUNC) &CNamePresent,         5},
     {"Cpoa_has_stcd",       (DL_FUNC) &Cpoa_has_stcd,        1},

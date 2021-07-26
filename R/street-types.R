@@ -1,4 +1,44 @@
-
+#' Street types allowed.
+#' @return A character vector, the permitted street codes. In order of
+#' (approximate) occurrence; more common street types appear in the head
+#' of the vector.
+#' @export
+.permitted_street_type_ord <- function() {
+  c("ROAD", "STREET", "COURT", "AVENUE", "PLACE", "LANE", "DRIVE",
+    "CLOSE", "TRACK", "CRESCENT", "WAY", "TRAIL", "HIGHWAY", "TERRACE",
+    "PARADE", "GROVE", "ACCESS", "CIRCUIT", "RAMP", "BOULEVARD",
+    "WALK", "RISE", "FIRETRAIL", "BREAK", "LOOP", "MEWS", "LINK",
+    "GARDENS", "CIRCLE", "PARKWAY", "FREEWAY", "VIEW", "RETREAT",
+    "COVE", "ESPLANADE", "SQUARE", "PASS", "MOTORWAY", "PATHWAY",
+    "VISTA", "TURN", "BEND", "CHASE", "GREEN", "ENTRANCE", "HEIGHTS",
+    "GLEN", "PROMENADE", "ROW", "RIDGE", "FIREBREAK", "GLADE", "APPROACH",
+    "PATH", "RUN", "BYPASS", "ALLEY", "ARCADE", "ELBOW", "BRACE",
+    "CORNER", "ROUTE", "RAMBLE", "FIRELINE", "CROSSING", "GATE",
+    "GRANGE", "FAIRWAY", "LOOKOUT", "POINT", "HILL", "CREST", "LANEWAY",
+    "EXPRESSWAY", "LINE", "MALL", "MEANDER", "OUTLOOK", "BAY", "CROSS",
+    "WALKWAY", "FIRETRACK", "BRIDGE", "PARK", "PLAZA", "NOOK", "WYND",
+    "VALE", "DOWNS", "SPUR", "BUSWAY", "CIRCUS", "POCKET", "BOARDWALK",
+    "CONCOURSE", "RIVER", "QUAYS", "RESERVE", "DALE", "ISLAND", "REST",
+    "CONNECTION", "END", "QUAY", "VIEWS", "KEY", "TRAVERSE", "BOULEVARDE",
+    "FORMATION", "OUTLET", "DRIVEWAY", "LANDING", "EDGE", "QUADRANT",
+    "VALLEY", "WATERS", "CAUSEWAY", "BEACH", "SERVICEWAY", "CENTRE",
+    "EASEMENT", "PASSAGE", "STRIP", "TARN", "BRAE", "DEVIATION",
+    "JUNCTION", "STEPS", "WHARF", "BOWL", "COURSE", "GAP", "GULLY",
+    "TUNNEL", "CUTTING", "ESTATE", "EXTENSION", "FORESHORE", "GATEWAY",
+    "HAVEN", "ROTARY", "COMMON", "COPSE", "DISTRIBUTOR", "FOLLOW",
+    "FRONTAGE", "TOR", "ARTERIAL", "BANK", "NORTH", "ROADS", "UNDERPASS",
+    "BROW", "HEATH", "LADDER", "PRECINCT", "RANGE", "SOUTH", "TRUNKWAY",
+    "AMBLE", "BANAN", "BRANCH", "CORSO", "DIVIDE", "DOCK", "FORD",
+    "FORK", "GARDEN", "HIKE", "HOLLOW", "INTERCHANGE", "PALMS", "RIDE",
+    "ROUND", "SLOPE", "STRAIT", "SUBWAY", "TOP", "TRAMWAY", "BROADWAY",
+    "CLUSTER", "DELL", "DOMAIN", "FLAT", "HUB", "LYNNE", "MEAD",
+    "MILE", "PORT", "REACH", "RETURN", "STRAIGHT", "VILLAGE", "WEST",
+    "WOODS", "ACRE", "BYWAY", "CENTREWAY", "COMMONS", "CONCORD",
+    "COURTYARD", "CRIEF", "CRUISEWAY", "CUL-DE-SAC", "DASH", "DENE",
+    "DIP", "DOWN", "EAST", "FLATS", "HARBOUR", "HILLS", "KEYS", "MANOR",
+    "MART", "MAZE", "PURSUIT", "RISING", "ROADWAY", "THROUGHWAY",
+    "TWIST", "VILLA", "WATERWAY", "YARD")
+}
 
 
 permitted_street_cds <- function() {
