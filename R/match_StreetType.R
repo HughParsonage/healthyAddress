@@ -30,18 +30,23 @@ match_StreetType <- function(address, m = 0L) {
 
 
 
-match_StreetName <- function(x) {
+match_StreetName <- function(x, StreetMatch2 = match_StreetType(x, m = 2L)) {
   Postcode <- extract_postcode(x)
-  StreetMatch1 <-  match_StreetType(x, m = 2L)
   StreetName2 <- x
   .Call("Cmatch_StreetName",
         x,
-        Postcode, StreetMatch1,
+        Postcode, StreetMatch2,
         Postcode,
-        StreetMatch1,
+        StreetMatch2,
         StreetName2,
         PACKAGE = packageName());
 }
+
+extractNumber <- function(x, ss = match_StreetType(x, m = 2L), m = 2L) {
+  .Call("CextractNumber", x, ss, m, PACKAGE = packageName())
+}
+
+
 
 EncodeWord <- function(x) {
   .Call("CEncodeWord_16_2", x, PACKAGE = packageName())

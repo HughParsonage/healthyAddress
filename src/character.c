@@ -49,6 +49,16 @@ bool string_equal_ij(const char * x, int n, const char * y, int ix, int iy) {
   return true;
 }
 
+bool uchar_is_number(unsigned char x) {
+  unsigned int xi = x - '0';
+  return xi <= 9;
+}
+
+bool jchar_is_number(const char * x, int j) {
+  unsigned char xj = x[j];
+  return uchar_is_number(xj);
+}
+
 unsigned int pos_preceding_word(const char * x, int i) {
   // ignore leading spaces
   while (--i >= 1) {
@@ -525,21 +535,21 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
               x[j - 3] == 'L' &&
               x[j - 2] == 'A' &&
               x[j - 1] == 'C') {
-            ansp[i] = ST_CODE_PLACE + 256 * (j - 5);
+            ansp[i] = ST_CODE_PLACE + 256 * (j - 5) + m2 * pos_preceding_word(x, j - 5);
             break;
           }
           if (x[j - 4] == 'D' &&
               x[j - 3] == 'R' &&
               x[j - 2] == 'I' &&
               x[j - 1] == 'V') {
-            ansp[i] = ST_CODE_DRIVE + 256 * (j - 5);
+            ansp[i] = ST_CODE_DRIVE + 256 * (j - 5) + m2 * pos_preceding_word(x, j - 5);
             break;
           }
           if (x[j - 4] == 'C' &&
               x[j - 3] == 'L' &&
               x[j - 2] == 'O' &&
               x[j - 1] == 'S') {
-            ansp[i] = ST_CODE_CLOSE + 256 * (j - 5);
+            ansp[i] = ST_CODE_CLOSE + 256 * (j - 5) + m2 * pos_preceding_word(x, j - 5);
             break;
           }
         }
@@ -549,7 +559,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
             x[j - 3] == 'E' &&
             x[j - 2] == 'N' &&
             x[j - 1] == 'U') {
-          ansp[i] = ST_CODE_AVENUE + 256 * (j - 6);
+          ansp[i] = ST_CODE_AVENUE + 256 * (j - 6) + m2 * pos_preceding_word(x, j - 6);
           break;
         }
         --j;
@@ -562,12 +572,12 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
           x[j - 2] == 'A') {
         if (x[j - 1] == 'C' &&
             xj == 'K') {
-          ansp[i] = ST_CODE_TRACK + 256 * (j - 5);
+          ansp[i] = ST_CODE_TRACK + 256 * (j - 5) + m2 * pos_preceding_word(x, j - 5);
           break;
         }
         if (x[j - 1] == 'I' &&
             xj == 'L') {
-          ansp[i] = ST_CODE_TRAIL + 256 * (j - 5);
+          ansp[i] = ST_CODE_TRAIL + 256 * (j - 5) +  m2 * pos_preceding_word(x, j - 5);
           break;
         }
         j -= 5;
@@ -637,7 +647,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
           }
         }
         if (matched) {
-          ansp[i] = (k + 1) + 256 * wpw;
+          ansp[i] = (k + 1) + m1 * (wpw - 1) + m2 * pos_preceding_word(x, wpw - 1);
         }
       }
     }
@@ -776,6 +786,74 @@ SEXP Cmatch_StreetName(SEXP xx,
     const char * o = (const char *)oy;
     SET_STRING_ELT(ans, i, mkCharCE(o, CE_UTF8));
   }
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP CextractNumber(SEXP xx, SEXP ss, SEXP mm) {
+  if (!isString(xx)) {
+    error("Address was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
+  }
+  if (!isInteger(ss)) {
+    error("Address was type '%s' but must be an integer vector.", type2char(TYPEOF(ss)));
+  }
+  const int m = asInteger(mm);
+  R_xlen_t N = xlength(xx);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  const SEXP * xp = STRING_PTR(xx);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    SEXP CX = xp[i];
+    int n = length(CX);
+    const char * x = CHAR(CX);
+    bool maybe_unit = false;
+    int n_numbers = 0;
+    unsigned char number_fmt = '1';
+    // '1' one number |
+    // '-' number-first_number-last
+    // '/' unit/number_first
+    int pos_last_number = 0;
+    // n - 5 due postcode
+    for (int j = 0; j < n - 5; ++j) {
+      unsigned char xj = x[j];
+      unsigned char xjj = x[j + 1];
+      if (uchar_is_number(xj)) {
+
+        n_numbers += !uchar_is_number(xjj);
+        pos_last_number = j;
+      }
+    }
+    for (int j = 0; j < pos_last_number; ++j) {
+      unsigned char xj = x[j];
+      unsigned char xk = x[j + 1];
+      maybe_unit = xj == '/' || xj == 'U' || xj == 'G';
+    }
+    if (n_numbers == 0) {
+      ansp[i] = NA_INTEGER;
+      continue;
+    }
+    int j = pos_last_number;
+    unsigned int number_last = x[j] - '0';
+    int ten = 10;
+    while (--j >= 0 && jchar_is_number(x, j) && ten <= 1e5) {
+      number_last += ten * (x[j] - '0');
+      ten *= 10;
+    }
+    unsigned int number_first = 0;
+    if (n_numbers == 2) {
+      ten = 10;
+      while (--j >= 0 && jchar_is_number(x, j) && ten <= 1e5) {
+        number_first += ten * (x[j] - '0');
+        ten *= 10;
+      }
+    }
+
+    unsigned int oi = number_last;
+    oi += (unsigned int)(65536u * number_first);
+    ansp[i] = oi;
+
+  }
+
   UNPROTECT(1);
   return ans;
 }

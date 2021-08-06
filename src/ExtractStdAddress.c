@@ -205,6 +205,37 @@ SEXP CPoaHasSt(SEXP Poa, SEXP Type) {
   return ans;
 }
 
+SEXP C_uniquePostcodes(SEXP xx) {
+  if (!isInteger(xx)) {
+    error("`x` was type '%s' but must be integer.", type2char(TYPEOF(xx)));
+  }
+  R_xlen_t N = xlength(xx);
+  const int * xp = INTEGER(xx);
+
+  unsigned char postcode_tbl[SUP_POSTCODES] = {0};
+  for (R_xlen_t i = 0; i < N; ++i) {
+    unsigned int xpi = xp[i]; // NA becomes big, one branch only
+    if (xpi >= SUP_POSTCODES) {
+      continue;
+    }
+    postcode_tbl[xpi] = 1;
+  }
+  int n_out = 0; // number of unique postcodes
+  for (int i = 0; i < SUP_POSTCODES; ++i) {
+    n_out += postcode_tbl[i];
+  }
+  SEXP ans = PROTECT(allocVector(INTSXP, n_out));
+  int * restrict ansp = INTEGER(ans);
+  for (int i = 0, j = 0; i < SUP_POSTCODES; ++i) {
+    if (postcode_tbl[i]) {
+      ansp[j] = i;
+      ++j;
+    }
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 
 SEXP fast_nchar(SEXP x, SEXP na) {
   if (TYPEOF(x) != STRSXP || TYPEOF(na) != INTSXP || xlength(na) != 1) {

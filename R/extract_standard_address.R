@@ -1,14 +1,7 @@
 
 
 
-#' @name toupper_basic
-#' @title Uppercase
-#' @param x A character vector
-#' @export
-toupper_basic <- function(x) {
-  stopifnot(is.character(x))
-  .Call("CToUpperBasic", x, PACKAGE = packageName())
-}
+
 
 get_FullNamedAddressData <- function(envir = NULL) {
   if (is.null(envir)) {
@@ -25,9 +18,10 @@ get_FullNamedAddressData <- function(envir = NULL) {
       X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
       Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
       Z <- X[Y,
-             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST),
+             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST, FLAT_NUMBER),
              on = .(STREET_LOCALITY_INTRNL_ID)]
-      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))
+      Z[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
+      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST", "FLAT_NUMBER"))
       assign("FullNamedAddressData",
              Z,
              envir = envir)
@@ -45,24 +39,60 @@ extract_street_code <- function(address, poa) {
   avbl_street_codes <- .Call("Cpoa_has_stcd", as.integer(poa), PACKAGE = packageName())
   head(avbl_street_codes)
 }
+tt3 <- function() {
+  # Only display info during dev
+  if (file.exists("R/healthyAddress-package.R")) {
+    cat(format(Sys.time(), "%H:%M:%OS3"), "\n")
+  }
+}
 
 extract_standard_address <- function(address,
                                      .check = TRUE) {
+  tt3()
   xxPostcodes <- extract_postcode(address)
   min_postcode <- min(xxPostcodes, na.rm = TRUE)
   max_postcode <- max(xxPostcodes, na.rm = TRUE)
   PSTO <- .permitted_street_type_ord()
+  tt3()
+  xxStreetTypeCd2 <- match_StreetType(address, m = 2L)
+  xxStreetTypeCd2u <- sort(unique(.digit256(xxStreetTypeCd2, 0L)))
+
+  tt3()
+  xxStreetName <- match_StreetName(address)
 
   DT <-
     list(address = address,
          xxPostcodes = xxPostcodes,
-         xxStreetNameCd = match_word(address, PSTO),
-         orig_order = seq_along(address))
+         xxStreetTypeCd0 = .digit256(xxStreetTypeCd2, 0L),
+         xxStreetName = xxStreetName,
+         orig_order = seq_along(address),
+         NUMBER_FIRST = rep(1L, length(address)))
   setDT(DT)
-  setkey(DT, xxPostcodes)
+  DT[, xxStreetTypeCd := .digit256(xxStreetTypeCd2, 0L)]
+  setkey(DT, xxPostcodes, xxStreetTypeCd0, xxStreetName, NUMBER_FIRST)
   FF <- get_FullNamedAddressData()
-
-  FF <- FF[POSTCODE %fin% xxPostcodes][!is.na(STREET_TYPE_CODE)]
+  if (!hasName(FF, "StreetTypeCodei")) {
+    FF[, StreetTypeCodei := chmatch(STREET_TYPE_CODE, .permitted_street_type_ord())]
+  }
+  tt3()
+  if (length(xxPostcodes) == 1L) {
+    if (!anyNA(xxPostcodes)) {
+      FF <- FF[.(xxPostcodes, .permitted_street_type_ord()[xxStreetTypeCd2u])]
+    }
+  } else if (length(xxStreetTypeCd2u) == 1L) {
+    # uPostcodes
+    FF <- FF[hutilscpp::and3s(POSTCODE %in% xxPostcodes, StreetTypeCodei == xxStreetTypeCd2u)]
+  } else {
+    FF <- FF[hutilscpp::and3s(POSTCODE %in% xxPostcodes, StreetTypeCodei %in% xxStreetTypeCd2u)]
+  }
+  tt3()
+  FF <- FF[DT, on = .(POSTCODE = xxPostcodes,
+                      StreetTypeCodei = xxStreetTypeCd0,
+                      STREET_NAME = xxStreetName,
+                      NUMBER_FIRST)]
+  FF <- unique(FF, by = "orig_order")
+  tt3()
+  return(FF)
 
   FF2 <- unique(FF, by = c("POSTCODE", "STREET_TYPE_CODE"))
   FF2[, seqN := seq_len(.N), by = "POSTCODE"]
@@ -97,16 +127,6 @@ extract_standard_address <- function(address,
         StreetTypes2,
         Checks,
         PACKAGE = packageName())
-
-  # ADDRESS_DETAIL_INTRNL_ID_ <-
-  #   Extract2_(address,
-  #             id = FF$ADDRESS_DETAIL_INTRNL_ID,
-  #             Postcodes = FF$POSTCODE,
-  #             StreetTypes = FF$STREET_TYPE_CODE,
-  #             StreetNames = FF$STREET_NAME,
-  #             Numbers = FF$NUMBER_FIRST)
-  # data.table(address, ADDRESS_DETAIL_INTRNL_ID = ADDRESS_DETAIL_INTRNL_ID_)
-  # DT[, "ADDRESS_DETAIL_INTRNL_ID" := ]
 
 }
 
