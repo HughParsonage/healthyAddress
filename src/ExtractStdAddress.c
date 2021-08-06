@@ -2279,23 +2279,24 @@ SEXP CNamePresent(SEXP J, SEXP X, SEXP Names, SEXP From, SEXP To) {
 
 
 
-// 0 == not a unit
-// j = unit number
+
 void do_flat_number(const char * x, int n, int ans[2]) {
-  ans[0] = 0;
-  ans[0] = 0;
+  ans[0] = 0; // position after last digit of flat number
+  ans[0] = 0; // the flat number itself
   if (n < 4) {
     return;
   }
+  // position j so that it points to the first digit of the flat number
   int j = 0;
   switch(x[0]) {
   case 'U':
-    j = (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 3 : 0;
+    j = (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
     break;
   case 'G':
     j = 1;
     break;
   default: {
+      // have to seek ahead
       int has_slash = 0;
       if (n < 6) {
         return; // don't bother
@@ -2321,16 +2322,16 @@ void do_flat_number(const char * x, int n, int ans[2]) {
       }
       return;
     }
-
   }
   while (j < n && x[j] == ' ') {
     ++j;
   }
   int o = 0;
-  while (++j < n && isdigit(x[j])) {
+  while (j < n && isdigit(x[j])) {
     int digit = x[j] - '0';
     o *= 10;
     o += digit;
+    ++j;
   }
   ans[0] = j;
   ans[1] = o;
@@ -2362,8 +2363,6 @@ SEXP C_NumberFirstLast(SEXP xx) {
 
     int o1 = 0;
     int o2 = 0;
-
-
 
     bool two_numbers = false;
     // move after flat number:
