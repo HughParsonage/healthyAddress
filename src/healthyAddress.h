@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "streetcodes.h"
+#include <ctype.h>
 
 #include <omp.h>
 
@@ -22,6 +23,8 @@
 
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
+
+bool jchar_is_number(const char * x, int j);
 
 bool string_equal(const char * x, int n, const char * y, int m);
 

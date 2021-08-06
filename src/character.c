@@ -50,13 +50,11 @@ bool string_equal_ij(const char * x, int n, const char * y, int ix, int iy) {
 }
 
 bool uchar_is_number(unsigned char x) {
-  unsigned int xi = x - '0';
-  return xi <= 9;
+  return isdigit(x);
 }
 
 bool jchar_is_number(const char * x, int j) {
-  unsigned char xj = x[j];
-  return uchar_is_number(xj);
+  return isdigit(x[j]);
 }
 
 unsigned int pos_preceding_word(const char * x, int i) {

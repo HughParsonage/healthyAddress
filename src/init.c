@@ -9,6 +9,7 @@
 
 /* .Call calls */
 extern SEXP C_N_STREET_TYPES(SEXP);
+extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP CDecodeWord_16_2(SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
@@ -37,6 +38,7 @@ extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"C_N_STREET_TYPES",    (DL_FUNC) &C_N_STREET_TYPES,     1},
+    {"C_NumberFirstLast",   (DL_FUNC) &C_NumberFirstLast,    1},
     {"C_uniquePostcodes",   (DL_FUNC) &C_uniquePostcodes,    1},
     {"CDecodeWord_16_2",    (DL_FUNC) &CDecodeWord_16_2,     1},
     {"Cdigit256",           (DL_FUNC) &Cdigit256,            2},

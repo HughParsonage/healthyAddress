@@ -1,50 +1,11 @@
-
-
-
-
-
-get_FullNamedAddressData <- function(envir = NULL) {
-  if (is.null(envir)) {
-    if (requireNamespace("PSMA", quietly = TRUE)) {
-      envir <- getOption("PSMA_env")
-    } else {
-      envir <- new.env()
-    }
-  }
-  FullNamedAddressData <-
-    if (exists("FullNamedAddressData", envir = envir, inherits = FALSE)) {
-      get("FullNamedAddressData", envir = envir, inherits = FALSE)
-    } else {
-      X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
-      Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
-      Z <- X[Y,
-             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST, FLAT_NUMBER),
-             on = .(STREET_LOCALITY_INTRNL_ID)]
-      Z[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
-      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST", "FLAT_NUMBER"))
-      assign("FullNamedAddressData",
-             Z,
-             envir = envir)
-    }
-  setkeyv(FullNamedAddressData, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))[]
-}
-
-"%fin%" <- fastmatch::`%fin%`
-
-.MAX_uN_STCDs <- function() {
-  .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())
-}
-
-extract_street_code <- function(address, poa) {
-  avbl_street_codes <- .Call("Cpoa_has_stcd", as.integer(poa), PACKAGE = packageName())
-  head(avbl_street_codes)
-}
-tt3 <- function() {
-  # Only display info during dev
-  if (file.exists("R/healthyAddress-package.R")) {
-    cat(format(Sys.time(), "%H:%M:%OS3"), "\n")
-  }
-}
+#' Standardize and compactly index Australian addresses
+#' @param address A character vector like \code{10 MALVINA PL CARLTON VIC 3053}
+#' @param .check Should internal inputs be checked.
+#' @examples
+#'
+#' extract_standard_address("10 MALVINA PL CARLTON VIC 3053")
+#'
+#' @export
 
 extract_standard_address <- function(address,
                                      .check = TRUE) {
@@ -65,8 +26,7 @@ extract_standard_address <- function(address,
          xxPostcodes = xxPostcodes,
          xxStreetTypeCd0 = .digit256(xxStreetTypeCd2, 0L),
          xxStreetName = xxStreetName,
-         orig_order = seq_along(address),
-         NUMBER_FIRST = rep(1L, length(address)))
+         orig_order = seq_along(address))
   setDT(DT)
   DT[, xxStreetTypeCd := .digit256(xxStreetTypeCd2, 0L)]
   setkey(DT, xxPostcodes, xxStreetTypeCd0, xxStreetName, NUMBER_FIRST)
@@ -80,10 +40,11 @@ extract_standard_address <- function(address,
       FF <- FF[.(xxPostcodes, .permitted_street_type_ord()[xxStreetTypeCd2u])]
     }
   } else if (length(xxStreetTypeCd2u) == 1L) {
-    # uPostcodes
-    FF <- FF[hutilscpp::and3s(POSTCODE %in% xxPostcodes, StreetTypeCodei == xxStreetTypeCd2u)]
+    uPostcodes <- unique_Postcodes(xxPostcodes)
+    FF <- FF[hutilscpp::and3s(POSTCODE %in% uPostcodes, StreetTypeCodei == xxStreetTypeCd2u)]
   } else {
-    FF <- FF[hutilscpp::and3s(POSTCODE %in% xxPostcodes, StreetTypeCodei %in% xxStreetTypeCd2u)]
+    uPostcodes <- unique_Postcodes(xxPostcodes)
+    FF <- FF[hutilscpp::and3s(POSTCODE %in% uPostcodes, StreetTypeCodei %in% xxStreetTypeCd2u)]
   }
   tt3()
   FF <- FF[DT, on = .(POSTCODE = xxPostcodes,
@@ -129,6 +90,52 @@ extract_standard_address <- function(address,
         PACKAGE = packageName())
 
 }
+
+
+get_FullNamedAddressData <- function(envir = NULL) {
+  if (is.null(envir)) {
+    if (requireNamespace("PSMA", quietly = TRUE)) {
+      envir <- getOption("PSMA_env")
+    } else {
+      envir <- new.env()
+    }
+  }
+  FullNamedAddressData <-
+    if (exists("FullNamedAddressData", envir = envir, inherits = FALSE)) {
+      get("FullNamedAddressData", envir = envir, inherits = FALSE)
+    } else {
+      X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
+      Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
+      Z <- X[Y,
+             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST, FLAT_NUMBER),
+             on = .(STREET_LOCALITY_INTRNL_ID)]
+      Z[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
+      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST", "FLAT_NUMBER"))
+      assign("FullNamedAddressData",
+             Z,
+             envir = envir)
+    }
+  setkeyv(FullNamedAddressData, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))[]
+}
+
+"%fin%" <- fastmatch::`%fin%`
+
+.MAX_uN_STCDs <- function() {
+  .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())
+}
+
+extract_street_code <- function(address, poa) {
+  avbl_street_codes <- .Call("Cpoa_has_stcd", as.integer(poa), PACKAGE = packageName())
+  head(avbl_street_codes)
+}
+tt3 <- function() {
+  # Only display info during dev
+  if (interactive() && file.exists("R/healthyAddress-package.R")) {
+    cat(format(Sys.time(), "%H:%M:%OS3"), "\n")
+  }
+}
+
+
 
 extract_postcode <- function(x, m = 0L) {
   if (m) {

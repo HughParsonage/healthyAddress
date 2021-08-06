@@ -2,6 +2,8 @@
 
 export(.digit256)
 export(.permitted_street_type_ord)
+export(extract_flatNumberFirstLast)
+export(extract_standard_address)
 export(match_StreetType)
 export(match_word)
 export(toupper_basic)

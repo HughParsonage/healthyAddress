@@ -2277,6 +2277,130 @@ SEXP CNamePresent(SEXP J, SEXP X, SEXP Names, SEXP From, SEXP To) {
   return ScalarInteger(o);
 }
 
+
+
+// 0 == not a unit
+// j = unit number
+void do_flat_number(const char * x, int n, int ans[2]) {
+  ans[0] = 0;
+  ans[0] = 0;
+  if (n < 4) {
+    return;
+  }
+  int j = 0;
+  switch(x[0]) {
+  case 'U':
+    j = (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 3 : 0;
+    break;
+  case 'G':
+    j = 1;
+    break;
+  default: {
+      int has_slash = 0;
+      if (n < 6) {
+        return; // don't bother
+      }
+      for (int i = 0; i < 6; ++i) {
+        if (x[i] == '/') {
+          has_slash = i;
+          break;
+        }
+      }
+      if (has_slash) {
+        j = has_slash;
+        int o = 0;
+        int ten = 1;
+        for (int j = has_slash; j >= 0; --j) {
+          if (isdigit(x[j])) {
+            o += ten * (x[j] - '0');
+            ten *= 10; // no need to check overflow because only looking at first 5 chars
+          }
+        }
+        ans[0] = has_slash;
+        ans[1] = o;
+      }
+      return;
+    }
+
+  }
+  while (j < n && x[j] == ' ') {
+    ++j;
+  }
+  int o = 0;
+  while (++j < n && isdigit(x[j])) {
+    int digit = x[j] - '0';
+    o *= 10;
+    o += digit;
+  }
+  ans[0] = j;
+  ans[1] = o;
+}
+
+SEXP C_NumberFirstLast(SEXP xx) {
+  if (!isString(xx)) {
+    error("`address` was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
+  }
+  R_xlen_t N = xlength(xx);
+  const SEXP * xp = STRING_PTR(xx);
+  int np = 0;
+  SEXP n_unit = PROTECT(allocVector(INTSXP, N)); ++np;
+  SEXP nfirst = PROTECT(allocVector(INTSXP, N)); ++np;
+  SEXP nfinal = PROTECT(allocVector(INTSXP, N)); ++np;
+
+  int * restrict nun = INTEGER(n_unit);
+  int * restrict nfp = INTEGER(nfirst);
+  int * restrict nfl = INTEGER(nfinal);
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(xp[i]);
+    const char * x = CHAR(xp[i]);
+    int flat_number2i[2] = {0};
+    do_flat_number(x, n, flat_number2i);
+    nun[i] = flat_number2i[1];
+    nfp[i] = NA_INTEGER;
+    nfl[i] = NA_INTEGER;
+
+    int o1 = 0;
+    int o2 = 0;
+
+
+
+    bool two_numbers = false;
+    // move after flat number:
+    int j_start = flat_number2i[0];
+    for (int j = j_start; j < n - 4; ++j) {
+      if (jchar_is_number(x, j)) {
+        int digit = x[j] - '0';
+        if (two_numbers) {
+          o2 *= 10;
+          o2 += digit;
+        } else {
+          o1 *= 10;
+          o1 += digit;
+        }
+        continue;
+      }
+      if (x[j] == '-') {
+        two_numbers = true;
+      }
+
+    }
+    nfp[i] = o1;
+    nfl[i] = o2;
+
+  }
+  SEXP ans = PROTECT(allocVector(VECSXP, 3)); ++np;
+  SET_VECTOR_ELT(ans, 0, n_unit);
+  SET_VECTOR_ELT(ans, 1, nfirst);
+  SET_VECTOR_ELT(ans, 2, nfinal);
+
+  UNPROTECT(np);
+  return ans;
+
+}
+
+
+
 SEXP CExtractAddressID(SEXP xx,
                        SEXP xxPostcodes,
                        SEXP id,

@@ -28,6 +28,9 @@ expect_equal(toupper(ans$STREET_TYPE), "STREET")
 expect_false(is.na(ans$POSTCODE))
 expect_equal(ans$POSTCODE, 3067)
 
+ans <- extract_standard_address("10 MALVINA PLACE CARLTON VIC 3053")
+expect_equal(ans$ADDRESS_DETAIL_INTRNL_ID, 10108234L)
+
 }
 
 
