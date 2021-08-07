@@ -13,3 +13,4 @@ extract_flatNumberFirstLast <- function(address) {
   setnames(ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST"))
   ans[]
 }
+

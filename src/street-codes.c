@@ -1595,6 +1595,10 @@ bool poa_has_ROAD(int poa) {
 	return poa_has_street_type(poa, ST_CODE_ROAD);
 }
 
+
+
+
+
 SEXP Cpoa_has_stcd(SEXP Postcode) {
   const int postcode = asInteger(Postcode);
   int ans[256] = {0};

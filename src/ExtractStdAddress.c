@@ -2340,6 +2340,7 @@ void do_flat_number(const char * x, int n, int ans[2]) {
   ans[1] = o;
 }
 
+
 SEXP C_NumberFirstLast(SEXP xx) {
   if (!isString(xx)) {
     error("`address` was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
@@ -2356,20 +2357,25 @@ SEXP C_NumberFirstLast(SEXP xx) {
   int * restrict nfl = INTEGER(nfinal);
 
   for (R_xlen_t i = 0; i < N; ++i) {
+    nun[i] = NA_INTEGER;
+    nfp[i] = NA_INTEGER;
+    nfl[i] = NA_INTEGER;
+    if (xp[i] == NA_STRING) {
+      continue;
+    }
     int n = length(xp[i]);
     const char * x = CHAR(xp[i]);
     int flat_number2i[2] = {0};
     do_flat_number(x, n, flat_number2i);
     nun[i] = flat_number2i[1];
-    nfp[i] = NA_INTEGER;
-    nfl[i] = NA_INTEGER;
 
     int o1 = 0;
     int o2 = 0;
 
+    // two numbers are separated by a dash
     bool two_numbers = false;
     // move after flat number:
-    int j_start = flat_number2i[0];
+    int j_start = flat_number2i[0] + 1;
     for (int j = j_start; j < n - 4; ++j) {
       if (jchar_is_number(x, j)) {
         int digit = x[j] - '0';
@@ -2384,8 +2390,9 @@ SEXP C_NumberFirstLast(SEXP xx) {
       }
       if (x[j] == '-') {
         two_numbers = true;
+        continue;
       }
-
+      break; // don't continue on first encounter with non-number/dash
     }
     nfp[i] = o1;
     nfl[i] = o2;
@@ -2548,7 +2555,7 @@ SEXP CExtractAddressID(SEXP xx,
     }
     if (poa_has_street_type(postcodei, ST_CODE_STREET) && has_STREET(x, n)) {
       for (int j = pos_last_number; j < n; ++j) {
-        char xj = x[j];
+        // char xj = x[j];
 
       }
 

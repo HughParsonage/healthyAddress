@@ -1,6 +1,7 @@
 #include "healthyAddress.h"
 
 // space unless a number or letter then uppercase
+/*
 static const unsigned char UPPERS_SPACE_HYPHEN[256] =
   {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
    ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
@@ -18,6 +19,7 @@ static const unsigned char UPPERS_SPACE_HYPHEN[256] =
    ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
    ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
    ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+ */
 
 bool is_uppercase_or_space_or_hyphen(unsigned char x) {
   return ((x - 'A') <= 26u) || x == ' ' || x == '-';
@@ -49,6 +51,25 @@ bool string_equal_ij(const char * x, int n, const char * y, int ix, int iy) {
   return true;
 }
 
+// Is y a substring within x, starting at position i?
+// x The string within which y is suspected to exist
+// i the character position of x from which y is expected
+// n The (entire) length of x
+// y The search term/the substring
+// m The length of this substring
+bool substring_within(const char * x, int i, int n, const char * y, int m) {
+  // if the remaining length of x is insufficient to contain y, then no
+  if (n - i < m) {
+    return false;
+  }
+  for (int j = 0; j < m; ++j) {
+    if (x[i + j] != y[j]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool uchar_is_number(unsigned char x) {
   return isdigit(x);
 }
@@ -65,6 +86,14 @@ unsigned int pos_preceding_word(const char * x, int i) {
     }
   }
   return 0;
+}
+
+int has_comma(const char * x, int n) {
+  int i = n - 1;
+  while (i >= 0 && x[i] != ',') {
+    --i;
+  }
+  return i;
 }
 
 // array to project uncommon letters to 16
@@ -91,7 +120,6 @@ SEXP CDecodeWord_16_2(SEXP xx) {
   SEXP ans = PROTECT(allocVector(STRSXP, 1));
   int n = x & 15u;
   char o[n + 1];
-  unsigned int base = 16u;
   for (int i = 0; i < n; i += 2) {
     x /= 16;
     o[i] = uint2Streetletter[x & 15];
@@ -106,6 +134,8 @@ SEXP CDecodeWord_16_2(SEXP xx) {
   return ans;
 
 }
+
+
 
 SEXP CEncodeWord_16_2(SEXP xx) {
   if (!isString(xx)) error("x");
@@ -271,7 +301,7 @@ bool isUC(SEXP x) {
     const char * xi = CHAR(STRING_ELT(x, i));
     for (int j = 0; j < n; ++j) {
       unsigned char xij = xi[j];
-      if (!is_uppercase_or_space_or_hyphen(xij)) {
+      if (islower(xij)) {
         all_uc = false;
         break;
       }
@@ -284,9 +314,9 @@ SEXP CEnsureUC(SEXP x) {
   if (TYPEOF(x) != STRSXP) {
     error("Internal error(EnsureUC): TYPEOF(x) != STRSXP.");
   }
-  if (isUC(x)) {
-    return x;
-  }
+  // if (isUC(x)) {
+  //   return x;
+  // }
   R_xlen_t N = xlength(x);
 
   SEXP ans = PROTECT(allocVector(STRSXP, N));
@@ -295,7 +325,7 @@ SEXP CEnsureUC(SEXP x) {
     int n = length(STRING_ELT(x, i));
     char oi[n + 1];
     for (int j = 0; j < n; ++j) {
-      oi[j] = toupper_hyphen_or_space(xi[j], ' ');
+      oi[j] = toupper(xi[j]);
     }
     oi[n] = '\0';
     const char * oic = (const char *)oi;
@@ -428,7 +458,58 @@ SEXP Cmatch_word(SEXP xx, SEXP yy) {
   return ans;
 }
 
+SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP yy, SEXP mm) {
+  // This differs from Cmatch without Line1 in that we can assume the last
+  // word in the string is the street type
+
+  // m = return type
+  // yy = Permitted street type
+  // xx = address
+  int np = 0;
+  if (TYPEOF(xx) != STRSXP || TYPEOF(yy) != STRSXP) {
+    error("Wrong types"); // # nocov
+  }
+  const int m = asInteger(mm) ;
+  const unsigned int m1 = m > 0 ? 256 : 0;
+  const unsigned int m2 = m == 2 ? 65536 : 0;
+  R_xlen_t N = xlength(xx);
+  R_xlen_t M = xlength(yy);
+  if (M < 16) {
+    error("M < 16 unexpected (should be at least 200)");
+  }
+  SEXP nchar_yy = PROTECT(allocVector(INTSXP, M)); np++;
+  int * restrict nchar_yyp = INTEGER(nchar_yy);
+  for (R_xlen_t j = 0; j < M; ++j) {
+    nchar_yyp[j] = length(STRING_ELT(yy, j));
+  }
+  const SEXP * xp = STRING_PTR(xx);
+
+  SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = NA_INTEGER;
+    if (xp[i] == NA_STRING) {
+      continue;
+    }
+    int n = length(xp[i]);
+    const char * x = CHAR(xp[i]);
+    if (substring_within(x, n - 5, n, " ROAD", 5)) {
+      ansp[i] = ST_CODE_ROAD + m1 * (n - 5) + m2 * pos_preceding_word(x, n - 5);
+    }
+    if (substring_within(x, n - 3, n, " RD", 3)) {
+      ansp[i] = ST_CODE_ROAD + m1 * (n - 3) + m2 * pos_preceding_word(x, n - 3);
+    }
+
+  }
+  UNPROTECT(np);
+  return ans;
+}
+
+
 SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
+  // m = return type
+  // yy = Permitted street type
+  // xx = address
   int np = 0;
   if (TYPEOF(xx) != STRSXP || TYPEOF(yy) != STRSXP) {
     error("Wrong types"); // # nocov
@@ -448,6 +529,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
   }
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
   int * restrict ansp = INTEGER(ans);
+
 
   // order to look for words
   const int W_ORD[16] = { 3,  4,  5,  2,  6,  0, 1, 7,
@@ -476,7 +558,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
     // Contemplate at least the street name and numbers
     while (--j > 10) {
       // not end of word
-      if (x[j + 1] != ' ') {
+      if (x[j + 1] != ' ' && x[j + 1] != ',') {
         continue;
       }
       char xj = x[j];
@@ -585,6 +667,354 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
 
 
   }
+
+  // Special case 'ST' may be Street but could also be e.g. 'ST KILDA' 'ST LEONARDS' 'ST ALBANS'
+#pragma omp parallel for
+  for (R_xlen_t i = 0; i < N; ++i) {
+    if (ansp[i] != NA_INTEGER) {
+      continue;
+    }
+    int n = length(STRING_ELT(xx, i));
+    const char * x = CHAR(STRING_ELT(xx, i));
+    int j = 10;
+    bool maybe_street = false;
+    for (; j < n - 6; ++j) {
+      if (x[j] != ' ' && x[j] != ',') {
+        continue;
+      }
+      if (x[j + 1] == 'S' &&
+          x[j + 2] == 'T') {
+        if (x[j + 3] == ' ' || x[j + 3] == ',') {
+          j = j + 4;
+          maybe_street = true;
+          break;
+        }
+        if (x[j + 3] == '.' && (x[j + 4] == ' ' || x[j + 4] == ',')) {
+          j = j + 5;
+          maybe_street = true;
+          break;
+        }
+        j += 2;
+      }
+    }
+    if (!maybe_street) {
+      continue;
+    }
+    if (substring_within(x, j, n, "IVES", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LEONARDS", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "KILDA", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "THOMAS", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MARYS", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "HELENA", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ALBANS", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "PETERS", 6)) {
+      maybe_street = false;
+      continue;
+    }
+
+    if (substring_within(x, j, n, "CLAIR", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LEONARDS CREEK", 14)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "IVES", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "GEORGES BASIN", 13)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JOHNS PARK", 10)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "PATRICKS", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "HELENS PARK", 11)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ANDREWS", 7)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MARYS", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "VIDGEONS' STATION", 17)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "HELENS", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "GEORGE", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JOHN", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "KILDA", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MARY", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "AUBYN", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "RUTH", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LAWRENCE", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "AGNES", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "HELENS BEACH", 12)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "BEES ISLAND", 11)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JOHN", 4)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LUCIA", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MORRIS", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.GEORGES", 10)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "KITTS", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.MORRIS", 9)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.CLAIR", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.PETERS", 9)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.AGNES", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.MARYS", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "KITTS", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ST.KILDA", 8)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JOHNS", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "PATRICKS RIVER", 14)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ARNAUD", 6)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JAMES", 5)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "PETERS PLACE ESTATE", 19)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "ANTHONYS PLACE ESTATE", 21)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MARGARETS ESTATE", 16)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LUCIA ESTATE", 12)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "JOHNS WOOD ESTATE", 17)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "MICHEL PRIVATE GARDEN ESTATE", 28)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "THOMAS PRIVATE ESTATE", 21)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "CLAIR ESTATE", 12)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LEONARDS ESTATE", 15)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "LAWRENCE ESTATE", 15)) {
+      maybe_street = false;
+      continue;
+    }
+    if (substring_within(x, j, n, "GEORGE RANGES", 13)) {
+      maybe_street = false;
+      continue;
+    }
+
+
+
+    // Note j - 2 not j - 6 because it's ST not STREET
+    ansp[i] = ST_CODE_STREET + m1 * (j - 4) + m2 * pos_preceding_word(x, j - 4);
+
+
+
+
+
+  }
+
+  // A street name is more likely to follow a comma than a space
+  // if commas are present.  Check commas:
+#pragma omp parallel for
+  for (R_xlen_t i = 0; i < N; ++i) {
+    if (ansp[i] != NA_INTEGER) {
+      continue;
+    }
+    int n = length(STRING_ELT(xx, i));
+    const char * x = CHAR(STRING_ELT(xx, i));
+    int last_comma = has_comma(x, n);
+    if (!last_comma) {
+      continue;
+    }
+    int word_sizes[16] = {0};
+    int word_positions[16] = {0};
+    unsigned int wsk = 0; // index of word_sizes
+    // Find the sizes, positions of words preceding commas
+    int this_word_size = 0;
+    for (int jj = 0; jj <= last_comma; ++jj) {
+      switch(x[jj]) {
+      case ',':
+    {
+      // when ',' we record the size thus far and hence the position of the start
+      word_positions[wsk] = jj - this_word_size;
+      word_sizes[wsk] = this_word_size;
+      this_word_size = 0;
+      ++wsk;
+    }
+        break;
+      case ' ':
+        this_word_size = 0; // when ' ' we reset (i.e. don't count words preceding commas)
+        break;
+      default:
+        ++this_word_size;
+      }
+    }
+
+    bool matched = false;
+    for (int w_ = 0; w_ < 16; ++w_) {
+      int w = w_; // don't jump around
+
+      if (matched) {
+        break;
+      }
+      int len_word_i = word_sizes[w];
+      if (len_word_i == 0) {
+        continue;
+      }
+
+      for (R_xlen_t k = 0; k < M; ++k) {
+        if (matched) {
+          break;
+        }
+        int len_k = nchar_yyp[k];
+
+        if (len_k != len_word_i) {
+          continue;
+        }
+
+        matched = true; // provisional
+        const char * y = CHAR(STRING_ELT(yy, k));
+        const int wpw = word_positions[w];
+        for (int c = 0; c < len_k; ++c) {
+          unsigned char xc = x[c + wpw];
+          unsigned char yc = y[c];
+          if (xc != yc) {
+            matched = false;
+            break;
+          }
+        }
+        if (matched) {
+          ansp[i] = (k + 1) + m1 * (wpw - 1) + m2 * pos_preceding_word(x, wpw - 1);
+        }
+      }
+    }
+
+  }
+
 #pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     if (ansp[i] != NA_INTEGER) {
@@ -633,7 +1063,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
           continue;
         }
 
-        bool matched = true; // provisional
+        matched = true; // provisional
         const char * y = CHAR(STRING_ELT(yy, k));
         const int wpw = word_positions[w];
         for (int c = 0; c < len_k; ++c) {
@@ -724,7 +1154,6 @@ SEXP Cdigit256(SEXP xx, SEXP dd) {
     error("xx,dd");
   }
   const int d = asInteger(dd);
-  R_xlen_t N = xlength(xx);
   switch(d) {
   case 0:
     return digit2560(xx);
@@ -764,7 +1193,7 @@ SEXP Cmatch_StreetName(SEXP xx,
       SET_STRING_ELT(ans, i, CX);
       continue;
     }
-    int n = length(CX);
+
     unsigned int si = streetMatch1p[i];
     if (si > INT_MAX) {
       SET_STRING_ELT(ans, i, NA_STRING);
@@ -788,73 +1217,6 @@ SEXP Cmatch_StreetName(SEXP xx,
   return ans;
 }
 
-SEXP CextractNumber(SEXP xx, SEXP ss, SEXP mm) {
-  if (!isString(xx)) {
-    error("Address was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
-  }
-  if (!isInteger(ss)) {
-    error("Address was type '%s' but must be an integer vector.", type2char(TYPEOF(ss)));
-  }
-  const int m = asInteger(mm);
-  R_xlen_t N = xlength(xx);
-  SEXP ans = PROTECT(allocVector(INTSXP, N));
-  int * restrict ansp = INTEGER(ans);
-  const SEXP * xp = STRING_PTR(xx);
-  for (R_xlen_t i = 0; i < N; ++i) {
-    SEXP CX = xp[i];
-    int n = length(CX);
-    const char * x = CHAR(CX);
-    bool maybe_unit = false;
-    int n_numbers = 0;
-    unsigned char number_fmt = '1';
-    // '1' one number |
-    // '-' number-first_number-last
-    // '/' unit/number_first
-    int pos_last_number = 0;
-    // n - 5 due postcode
-    for (int j = 0; j < n - 5; ++j) {
-      unsigned char xj = x[j];
-      unsigned char xjj = x[j + 1];
-      if (uchar_is_number(xj)) {
-
-        n_numbers += !uchar_is_number(xjj);
-        pos_last_number = j;
-      }
-    }
-    for (int j = 0; j < pos_last_number; ++j) {
-      unsigned char xj = x[j];
-      unsigned char xk = x[j + 1];
-      maybe_unit = xj == '/' || xj == 'U' || xj == 'G';
-    }
-    if (n_numbers == 0) {
-      ansp[i] = NA_INTEGER;
-      continue;
-    }
-    int j = pos_last_number;
-    unsigned int number_last = x[j] - '0';
-    int ten = 10;
-    while (--j >= 0 && jchar_is_number(x, j) && ten <= 1e5) {
-      number_last += ten * (x[j] - '0');
-      ten *= 10;
-    }
-    unsigned int number_first = 0;
-    if (n_numbers == 2) {
-      ten = 10;
-      while (--j >= 0 && jchar_is_number(x, j) && ten <= 1e5) {
-        number_first += ten * (x[j] - '0');
-        ten *= 10;
-      }
-    }
-
-    unsigned int oi = number_last;
-    oi += (unsigned int)(65536u * number_first);
-    ansp[i] = oi;
-
-  }
-
-  UNPROTECT(1);
-  return ans;
-}
 
 
 

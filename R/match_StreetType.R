@@ -28,6 +28,13 @@ match_StreetType <- function(address, m = 0L) {
   ans
 }
 
+match_StreetType_Line1 <- function(address, m = 2L) {
+  stopifnot(is.character(address), is.integer(m))
+  PSTO <- .permitted_street_type_ord()
+  ans <- .Call("Cmatch_StreetType_Line1", address, PSTO, m, PACKAGE = packageName())
+  ans
+}
+
 
 
 match_StreetName <- function(x, StreetMatch2 = match_StreetType(x, m = 2L)) {
@@ -42,9 +49,6 @@ match_StreetName <- function(x, StreetMatch2 = match_StreetType(x, m = 2L)) {
         PACKAGE = packageName());
 }
 
-extractNumber <- function(x, ss = match_StreetType(x, m = 2L), m = 2L) {
-  .Call("CextractNumber", x, ss, m, PACKAGE = packageName())
-}
 
 
 

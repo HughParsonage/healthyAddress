@@ -160,6 +160,54 @@ Street_by_POSTCODE <-
   .[]
 
 
+find_psma_cols <- function(cols, state = "VIC") {
+  all_psv <- dir(path = "~/Data/PSMA-Geocoded-Address-202105/G-NAF/",
+                 pattern = "\\.psv$",
+                 full.names = TRUE,
+                 recursive = TRUE)
+  state_psv <- all_psv[grep(state, basename(all_psv))]
+  all_names <-
+    lapply(state_psv, function(file.psv) {
+      names(fread(file = file.psv, sep = "|", nrows = 0))
+    })
+  files_with_cols <- state_psv[vapply(all_names, function(noms) all(cols %in% noms), NA)]
+  if (!length(files_with_cols)) {
+    cat("No matching files\n")
+    return(invisible(NULL))
+  }
+  cat("Basenames\n\t", paste0(basename(files_with_cols), collapse = "\n\t"), sep = "")
+  return(invisible(files_with_cols))
+}
 
+fread_psma <- function(type_pattern = ".",
+                       state = "VIC",
+                       multiple_ok = FALSE,
+                       nrows = 1L) {
+  all_psv <- dir(path = "~/Data/PSMA-Geocoded-Address-202105/G-NAF/", pattern = "\\.psv$", full.names = TRUE, recursive = TRUE)
+
+  files2read <- all_psv[grepl(state, basename(all_psv)) & grepl(type_pattern, basename(all_psv), perl = TRUE)]
+  if (length(files2read) == 0) {
+    warning("len = ", length(files2read))
+    return(data.table())
+  }
+  if (!isTRUE(multiple_ok) && length(files2read) != 1) {
+    stop(length(files2read), " files:\n  ",
+         paste0(basename(files2read), collapse = "\n  "))
+  }
+  if (length(files2read) > 1L) {
+    L <- lapply(files2read, fread, sep = "|", nrows = nrows, showProgress = FALSE)
+    names(L) <- hutils::trim_common_affixes(basename(files2read))
+    return(L)
+  }
+  fread(file = files2read, sep = "|", nrows = nrows, showProgress = FALSE)
+}
+
+# Get Suburbs with 'ST' in them
+ST_SUBURBS <-
+  rbindlist(fread_psma("(?<!(STREET_))LOCALITY_ALIAS_psv", nrows = Inf, multiple_ok = TRUE, state = "."),
+            idcol = "Ste") %>%
+  unique(by = "NAME") %>%
+  .[grep("\\bST\\b", NAME), unique(NAME)]
+usethis::use_data(ST_SUBURBS, internal = TRUE)
 
 
