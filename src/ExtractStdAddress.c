@@ -141,17 +141,15 @@ bool has_postcode_from(const char * x, int k) {
 int xpostcode_unsafe(const char * x, int n) {
   // unsafe = don't check that length is sufficient
   int o = 0;
-  unsigned char x1 = x[n - 1];
-  unsigned char x2 = x[n - 2];
-  unsigned char x3 = x[n - 3];
-  unsigned char x4 = x[n - 4];
-  unsigned int d1 = x1 - '0';
-  unsigned int d2 = x2 - '0';
-  unsigned int d3 = x3 - '0';
-  unsigned int d4 = x4 - '0';
-  int is_digit = (d1 < 10) & (d2 < 10) & (d3 < 10) & (d4 < 10);
-  o = d1 + 10u * d2 + 100u * d3 + 1000u * d4;
-  return is_digit ? o : 0;
+  const int ten4s[4] = {1000, 100, 10, 1};
+  const int n4 = n - 4;
+  for (int d = 0; d < 4; ++d) {
+    char xj = x[n4 + d];
+    if (isdigit(xj)) {
+      o += ten4s[d] * (xj - '0');
+    }
+  }
+  return o;
 }
 
 
@@ -2038,12 +2036,17 @@ SEXP Ctest_touppers(SEXP xx) {
 
 SEXP CExtractPostcode(SEXP x) {
   R_xlen_t N = xlength(x);
+  const SEXP * xpp = STRING_PTR(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
   for (R_xlen_t i = 0; i < N; ++i) {
-    int n = length(STRING_ELT(x, i));
-    const char * xp = CHAR(STRING_ELT(x, i));
-    ansp[i] = n > 4 ? xpostcode_unsafe(xp, n) : NA_INTEGER;
+    int n = length(xpp[i]);
+    if (n < 4) {
+      ansp[i] = NA_INTEGER;
+      continue;
+    }
+    const char * xp = CHAR(xpp[i]);
+    ansp[i] = xpostcode_unsafe(xp, n);
   }
   UNPROTECT(1);
   return ans;
