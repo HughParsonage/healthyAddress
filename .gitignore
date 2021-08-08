@@ -43,5 +43,7 @@ vignettes/*.pdf
 !*.R
 !*.h
 !*.Rbuildignore
-!/.github/*
+!/.github/
+!/.github/workflows/
+!/.github/workflows/main.yml
 
