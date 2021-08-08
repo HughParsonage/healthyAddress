@@ -12,6 +12,8 @@ pkgs <- c("magrittr", "fst", "hutils", "hutilscpp", "fastmatch")
 if (any(!sapply(pkgs, requireNamespace))) {
   install.packages(pkgs)
 }
+print(Sys.getenv())
+
 
 
 if (!requireNamespace("PSMA")) {
