@@ -12,7 +12,6 @@ extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
-extern SEXP CExtractAddressID(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
@@ -30,26 +29,25 @@ extern SEXP CwhichStreetName3(SEXP);
 extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"C_noLC",                  (DL_FUNC) &C_noLC,                   1},
-    {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,        1},
-    {"C_uniquePostcodes",       (DL_FUNC) &C_uniquePostcodes,        1},
-    {"Cdigit256",               (DL_FUNC) &Cdigit256,                2},
-    {"CExtractAddressID",       (DL_FUNC) &CExtractAddressID,       10},
-    {"CExtractPostcode",        (DL_FUNC) &CExtractPostcode,         1},
-    {"CExtractStdAddress",      (DL_FUNC) &CExtractStdAddress,       2},
-    {"CFindSentence",           (DL_FUNC) &CFindSentence,            3},
-    {"Cmatch_StreetName",       (DL_FUNC) &Cmatch_StreetName,        6},
-    {"Cmatch_StreetType",       (DL_FUNC) &Cmatch_StreetType,        3},
-    {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1,  2},
-    {"Cmatch_word",             (DL_FUNC) &Cmatch_word,              2},
-    {"Cpoa_has_stcd",           (DL_FUNC) &Cpoa_has_stcd,            1},
-    {"CPoaHasSt",               (DL_FUNC) &CPoaHasSt,                2},
-    {"CStreetCd2Str",           (DL_FUNC) &CStreetCd2Str,            1},
-    {"Ctest_digit_of_from",     (DL_FUNC) &Ctest_digit_of_from,      3},
-    {"Ctest_touppers",          (DL_FUNC) &Ctest_touppers,           1},
-    {"CToUpperBasic",           (DL_FUNC) &CToUpperBasic,            1},
-    {"CwhichStreetName3",       (DL_FUNC) &CwhichStreetName3,        1},
-    {"MAX_uN_STCDs",            (DL_FUNC) &MAX_uN_STCDs,             1},
+    {"C_noLC",                  (DL_FUNC) &C_noLC,                  1},
+    {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,       1},
+    {"C_uniquePostcodes",       (DL_FUNC) &C_uniquePostcodes,       1},
+    {"Cdigit256",               (DL_FUNC) &Cdigit256,               2},
+    {"CExtractPostcode",        (DL_FUNC) &CExtractPostcode,        1},
+    {"CExtractStdAddress",      (DL_FUNC) &CExtractStdAddress,      2},
+    {"CFindSentence",           (DL_FUNC) &CFindSentence,           3},
+    {"Cmatch_StreetName",       (DL_FUNC) &Cmatch_StreetName,       6},
+    {"Cmatch_StreetType",       (DL_FUNC) &Cmatch_StreetType,       3},
+    {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1, 2},
+    {"Cmatch_word",             (DL_FUNC) &Cmatch_word,             2},
+    {"Cpoa_has_stcd",           (DL_FUNC) &Cpoa_has_stcd,           1},
+    {"CPoaHasSt",               (DL_FUNC) &CPoaHasSt,               2},
+    {"CStreetCd2Str",           (DL_FUNC) &CStreetCd2Str,           1},
+    {"Ctest_digit_of_from",     (DL_FUNC) &Ctest_digit_of_from,     3},
+    {"Ctest_touppers",          (DL_FUNC) &Ctest_touppers,          1},
+    {"CToUpperBasic",           (DL_FUNC) &CToUpperBasic,           1},
+    {"CwhichStreetName3",       (DL_FUNC) &CwhichStreetName3,       1},
+    {"MAX_uN_STCDs",            (DL_FUNC) &MAX_uN_STCDs,            1},
     {NULL, NULL, 0}
 };
 

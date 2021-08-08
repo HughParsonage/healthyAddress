@@ -2462,11 +2462,23 @@ bool jchar_is_number(const char * x, int j) {
   return isdigit(x[j]);
 }
 
-unsigned int pos_preceding_word(const char * x, int i) {
+unsigned int pos_preceding_word1(const char * x, int i) {
   // ignore leading spaces
   while (--i >= 1) {
-    if (x[i] == ' ') {
+
+    if (x[i] == ' ' && isdigit(x[i - 1])) {
       return i + 1;
+    }
+  }
+  return 0;
+}
+
+unsigned int pos_preceding_word(const char * x, int i) {
+  for (int j = i - 3; j > 0; --j) {
+    // want the position of the preceding word (following a number)
+    // because we're really after the street name
+    if (x[j] == ' ' && isdigit(x[j - 1]) && jchar_is_LETTER(x, j + 1)) {
+      return j + 1;
     }
   }
   return 0;
@@ -4271,6 +4283,7 @@ SEXP Cmatch_StreetName(SEXP xx,
   UNPROTECT(1);
   return ans;
 }
+
 
 
 
