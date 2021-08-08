@@ -1860,7 +1860,7 @@ static void whichStreetName(const char * x, unsigned int len, int ans[]) {
 
 
 SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
-
+  int np = 0;
   R_xlen_t N = xlength(address);
   // R_xlen_t nNames = xlength(street_names);
   if (TYPEOF(address) != STRSXP) {
@@ -1871,12 +1871,11 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
   }
 
 
-  SEXP flat_number = PROTECT(allocVector(INTSXP, N));
-
-  SEXP number_first = PROTECT(allocVector(INTSXP, N));
-  SEXP number_final = PROTECT(allocVector(INTSXP, N));
-  SEXP street_name = PROTECT(allocVector(STRSXP, N));
-  SEXP street_type = PROTECT(allocVector(INTSXP, N));
+  SEXP flat_number = PROTECT(allocVector(INTSXP, N)); ++np;
+  SEXP number_first = PROTECT(allocVector(INTSXP, N));++np;
+  SEXP number_final = PROTECT(allocVector(INTSXP, N));++np;
+  SEXP street_name = PROTECT(allocVector(STRSXP, N));++np;
+  SEXP street_type = PROTECT(allocVector(INTSXP, N));++np;
 
   int * restrict flat_numberp = INTEGER(flat_number);
   int * restrict street_typep = INTEGER(street_type);
@@ -1971,12 +1970,12 @@ SEXP CExtractStdAddress(SEXP address, SEXP street_names) {
     number_firstp[i] = street_number;
     street_typep[i] = street_name_pos[1];
   }
-  SEXP ans = PROTECT(allocVector(VECSXP, 4));
+  SEXP ans = PROTECT(allocVector(VECSXP, 4)); ++np;
   SET_VECTOR_ELT(ans, 0, flat_number);
   SET_VECTOR_ELT(ans, 1, street_name);
   SET_VECTOR_ELT(ans, 2, street_type);
   SET_VECTOR_ELT(ans, 3, number_first);
-  UNPROTECT(5);
+  UNPROTECT(np);
 
   return ans;
 }
