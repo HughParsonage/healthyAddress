@@ -3,3 +3,4 @@
 ^data-raw$
 ^setup\.R$
 ^do_test\.R$
+^.github$
