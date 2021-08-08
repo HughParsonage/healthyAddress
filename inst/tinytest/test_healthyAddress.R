@@ -18,7 +18,7 @@ expect_equal(ans$FLAT_NUMBER, 24)
 expect_equal(ans$NUMBER_FIRST, 125)
 expect_equal(toupper(ans$STREET_NAME), "TURNER")
 expect_equal(toupper(ans$STREET_TYPE), "STREET")
-expect_true(is.na(ans$POSTCODE))
+expect_false(is.na(ans$POSTCODE))
 
 ans <- standardize_address("UNIT 24 125 TURNER STREET, ABBOTSFORD VIC 3067")
 expect_equal(ans$FLAT_NUMBER, 24)

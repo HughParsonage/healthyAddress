@@ -19,21 +19,21 @@ standardize_address <- function(Address, AddressLine2 = NULL, return.type = c("d
   switch(return.type,
          "data.table" = {
            if (is.null(AddressLine2)) {
-             Postcode <- extract_postcode(Address)
+             POSTCODE <- extract_postcode(Address)
              Numbers <- extract_flatNumberFirstLast(Address)
              StreetType <- match_StreetType(Address, m = 2L)
              StreetName <- match_StreetName(Address, StreetType)
-             out <- data.table(Postcode)
+             out <- data.table(POSTCODE)
              out[, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST") := as.list(Numbers)]
              out[, "STREET_NAME" := StreetName]
              out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]
            } else {
              AddressLine2 <- toupper_basic(AddressLine2)
-             Postcode <- extract_postcode(AddressLine2)
+             POSTCODE <- extract_postcode(AddressLine2)
              Numbers <- extract_flatNumberFirstLast(Address)
              StreetType <- match_StreetType_Line1(Address, m = 2L)
              StreetName <- match_StreetName(Address, StreetType)
-             out <- data.table(Postcode)
+             out <- data.table(POSTCODE)
              out[, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST") := as.list(Numbers)]
              out[, "STREET_NAME" := StreetName]
              out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]

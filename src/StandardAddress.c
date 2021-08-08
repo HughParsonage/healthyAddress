@@ -2375,7 +2375,7 @@ SEXP C_NumberFirstLast(SEXP xx) {
     // two numbers are separated by a dash
     bool two_numbers = false;
     // move after flat number:
-    int j_start = flat_number2i[0] + 1;
+    int j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : 0;
     for (int j = j_start; j < n - 4; ++j) {
       if (jchar_is_number(x, j)) {
         int digit = x[j] - '0';
