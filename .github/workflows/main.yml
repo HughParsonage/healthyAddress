@@ -1,5 +1,7 @@
 name: Check
 'on': push
+env:
+  GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
 jobs:
   build:
     name: covr
@@ -49,7 +51,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          Rdevel -q setup.R
+          Rdevel -q -f setup.R
           Rdevel CMD build .
           Rdevel CMD INSTALL --install-tests *.tar.gz
-          Rdevel -q do_test.R
+          Rdevel -q -f do_test.R

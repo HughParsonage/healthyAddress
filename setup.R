@@ -8,9 +8,15 @@ if (!requireNamespace("data.table")) {
 if (!requireNamespace("tinytest")) {
   install.packages("tinytest")
 }
+pkgs <- c("magrittr", "fst", "hutils", "hutilscpp", "fastmatch")
+if (any(!sapply(pkgs, requireNamespace))) {
+  install.packages(pkgs)
+}
+
+
 if (!requireNamespace("PSMA")) {
   if (!requireNamespace("remotes")) {
-    install.packages("remotes", quiet = TRUE)
+    install.packages("remotes")
   }
   remotes::install_github("HughParsonage/PSMA")
 }
