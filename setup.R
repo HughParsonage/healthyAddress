@@ -16,7 +16,7 @@ print(Sys.getenv())
 
 
 
-if (!requireNamespace("PSMA")) {
+if (!requireNamespace("PSMA") || packageVersion("PSMA") < "0.6.1") {
   if (!requireNamespace("remotes")) {
     install.packages("remotes")
   }
