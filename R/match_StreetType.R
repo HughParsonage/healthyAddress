@@ -30,8 +30,7 @@ match_StreetType <- function(address, m = 0L) {
 
 match_StreetType_Line1 <- function(address, m = 2L) {
   stopifnot(is.character(address), is.integer(m))
-  PSTO <- .permitted_street_type_ord()
-  ans <- .Call("Cmatch_StreetType_Line1", address, PSTO, m, PACKAGE = packageName())
+  ans <- .Call("Cmatch_StreetType_Line1", address, m, PACKAGE = packageName())
   ans
 }
 

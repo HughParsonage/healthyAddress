@@ -22,7 +22,7 @@ extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType(SEXP, SEXP, SEXP);
-extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP, SEXP);
+extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
 extern SEXP CNamePresent(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cpoa_has_stcd(SEXP);
@@ -51,7 +51,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CFindSentence",           (DL_FUNC) &CFindSentence,            3},
     {"Cmatch_StreetName",       (DL_FUNC) &Cmatch_StreetName,        6},
     {"Cmatch_StreetType",       (DL_FUNC) &Cmatch_StreetType,        3},
-    {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1,  3},
+    {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1,  2},
     {"Cmatch_word",             (DL_FUNC) &Cmatch_word,              2},
     {"CNamePresent",            (DL_FUNC) &CNamePresent,             5},
     {"Cpoa_has_stcd",           (DL_FUNC) &Cpoa_has_stcd,            1},

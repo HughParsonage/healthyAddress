@@ -3069,7 +3069,7 @@ SEXP Cmatch_word(SEXP xx, SEXP yy) {
   return ans;
 }
 
-SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP yy, SEXP mm) {
+SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm) {
   // This differs from Cmatch without Line1 in that we can assume the last
   // word in the string is the street type
 
@@ -3077,22 +3077,13 @@ SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP yy, SEXP mm) {
   // yy = Permitted street type
   // xx = address
   int np = 0;
-  if (TYPEOF(xx) != STRSXP || TYPEOF(yy) != STRSXP) {
+  if (TYPEOF(xx) != STRSXP) {
     error("Wrong types"); // # nocov
   }
   const int m = asInteger(mm) ;
   const unsigned int m1 = m > 0 ? 256 : 0;
   const unsigned int m2 = m == 2 ? 65536 : 0;
   R_xlen_t N = xlength(xx);
-  R_xlen_t M = xlength(yy);
-  if (M < 16) {
-    error("M < 16 unexpected (should be at least 200)");
-  }
-  SEXP nchar_yy = PROTECT(allocVector(INTSXP, M)); np++;
-  int * restrict nchar_yyp = INTEGER(nchar_yy);
-  for (R_xlen_t j = 0; j < M; ++j) {
-    nchar_yyp[j] = length(STRING_ELT(yy, j));
-  }
   const SEXP * xp = STRING_PTR(xx);
 
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
