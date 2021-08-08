@@ -2780,7 +2780,9 @@ SEXP CEncodeUppercaseWords(SEXP xx, SEXP nn, SEXP nn_confirm) {
     }
     if (max_n != actual_max_n) {
       UNPROTECT(np);
-      return CEncodeUppercaseWords(xx, ScalarInteger(actual_max_n), ScalarLogical(0));
+      SEXP ActualMaxN = ScalarInteger(actual_max_n);
+      SEXP rFALSE = ScalarLogical(0);
+      return CEncodeUppercaseWords(xx, ActualMaxN, rFALSE);
     }
   }
 
