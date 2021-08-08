@@ -1,7 +1,6 @@
 name: Check
 'on': push
-env:
-  GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
+
 jobs:
   build:
     name: covr
@@ -10,6 +9,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@master
       - name: Install Package Dependencies
+        env:
+          GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
         run: |-
           Rscript setup.R
           Rscript -e "install.packages(c('rcmdcheck', 'remotes', 'covr'), repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
@@ -24,6 +25,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@master
       - name: Install Package Dependencies
+        env:
+          GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
         run: |-
             Rscript setup.R
             Rscript -e "install.packages(c('rcmdcheck', 'remotes'), repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
@@ -34,6 +37,8 @@ jobs:
   rchk:
     runs-on: ubuntu-latest
     steps:
+      env:
+        GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
     - uses: actions/checkout@v1
     - uses: r-lib/actions/run-rchk@master
   test-r-sanitizers:
@@ -50,6 +55,8 @@ jobs:
           submodules: true
       - name: Install packages
         shell: bash
+        env:
+          GITHUB_PAT: ${{ secrets.SECRET_GITHUB_PAT }}
         run: |
           Rdevel -q -f setup.R
           Rdevel CMD build .
