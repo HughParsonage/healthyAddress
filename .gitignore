@@ -41,6 +41,7 @@ vignettes/*.pdf
 *.*
 !*.c
 !*.R
+!*.Rda
 !*.h
 !*.Rbuildignore
 !/.github/
