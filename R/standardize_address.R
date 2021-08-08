@@ -14,7 +14,11 @@
 
 standardize_address <- function(Address, AddressLine2 = NULL, return.type = c("data.table", "integer")) {
   return.type <- match.arg(return.type)
-  Address <- toupper_basic(Address)
+  if (nany_lowercase(Address)) {
+
+  } else {
+    Address <- toupper_basic(Address)
+  }
 
   switch(return.type,
          "data.table" = {

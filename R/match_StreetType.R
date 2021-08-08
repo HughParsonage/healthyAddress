@@ -51,10 +51,3 @@ match_StreetName <- function(x, StreetMatch2 = match_StreetType(x, m = 2L)) {
 
 
 
-EncodeWord <- function(x) {
-  .Call("CEncodeWord_16_2", x, PACKAGE = packageName())
-}
-
-DecodeWord <- function(x) {
-  .Call("CDecodeWord_16_2", x, PACKAGE = packageName())
-}

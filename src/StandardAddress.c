@@ -2051,236 +2051,12 @@ SEXP CExtractPostcode(SEXP x) {
   return ans;
 }
 
-SEXP Extract2(SEXP xx, SEXP id, SEXP Postcodes, SEXP StreetTypes, SEXP StreetNames, SEXP Numbers,
-              SEXP StreetTypeCd) {
-  if (TYPEOF(xx) != STRSXP ||
-      TYPEOF(id) != INTSXP ||
-      TYPEOF(Postcodes) != INTSXP ||
-      TYPEOF(StreetTypes) != STRSXP ||
-      TYPEOF(StreetNames) != STRSXP ||
-      TYPEOF(Numbers) != INTSXP) {
-    error("Extract2 wrong types.");
-  }
-  R_xlen_t N = xlength(xx);
-  int M = length(id);
-  if (M != xlength(StreetTypes) ||
-      M != xlength(Postcodes) ||
-      M != xlength(StreetNames) ||
-      M != xlength(Numbers)) {
-    error("Wrong lengths.");
-  }
-  const int * idp = INTEGER(id);
-  const int * postcodes = INTEGER(Postcodes);
-  if (N_POSTCODES >= 32768) {
-    error("N_POSTCODES >= 32768");
-  }
-  if (postcodes[0] < 800) {
-    error("postcodes[0] = %d < 800", postcodes[0]);
-  }
-  if (postcodes[M - 1] > 8192) {
-    error("postcodes[M - 1] = %d > 8192", postcodes[M - 1]);
-  }
-  int wrong_street_type = whichIsntValidStreetType(StreetTypes, StreetTypeCd);
-  if (wrong_street_type) {
-    error("StreetTypes had invalid street type (not uppercase or hyphen) at position %d ", wrong_street_type);
-  }
-
-  // 8192 > max(POSTCODE)
-  unsigned int postcode_starts[8192] = {0};
-  unsigned int postcode_finals[8192] = {0};
-  postcode_starts[postcodes[0]] = 0;
-  for (int i = 1; i < M; ++i) {
-    int p0 = postcodes[i - 1];
-    int p1 = postcodes[i];
-    if (p0 != p1) {
-      postcode_starts[p1] = i;
-      postcode_finals[p0] = i;
-    }
-  }
-  postcode_finals[postcodes[M - 1]] = M;
-
-  SEXP ans = PROTECT(allocVector(INTSXP, N));
-  int * restrict ansp = INTEGER(ans);
-
-  for (R_xlen_t i = 0; i < N; ++i) {
-    ansp[i] = NA_INTEGER;
-    int n = length(STRING_ELT(xx, i));
-    if (n < 10) {
-      continue;
-    }
-    const char * x = CHAR(STRING_ELT(xx, i));
-
-    int postcodei = xpostcode_unsafe(x, n);
-    const int postcode_start = postcode_starts[postcodei];
-    const int postcode_final = postcode_finals[postcodei];
-    // find spaces and first string of non-numbers
-    int space_locs[8] = {0}; // the position of spaces as words boundaries
-    int word_widths[8] = {0}; // the width of every word following space_locs
-    int pos_last_number = 0;
-    int s_j = 0;
-    // j < n - 4 to avoid numbers in postcode
-    for (int j = 1; j < (n - 4); ++j) {
-      char xj = x[j];
-      char xj0 = x[j - 1];
-
-      if (xj0 == ' ') {
-        continue;
-      }
-      if (xj == ' ') {
-        space_locs[s_j] = j;
-        ++s_j;
-        if (char_is_number(xj)) {
-          pos_last_number = j;
-        }
-      }
-    }
-    for (int sj = 0; sj < 8; ++sj) {
-      if (!space_locs[sj]) {
-        continue;
-      }
-      // Move until next space, but only increment word_widths
-      // when not space.  The distinction is important because
-      // non-letters/numbers such as ',' are mapped to spaces,
-      // causing repeated ' ' and we only care about the widths
-      // of the words proper (and not numbers).
-      int j_min = space_locs[sj] + 1;
-      int j_max = sj == 7 ? n : space_locs[sj + 1];
-      for (int j = j_min; j < j_max; ++j) {
-        word_widths[sj] += jchar_is_LETTER(x, j);
-      }
-    }
-
-    // now look from the pos last number and see if it's street name street type
-    bool matched = false;
-    for (int sj = 0; sj < 7; ++sj) {
-      if (matched) {
-        break;
-      }
-      int j = space_locs[sj];
-      if (j < pos_last_number) {
-        continue;
-      }
-      ++j;
-      int j2 = space_locs[sj + 1] + 1;
-      // N.B. only the StreetType have no spaces
-      int len_this_word = word_widths[sj];
-      int len_next_word = word_widths[sj + 1];
-      if (len_this_word) {
-      } else {
-        continue;
-      }
-
-      // We are now at the first character of a candidate
-      // street name. Designate s as the index of StreetNames,StreetType
-      // and k as the character position relative to the start of the word
-      // in each.
-      for (int s = postcode_start; s < postcode_final; ++s) {
-        int id_if_matched = idp[s];
-        const char * street_name_s = CHAR(STRING_ELT(StreetNames, s));
-        const char * street_type_s = CHAR(STRING_ELT(StreetTypes, s));
-        int len_name = length(STRING_ELT(StreetNames, s));
-        int len_type = length(STRING_ELT(StreetTypes, s));
-
-        int wcis = which_char_is_space(street_name_s, len_name);
-        if (!wcis) {
-          // now we can just assume that the first word is the street name
-          // and the second is the type
-          if (len_this_word != len_name || len_next_word != len_type) {
-            continue;
-          }
-          matched = true;
-          // note len_this_word == len_name necessarily
-          for (int k = 0; k < len_name; ++k) {
-            unsigned char xjk = x[j + k];
-            unsigned char yjk = street_name_s[k];
-            if (xjk != yjk) {
-              matched = false;
-              break;
-            }
-          }
-          if (!matched) {
-            continue;
-          }
-          for (int k = 0; k < len_type; ++k) {
-            unsigned char xjk = x[j2 + k];
-            unsigned char yjk = street_type_s[k];
-            if (xjk != yjk) {
-              matched = false;
-              break;
-            }
-          }
-        }
-
-        if (matched) {
-          ansp[i] = id_if_matched;
-          break; // from postcode loop, but will immediately break on outer loop.
-        }
-      }
-
-    }
-  }
-  UNPROTECT(1);
-  return ans;
-}
-
-
 SEXP MAX_uN_STCDs(SEXP x) {
   return ScalarInteger(MAX_NUMBER_STREET_TYPES_ANY_POSTCODE);
 }
 SEXP C_N_STREET_TYPES(SEXP x) {
   return ScalarInteger(N_STREET_TYPES);
 }
-
-int NamePresent(int j, const char * x, int n, SEXP Names, int from, int to) {
-  if (!char_is_LETTER(x[j])) {
-    return NA_INTEGER;
-  }
-  const char first_letter = x[j];
-
-  for (int k = from; k < to; ++k) {
-    int nk = length(STRING_ELT(Names, k));
-    if (j + nk > n) {
-      continue;
-    }
-    if (x[j + nk] != ' ') {
-      continue;
-    }
-    const char * nomk = CHAR(STRING_ELT(Names, k));
-    if (nomk[0] != first_letter) {
-      continue;
-    }
-    bool matched = true; // provisional
-    for (int kk = 1; kk < nk; ++nk) {
-      if (nomk[kk] != x[j + kk]) {
-        matched = false;
-        break;
-      }
-    }
-    if (matched) {
-      return k;
-    }
-  }
-  return NA_INTEGER;
-}
-
-SEXP CNamePresent(SEXP J, SEXP X, SEXP Names, SEXP From, SEXP To) {
-  const int j = asInteger(J);
-  if (TYPEOF(X) != STRSXP || xlength(X) != 1 || TYPEOF(Names) != STRSXP) {
-    error("TYPEOF(X) != STRSXP");
-  }
-  const int from = asInteger(From);
-  const int to = asInteger(To);
-  if (from > to || to >= xlength(Names)) {
-    error("from,to bad");
-  }
-  int n = length(STRING_ELT(X, 0));
-  const char * x = CHAR(STRING_ELT(X, 0));
-  int o = NamePresent(j, x, n, Names, from, to);
-  return ScalarInteger(o);
-}
-
-
-
 
 void do_flat_number(const char * x, int n, int ans[2]) {
   ans[0] = 0; // position after last digit of flat number
@@ -2680,9 +2456,7 @@ bool substring_within(const char * x, int i, int n, const char * y, int m) {
   return true;
 }
 
-bool uchar_is_number(unsigned char x) {
-  return isdigit(x);
-}
+
 
 bool jchar_is_number(const char * x, int j) {
   return isdigit(x[j]);
@@ -2712,96 +2486,14 @@ static unsigned  int StreetLetter2uint[32] =  {  0, 13, 11,  9,  1, 20, 15, 12, 
 static unsigned char uint2Streetletter[32] =  {'A','E','R','N','L','O','I','S','T','D','M','C','H',' ','B','U','G','K','Y','W','P','F','V','J','-','Z'};//,'X','Q',39,'1','.','2','3','4','0','&','5','6','8','9','7','(',')'};
 
 
-unsigned int encodeWORD_16_2(const char * x, int k, int n) {
-  unsigned int o = n;
-  unsigned int base = 16u;
-  for (int i = k; i < n; i += 2) {
-    unsigned char xi = x[i];
-    unsigned int li = xi - 'A';
-    unsigned int li16 = StreetLetter2uint[li & 31] & 15u;
-    o += base * li16;
-    base *= 16u;
-  }
-  return o;
-}
-
-SEXP CDecodeWord_16_2(SEXP xx) {
-  unsigned int x = asInteger(xx);
-  SEXP ans = PROTECT(allocVector(STRSXP, 1));
-  int n = x & 15u;
-  char o[n + 1];
-  for (int i = 0; i < n; i += 2) {
-    x /= 16;
-    o[i] = uint2Streetletter[x & 15];
-    if (i < n - 1) {
-      o[i + 1] = '_';
-    }
-  }
-  o[n] = '\0';
-  const char * oo = (const char *)o;
-  SET_STRING_ELT(ans, 0, mkCharCE(oo, CE_UTF8));
-  UNPROTECT(1);
-  return ans;
-
-}
 
 
 
-SEXP CEncodeWord_16_2(SEXP xx) {
-  if (!isString(xx)) error("x");
-  const char * x = CHAR(STRING_ELT(xx, 0));
-  int n = length(STRING_ELT(xx, 0));
-  unsigned int o = encodeWORD_16_2(x, 0, n);
-  return ScalarInteger(o);
-}
 
 
-// Encode upper case words (i.e. upper case letters and spaces
-// Return an integer
-SEXP CEncodeUppercaseWords(SEXP xx, SEXP nn, SEXP nn_confirm) {
-  const int max_n = asInteger(nn);
-  const bool confirm_nn = asLogical(nn_confirm);
-  if (TYPEOF(xx) != STRSXP) {
-    error("xx in CEncodeUppercaseWords not a STRSXP.");
-  }
-  R_xlen_t N = xlength(xx);
-  int np = 0;
-  if (confirm_nn) {
-    SEXP ncharxx = PROTECT(allocVector(INTSXP, N)); ++np;
-    int * restrict ncharxp = INTEGER(ncharxx);
-    int actual_max_n = max_n;
-    for (R_xlen_t i = 0; i < N; ++i) {
-      int ncharxpi = length(STRING_ELT(xx, i));
-      if (ncharxpi > actual_max_n) {
-        actual_max_n = ncharxpi;
-      }
-      ncharxp[i] = ncharxpi;
-    }
-    if (max_n != actual_max_n) {
-      UNPROTECT(np);
-      return R_NilValue;
-    }
-  }
 
-  SEXP ans = PROTECT(allocVector(INTSXP, N)); ++np;
-  int * restrict ansp = INTEGER(ans);
-  const unsigned char Am2 = 'A' - 2u;
 
-  for (R_xlen_t i = 0; i < N; ++i) {
-    ansp[i] = 0;
-    const char * x = CHAR(STRING_ELT(xx, i));
-    int n = length(STRING_ELT(xx, i));
-    unsigned int t7 = 1u;
-    for (int j = 0; j < n; ++j) {
-      unsigned char xj = x[j];
-      unsigned int xju = (xj == ' ') ? 1 : (xj - Am2);
-      ansp[i] += t7 * xju;
-      t7 *= 27u;
-    }
-  }
-  UNPROTECT(np);
-  return ans;
-}
+
 
 SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
   int np = 0;

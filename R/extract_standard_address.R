@@ -1,11 +1,4 @@
-#' Standardize and compactly index Australian addresses
-#' @param address A character vector like \code{10 MALVINA PL CARLTON VIC 3053}
-#' @param .check Should internal inputs be checked.
-#' @examples
-#'
-#' extract_standard_address("10 MALVINA PL CARLTON VIC 3053")
-#'
-#' @export
+
 
 extract_standard_address <- function(address,
                                      .check = TRUE) {
@@ -253,11 +246,7 @@ LocalityGivenPostcode <- function(address, poa) {
 
 
 
-Extract2_ <- function(xx, id, Postcodes, StreetTypes, StreetNames, Numbers) {
-  .Call("Extract2", xx, id, Postcodes, StreetTypes, StreetNames, Numbers,
-        chmatch(StreetTypes, .permitted_street_type_ord(), nomatch = 0L),
-        PACKAGE = packageName())
-}
+
 
 test_touppers <- function(x) {
   .Call("Ctest_touppers", x, PACKAGE = packageName())
@@ -268,14 +257,3 @@ PoaHasSt <- function(x, y) {
 }
 
 
-NamePresent <- function(j, x, Names = NULL, from = 0L, to = length(Names) - 1L) {
-  if (is.null(Names)) {
-    Names <- get_FullNamedAddressData()[["STREET_NAME"]]
-    i <- seq_along(Names)
-    nd <- !duplicated(Names)
-    Nnd <- Names[nd]
-    ind <- i[nd]
-    o <- .Call("CNamePresent", j, x, Nnd, from, to, PACKAGE = packageName())
-  }
-  .Call("CNamePresent", j, x, Names, from, to, PACKAGE = packageName())
-}

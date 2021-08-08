@@ -4,6 +4,8 @@
 #' @importFrom PSMA get_fst
 #' @importFrom fastmatch %fin%
 #' @importFrom utils packageName
+#' @importFrom utils hasName
+#' @importFrom utils head
 #' @keywords internal
 "_PACKAGE"
 
