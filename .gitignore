@@ -42,5 +42,6 @@ vignettes/*.pdf
 !*.c
 !*.R
 !*.h
-
+!*.Rbuildignore
+!/.github/*
 
