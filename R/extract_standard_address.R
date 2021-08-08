@@ -248,17 +248,9 @@ LocalityGivenPostcode <- function(address, poa) {
 
 }
 
-EnsureUC <- function(x) {
-  .Call("CEnsureUC", x, PACKAGE = packageName())
-}
 
-do_EncodeStreet <- function(x) {
-  x <- EnsureUC(x)
-  m <- chmatch(x, .permitted_street_type_ord(), nomatch = 0L)
-  Abbrev <- PSMA::street_type_decoder$street_abbrev
-  Abbrevi <- chmatch(PSMA::street_type_decoder$street_type, .permitted_street_type_ord(), nomatch = 0L)
-  .Call("CEncodeStCd", x, m, Abbrev, Abbrevi, PACKAGE = packageName())
-}
+
+
 
 
 
