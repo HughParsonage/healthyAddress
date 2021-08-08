@@ -2,6 +2,8 @@
 #' @useDynLib healthyAddress, .registration = TRUE
 #' @import data.table
 #' @importFrom PSMA get_fst
+#' @importFrom fastmatch %fin%
+#' @importFrom utils packageName
 #' @keywords internal
 "_PACKAGE"
 

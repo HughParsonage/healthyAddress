@@ -4,3 +4,4 @@
 ^setup\.R$
 ^do_test\.R$
 ^.github$
+^LICENSE$

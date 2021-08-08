@@ -118,7 +118,6 @@ get_FullNamedAddressData <- function(envir = NULL) {
   setkeyv(FullNamedAddressData, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))[]
 }
 
-"%fin%" <- fastmatch::`%fin%`
 
 .MAX_uN_STCDs <- function() {
   .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())

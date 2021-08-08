@@ -14,7 +14,9 @@ RoxygenNote: 7.1.1
 Imports: 
     PSMA,
     data.table,
-    fastmatch
+    fastmatch,
+    hutilscpp,
+    utils
 Suggests: 
     tinytest
 Remotes: 
