@@ -18,7 +18,12 @@ get_FullNamedAddressData <- function(envir = NULL) {
       X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
       Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
       Z <- X[Y,
-             .(ADDRESS_DETAIL_INTRNL_ID, POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST, FLAT_NUMBER),
+             .(ADDRESS_DETAIL_INTRNL_ID,
+               POSTCODE,
+               STREET_TYPE_CODE,
+               STREET_NAME,
+               NUMBER_FIRST,
+               FLAT_NUMBER),
              on = .(STREET_LOCALITY_INTRNL_ID)]
       Z[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
       setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST", "FLAT_NUMBER"))

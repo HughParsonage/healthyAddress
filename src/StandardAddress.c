@@ -41,6 +41,21 @@ bool jchar_is_LETTER_or_hyphen(const char * x, int j) {
   return char_is_LETTER(xj) || xj == '-';
 }
 
+int ndigits_positive(int x) {
+  unsigned int ux = x;
+  if (x == 0) return 0;
+  if (x < 10) return 1;
+  if (x < 100) return 2;
+  if (x < 1000) return 3;
+  if (x < 10000) return 4;
+  if (x < 100000) return 5;
+  if (x < 1000000) return 6;
+  if (x < 10000000) return 7;
+  if (x < 100000000) return 8;
+  if (x < 1000000000) return 9;
+  return 10;
+}
+
 int which_char_is_space(const char * x, int n) {
   for (int i = 0; i < n; ++i) {
     if (x[i] == ' ') {
@@ -2038,6 +2053,7 @@ SEXP CExtractPostcode(SEXP x) {
   const SEXP * xpp = STRING_PTR(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
+#pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xpp[i]);
     if (n < 4) {
@@ -2058,14 +2074,14 @@ SEXP C_N_STREET_TYPES(SEXP x) {
   return ScalarInteger(N_STREET_TYPES);
 }
 
-void do_flat_number(const char * x, int n, int ans[2]) {
+void do_flat_number(const char * x, int n, int ans[2], int jj) {
   ans[0] = 0; // position after last digit of flat number
   ans[0] = 0; // the flat number itself
   if (n < 4) {
     return;
   }
   // position j so that it points to the first digit of the flat number
-  int j = 0;
+  int j = jj;
   switch(x[0]) {
   case 'U':
     j = (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
@@ -2126,22 +2142,39 @@ SEXP C_NumberFirstLast(SEXP xx) {
   SEXP n_unit = PROTECT(allocVector(INTSXP, N)); ++np;
   SEXP nfirst = PROTECT(allocVector(INTSXP, N)); ++np;
   SEXP nfinal = PROTECT(allocVector(INTSXP, N)); ++np;
+  SEXP posfin = PROTECT(allocVector(INTSXP, N)); ++np;
 
   int * restrict nun = INTEGER(n_unit);
   int * restrict nfp = INTEGER(nfirst);
   int * restrict nfl = INTEGER(nfinal);
+  int * restrict pfp = INTEGER(posfin);
 
   for (R_xlen_t i = 0; i < N; ++i) {
     nun[i] = NA_INTEGER;
     nfp[i] = NA_INTEGER;
     nfl[i] = NA_INTEGER;
+    pfp[i] = 0;
     if (xp[i] == NA_STRING) {
       continue;
     }
     int n = length(xp[i]);
+    if (n <= 4) {
+      continue; // confusion with postcode, can't be anything meaningful (even 1 A ST)
+    }
     const char * x = CHAR(xp[i]);
+    int j_start = 0;
+    const char x0 = x[0];
+    if (!isdigit(x[0])) {
+      const char x1 = x[1];
+      const char x2 = x[2];
+      const char x3 = x[3];
+      if (x0 == 'C' && x1 == '/' && (x2 == '-' || x2 == 'O')) {
+        // careof
+        j_start = 3;
+      }
+    }
     int flat_number2i[2] = {0};
-    do_flat_number(x, n, flat_number2i);
+    do_flat_number(x, n, flat_number2i, j_start);
     nun[i] = flat_number2i[1];
 
     int o1 = 0;
@@ -2150,8 +2183,9 @@ SEXP C_NumberFirstLast(SEXP xx) {
     // two numbers are separated by a dash
     bool two_numbers = false;
     // move after flat number:
-    int j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : 0;
-    for (int j = j_start; j < n - 4; ++j) {
+    j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : j_start;
+    int j = j_start;
+    for (; j < n - 4; ++j) {
       if (jchar_is_number(x, j)) {
         int digit = x[j] - '0';
         if (two_numbers) {
@@ -2171,12 +2205,14 @@ SEXP C_NumberFirstLast(SEXP xx) {
     }
     nfp[i] = o1;
     nfl[i] = o2;
+    pfp[i] = j;
 
   }
-  SEXP ans = PROTECT(allocVector(VECSXP, 3)); ++np;
+  SEXP ans = PROTECT(allocVector(VECSXP, 4)); ++np;
   SET_VECTOR_ELT(ans, 0, n_unit);
   SET_VECTOR_ELT(ans, 1, nfirst);
   SET_VECTOR_ELT(ans, 2, nfinal);
+  SET_VECTOR_ELT(ans, 3, posfin);
 
   UNPROTECT(np);
   return ans;
@@ -2484,6 +2520,7 @@ unsigned int pos_preceding_word(const char * x, int i) {
   return 0;
 }
 
+
 int has_comma(const char * x, int n) {
   int i = n - 1;
   while (i >= 0 && x[i] != ',') {
@@ -2724,7 +2761,7 @@ SEXP Cmatch_word(SEXP xx, SEXP yy) {
   return ans;
 }
 
-SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm) {
+SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm, SEXP jPos) {
   // This differs from Cmatch without Line1 in that we can assume the last
   // word in the string is the street type
 
@@ -2735,10 +2772,13 @@ SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm) {
   if (TYPEOF(xx) != STRSXP) {
     error("Wrong types"); // # nocov
   }
+  R_xlen_t N = xlength(xx);
   const int m = asInteger(mm) ;
   const unsigned int m1 = m > 0 ? 256 : 0;
   const unsigned int m2 = m == 2 ? 65536 : 0;
-  R_xlen_t N = xlength(xx);
+  const bool hasNumberPosition = isInteger(jPos) && xlength(jPos) == N;
+  const int * last_number_p = hasNumberPosition ? INTEGER(jPos) : INTEGER(mm);
+
   const SEXP * xp = STRING_PTR(xx);
 
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
@@ -2763,7 +2803,13 @@ SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm) {
       ansp[i] = ST_CODE_STREET + m1 * (n - 3) + m2 * pos_preceding_word(x, n - 3); continue;
     }
     if (substring_within(x, n - 7, n, " STREET", 7)) {
-      ansp[i] = ST_CODE_STREET + m1 * (n - 7) + m2 * pos_preceding_word(x, n - 7); continue;
+      ansp[i] = ST_CODE_STREET;
+      ansp[i] += m1 * (n - 7);
+      if (hasNumberPosition) {
+        ansp[i] += m2 * last_number_p[i];
+        continue;
+      }
+      ansp[i] += m2 * pos_preceding_word(x, n - 7); continue;
     }
     if (substring_within(x, n - 3, n, " CT", 3)) {
       ansp[i] = ST_CODE_COURT + m1 * (n - 3) + m2 * pos_preceding_word(x, n - 3); continue;
@@ -3581,10 +3627,12 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
   if (TYPEOF(xx) != STRSXP || TYPEOF(yy) != STRSXP) {
     error("Wrong types"); // # nocov
   }
+  R_xlen_t N = xlength(xx);
   const int m = asInteger(mm) ;
   const unsigned int m1 = m > 0 ? 256 : 0;
   const unsigned int m2 = m == 2 ? 65536 : 0;
-  R_xlen_t N = xlength(xx);
+
+
   R_xlen_t M = xlength(yy);
   if (M < 16) {
     error("M < 16 unexpected (should be at least 200)");
@@ -4235,50 +4283,78 @@ SEXP Cdigit256(SEXP xx, SEXP dd) {
 }
 
 SEXP Cmatch_StreetName(SEXP xx,
-                       SEXP Postcode, SEXP StreetMatch1,
-                       SEXP Postcode2,
-                       SEXP StreetCode2,
-                       SEXP StreetName2) {
-  R_xlen_t N = xlength(xx), M = xlength(StreetName2);
-  if (!isString(xx) ||
-      !isInteger(Postcode) ||
-      !isInteger(StreetMatch1) ||
-      !isInteger(Postcode2) ||
-      !isString(StreetName2)) {
-      error("Wrong types.");
+                       SEXP StreetMatch1,
+                       SEXP jPos) {
+  R_xlen_t N = xlength(xx);
+  if (!isString(xx)) {
+    error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
   }
-  if (M != xlength(StreetName2)) {
-    error("M != xlength(StreetName2)");
+  if (!isInteger(StreetMatch1)) {
+    error("`StreetMatch1` was type '%s' but must be an integer vector.", type2char(TYPEOF(StreetMatch1)));
   }
+  if (!isInteger(jPos)) {
+    error("`jPos` was type '%s' but must be an integer vector.", type2char(TYPEOF(jPos)));
+  }
+
+  const SEXP * xp = STRING_PTR(xx);
   const int * streetMatch1p = INTEGER(StreetMatch1);
+  const int * last_number_p = INTEGER(jPos);
+  const bool use_last_number = xlength(jPos) == N;
+  if (xlength(StreetMatch1) != N) {
+    error("Lengths differ(%d,%d).", use_last_number, xlength(StreetMatch1) & INT_MAX);
+  }
 
   SEXP ans = PROTECT(allocVector(STRSXP, N));
 
-  for (R_xlen_t i = 0; i < N; ++i) {
-    SEXP CX = STRING_ELT(xx, i);
-    if (CX == NA_STRING) {
-      SET_STRING_ELT(ans, i, CX);
-      continue;
-    }
+  if (use_last_number) {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      SEXP CX = xp[i];
+      int n = length(xp[i]);
+      unsigned int si = streetMatch1p[i];
+      if (n <= 4 || si > INT_MAX) {
+        SET_STRING_ELT(ans, i, NA_STRING);
+        continue;
+      }
+      int si2 = last_number_p[i] + 1;
+      int si1 = (si >> 8u) & 255;
 
-    unsigned int si = streetMatch1p[i];
-    if (si > INT_MAX) {
-      SET_STRING_ELT(ans, i, NA_STRING);
-      continue;
-    }
+      const char * x = CHAR(CX);
+      char oy[si1 - si2 + 1];
+      for (int j = si2; j < si1; ++j) {
+        oy[j - si2] = x[j];
+      }
+      oy[si1 - si2] = '\0';
+      const char * o = (const char *)oy;
+      SET_STRING_ELT(ans, i, mkCharCE(o, CE_UTF8));
 
-    // int si0 = si & 255;
-    int si1 = (si / 256) & 255;
-    int si2 = si / 65536;
-
-    const char * x = CHAR(CX);
-    char oy[si1 - si2 + 1];
-    for (int j = si2; j < si1; ++j) {
-      oy[j - si2] = x[j];
     }
-    oy[si1 - si2] = '\0';
-    const char * o = (const char *)oy;
-    SET_STRING_ELT(ans, i, mkCharCE(o, CE_UTF8));
+  } else {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      SEXP CX = STRING_ELT(xx, i);
+      if (CX == NA_STRING) {
+        SET_STRING_ELT(ans, i, CX);
+        continue;
+      }
+
+      unsigned int si = streetMatch1p[i];
+      if (si > INT_MAX) {
+        SET_STRING_ELT(ans, i, NA_STRING);
+        continue;
+      }
+
+      // int si0 = si & 255;
+      int si1 = (si / 256) & 255;
+      int si2 = si / 65536;
+
+      const char * x = CHAR(CX);
+      char oy[si1 - si2 + 1];
+      for (int j = si2; j < si1; ++j) {
+        oy[j - si2] = x[j];
+      }
+      oy[si1 - si2] = '\0';
+      const char * o = (const char *)oy;
+      SET_STRING_ELT(ans, i, mkCharCE(o, CE_UTF8));
+    }
   }
   UNPROTECT(1);
   return ans;

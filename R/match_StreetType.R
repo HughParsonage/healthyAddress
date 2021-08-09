@@ -9,6 +9,8 @@
 #'   at which the street type starts.
 #' }
 #'
+#' @param Numbers If not \code{NULL}, then a list from \code{extract_flatNumberFirstLast}.
+#'
 #'
 #' @return Which of \code{\link{.permitted_street_type_ord}} appears
 #' in \code{address}.
@@ -36,15 +38,19 @@ match_StreetType_Line1 <- function(address, m = 2L) {
 
 
 
-match_StreetName <- function(x, StreetMatch2 = match_StreetType(x, m = 2L)) {
-  Postcode <- extract_postcode(x)
-  StreetName2 <- x
+match_StreetName <- function(x, StreetMatch2 = NULL, Numbers = NULL) {
+  if (is.null(StreetMatch2)) {
+    StreetMatch2 <- match_StreetType(x, m = 2L)
+  }
+  jPos <- integer(0)
+  if (!is.null(Numbers) && hasName(Numbers, "j_POSITION")) {
+    jPos <- .subset2(Numbers, "j_POSITION")
+  }
+
   .Call("Cmatch_StreetName",
         x,
-        Postcode, StreetMatch2,
-        Postcode,
         StreetMatch2,
-        StreetName2,
+        jPos,
         PACKAGE = packageName());
 }
 

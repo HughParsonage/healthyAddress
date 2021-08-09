@@ -6,6 +6,10 @@ SEXP CStreetCd2Str(SEXP x) {
 	SEXP ans = PROTECT(allocVector(STRSXP, N));
 	for (R_xlen_t i = 0; i < N; ++i) {
 		int xpi = xp[i];
+	  if (xpi <= 0 || xpi > 224) {
+	    SET_STRING_ELT(ans, i, NA_STRING);
+	    continue;
+	  }
 		switch(xpi) {
 			case 1:
 			SET_STRING_ELT(ans, i, mkChar("ROAD"));

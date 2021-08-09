@@ -431,8 +431,7 @@ street_cd <- function(ADDRESS) {
 }
 
 street_cd_from_int <- function(x) {
-  x <- as.integer(x)
-  stopifnot(!anyNA(x), min(x) >= 1, max(x) <= 225)
+  stopifnot(is.integer(x))
   .Call("CStreetCd2Str", x, PACKAGE = packageName())
 }
 

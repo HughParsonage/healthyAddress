@@ -15,7 +15,7 @@ extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
 extern SEXP CExtractStdAddress(SEXP, SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
-extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
@@ -36,7 +36,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CExtractPostcode",        (DL_FUNC) &CExtractPostcode,        1},
     {"CExtractStdAddress",      (DL_FUNC) &CExtractStdAddress,      2},
     {"CFindSentence",           (DL_FUNC) &CFindSentence,           3},
-    {"Cmatch_StreetName",       (DL_FUNC) &Cmatch_StreetName,       6},
+    {"Cmatch_StreetName",       (DL_FUNC) &Cmatch_StreetName,       3},
     {"Cmatch_StreetType",       (DL_FUNC) &Cmatch_StreetType,       3},
     {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1, 2},
     {"Cmatch_word",             (DL_FUNC) &Cmatch_word,             2},

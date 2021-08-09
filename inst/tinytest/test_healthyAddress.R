@@ -36,9 +36,14 @@ expect_equal(ans$NUMBER_FIRST, 99)
 expect_equal(ans$STREET_NAME, "ROBBINS")
 expect_equal(ans$STREET_TYPE, "WAY")
 
-# ans <- standardize_address("41-55 Hamilton Hume Parade, Craigieburn, Vic 3064")
-# expect_equal(ans$STREET_NAME, "HAMILTON HUME")
+ans <- standardize_address("41-55 Hamilton Hume Parade, Craigieburn, Vic 3064")
+expect_equal(ans$STREET_NAME, "HAMILTON HUME")
 
+ans <- standardize_address("C/-1-5 ANDERSONS CREEK RD",  "DONCASTER EAST VIC 3109")
+expect_equal(ans$STREET_NAME, "ANDERSONS CREEK")
+
+# ans <- standardize_address("11 THE ESPLANADE Narre Warren South VIC 3805")
+# expect_equal(ans$STREET_NAME, "THE ESPLANADE")
 
 
 

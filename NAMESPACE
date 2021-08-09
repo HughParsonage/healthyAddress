@@ -2,6 +2,7 @@
 
 export(.digit256)
 export(.permitted_street_type_ord)
+export(encode_address)
 export(extract_flatNumberFirstLast)
 export(match_StreetType)
 export(match_word)
