@@ -15,6 +15,7 @@ Imports:
     PSMA,
     data.table,
     fastmatch,
+    fst,
     hutilscpp,
     utils
 Suggests: 

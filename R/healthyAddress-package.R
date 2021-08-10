@@ -3,6 +3,7 @@
 #' @import data.table
 #' @importFrom PSMA get_fst
 #' @importFrom fastmatch %fin%
+#' @importFrom hutilscpp isntConstant
 #' @importFrom utils packageName
 #' @importFrom utils hasName
 #' @importFrom utils head
