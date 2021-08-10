@@ -47,4 +47,6 @@ vignettes/*.pdf
 !/.github/
 !/.github/workflows/
 !/.github/workflows/main.yml
-
+!inst/
+!inst/extdata/
+!inst/extdata/*.fst

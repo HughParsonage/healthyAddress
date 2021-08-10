@@ -4361,8 +4361,81 @@ SEXP Cmatch_StreetName(SEXP xx,
 }
 
 
+// Convert number_suffix to raw for compression
+unsigned char number_suffix2raw(const char * x, int n) {
+  if (n == 0) {
+    return 0;
+  }
+  char x0 = x[0];
+  if (n == 1 || isdigit(x0)) {
+    return x0;
+  }
+  char x1 = x[1];
+  switch(x0) {
+  case 'A':
+    switch(x1) {
+    case 'A':
+      return 'a';
+    case 'B':
+      return 'b';
+    default:
+      return 254;
+    }
+  case 'B':
+    switch(x1) {
+    case 'B':
+      return 'c';
+    case 'C':
+      return 'd';
+    default:
+      return 253;
+    }
+  case 'C':
+    return 'e';
+  case 'G':
+    switch(x1) {
+    case 'R':
+      return 'g';
+    case 'X':
+      return 'h';
+    case 'Z':
+      return 'i';
+    default:
+      return 252;
+    }
+  case 'M':
+    return 'm';
+  case 'N':
+    return 'n';
+  case 'T':
+    switch(x1) {
+    case 'T':
+      return 't';
+    case '3':
+      return 'u';
+    default:
+      return 251;
+    }
+    break;
+  }
+  return 255;
+}
 
-
+SEXP C_NumberSuffix2Raw(SEXP xx) {
+  if (!isString(xx)) {
+    error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(xx))); // # nocov
+  }
+  R_xlen_t N = xlength(xx);
+  const SEXP * xp = STRING_PTR(xx);
+  SEXP ans = PROTECT(allocVector(RAWSXP, N));
+  unsigned char * ansp = RAW(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(xp[i]);
+    ansp[i] = number_suffix2raw(CHAR(xp[i]), n);
+  }
+  UNPROTECT(1);
+  return ans;
+}
 
 
 
