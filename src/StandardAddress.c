@@ -234,12 +234,13 @@ SEXP C_uniquePostcodes(SEXP xx) {
     postcode_tbl[xpi] = 1;
   }
   int n_out = 0; // number of unique postcodes
-  for (int i = 0; i < SUP_POSTCODES; ++i) {
+  // i = 1, we don't want to include zero
+  for (int i = 1; i < SUP_POSTCODES; ++i) {
     n_out += postcode_tbl[i];
   }
   SEXP ans = PROTECT(allocVector(INTSXP, n_out));
   int * restrict ansp = INTEGER(ans);
-  for (int i = 0, j = 0; i < SUP_POSTCODES; ++i) {
+  for (int i = 1, j = 0; i < SUP_POSTCODES; ++i) {
     if (postcode_tbl[i]) {
       ansp[j] = i;
       ++j;

@@ -49,7 +49,7 @@ sys_fst <- function(NAME,
   }
   file.fst <- paste0("inst/extdata/", NAME, ".fst")
   if (!file.exists(file.fst)) {
-    file.fst <- system.file("extdata", paste0(NAME, ".fst"), PACKAGE = packageName())
+    file.fst <- system.file("extdata", paste0(NAME, ".fst"), package = packageName())
   }
   if (!file.exists(file.fst)) {
     stop("Expected file at ", normalizePath(file.fst, winslash = "/"))

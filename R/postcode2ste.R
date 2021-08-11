@@ -28,9 +28,13 @@
 postcode2ste <- function(Postcodes, result = c("integer", "character")) {
   result <- match.arg(result)
   if (!is.integer(Postcodes)) {
+    stopifnot(is.numeric(Postcodes))
     Postcodes <- as.integer(Postcodes)
   }
   Postcodes <- unique_Postcodes(Postcodes)
+  if (!length(Postcodes)) {
+    return(switch(result, integer = integer(0), character = character(0)))
+  }
   Postcode2ste <- sys_fst("Postcode2ste")
   stopifnot(hasNames(Postcode2ste, c("POSTCODE", "ste_int")))
   ste_int <- NULL

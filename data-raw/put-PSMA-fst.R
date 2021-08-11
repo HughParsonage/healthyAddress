@@ -1,8 +1,10 @@
+
 library(data.table)
 library(hutilscpp)
 library(hutils)
 library(magrittr)
 library(fst)
+devtools::load_all()
 
 find_psma_cols <- function(cols, state = "VIC") {
   all_psv <- dir(path = "~/Data/PSMA-Geocoded-Address-202105/G-NAF/",
@@ -99,40 +101,13 @@ do_full_Address <- function(ste) {
   STE_FULL_ADDRESS
 }
 
+.ste_chars <- c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT")
+
 ListofSTE_FullAddresses <-
-  lapply(c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
-         do_full_Address)
+  lapply(.ste_chars,
+         do_full_Address) %>%
+  setNames(.ste_chars)
 
-
-VIC_FULL_ADDRESS <-
-  merge(selector(VIC_ADDRESS_DETAIL,
-                 cols = c("ADDRESS_DETAIL_PID",
-                          "BUILDING_NAME",
-                          "LOT_NUMBER",
-                          "FLAT_NUMBER",
-                          "LEVEL_NUMBER_PREFIX",
-                          "LEVEL_NUMBER",
-                          "LEVEL_NUMBER_SUFFIX",
-                          "NUMBER_FIRST_PREFIX",
-                          "NUMBER_FIRST",
-                          "NUMBER_FIRST_SUFFIX",
-                          "NUMBER_LAST_PREFIX",
-                          "NUMBER_LAST",
-                          "NUMBER_LAST_SUFFIX",
-                          "STREET_LOCALITY_PID",
-                          "POSTCODE")),
-
-        selector(VIC_STREET_LOCALITY,
-                 cols = c("STREET_LOCALITY_PID",
-                          "STREET_NAME",
-                          "STREET_TYPE_CODE")),
-        by = "STREET_LOCALITY_PID")
-fwalnume_address_detail_id <- dhhs::fwalnume(VIC_FULL_ADDRESS$ADDRESS_DETAIL_PID)
-encoded <- dhhs::encode_ID(VIC_FULL_ADDRESS$ADDRESS_DETAIL_PID,
-                          cipher = fwalnume_address_detail_id)
-set(VIC_FULL_ADDRESS,
-    j = "healthyAddress_202105_VIC_INTRNL_ADDRESS_DETAIL_PID",
-    value = encoded)
 
 
 if (FALSE) {
@@ -212,11 +187,40 @@ if (FALSE) {
     rbindlist(use.names = TRUE, fill = TRUE)
 }
 
+absent_postcodes <-
+  c(815L, 2006L, 2052L, 2109L, 2123L, 2129L, 2139L, 2314L, 2351L,
+    2522L, 2755L, 3005L, 3010L, 3050L, 3086L, 3694L, 3800L, 4029L,
+    4072L, 4222L, 4229L, 4230L, 4271L, 4345L, 4475L, 4801L, 5005L,
+    6712L,
+    6711L, 6731L, 6733L, 6762L, 7001L)
+
+# guesses
+absent_postcode_states <-
+  fcase(absent_postcodes == 815,
+        "NT",
+        absent_postcodes < 3000,
+        "NSW",
+        absent_postcodes < 4000,
+        "VIC",
+        absent_postcodes < 5000,
+        "QLD",
+        absent_postcodes < 6000,
+        "SA",
+        absent_postcodes < 7000,
+        "WA",
+        absent_postcodes < 8000,
+        "TAS",
+        default = "OT")
+
 rbindlist(lapply(ListofSTE_FullAddresses, function(DT) DT[, .(POSTCODE = unique(POSTCODE))]),
           idcol = "ste_int") %>%
+  rbind(data.table(POSTCODE = absent_postcodes,
+                   ste_int = absent_postcode_states),
+        use.names = TRUE, fill = TRUE) %>%
+  .[, nStates := .N, by = .(POSTCODE)] %>%
+  .[, ste_int := match(ste_int, .ste_chars)] %>%
   set_cols_first("POSTCODE") %>%
   setkey(POSTCODE, ste_int) %>%
-  .[, nStates := .N, by = .(POSTCODE)] %>%
   write_fst("inst/extdata/Postcode2ste.fst") %>%
   .[]
 
