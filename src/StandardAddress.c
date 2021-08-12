@@ -20,6 +20,43 @@ static char toupper1(char x) {
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
+unsigned int djb2_hash(const char * str, int n) {
+  unsigned int hash = 5381;
+  //
+  // while (c = *str++)
+  //   hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+  // using xor instead of + performs slightly better on STREET_NAME
+  for (int i = 0; i < n; ++i) {
+    unsigned char xi = str[i];
+    hash = ((hash << 5) + hash) ^ xi;
+  }
+  return hash;
+}
+
+SEXP C_HashStreetName(SEXP x) {
+  if (!isString(x)) {
+    error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(x)));
+  }
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  // http://www.cse.yorku.ca/~oz/hash.html
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    if (xp[i] == NA_STRING) {
+      ansp[i] = NA_INTEGER;
+      continue;
+    }
+
+    int n = length(xp[i]);
+    const char * xi = CHAR(xp[i]);
+    ansp[i] = djb2_hash(xi, n);
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 bool char_is_number(char x) {
   unsigned int xi = x - '0';
   return xi <= 9U;
