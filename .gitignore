@@ -50,3 +50,6 @@ vignettes/*.pdf
 !inst/
 !inst/extdata/
 !inst/extdata/*.fst
+!*.Rd
+!man/
+!man/*.Rd
