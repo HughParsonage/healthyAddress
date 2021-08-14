@@ -48,6 +48,15 @@ expect_equal(ans$STREET_NAME, "ANDERSONS CREEK")
 # ans <- standardize_address("11 THE ESPLANADE Narre Warren South VIC 3805")
 # expect_equal(ans$STREET_NAME, "THE ESPLANADE")
 
+ans <- standardize_address(c("15 CANBERRA AVENUE FORREST ACT 2609",
+                             "1 BEALE CRESCENT DEAKIN ACT 2600",
+                             "116 MUGGA LANE Symonston ACT 2609",
+                             "1 BIDWILL CLOSE YARRALUMLA ACT 2600",
+                             "5/1 GEILS COURT DEAKING ACT 2600"))
+expect_equal(ans$STREET_TYPE,
+             c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT"))
+
+
 
 
 
