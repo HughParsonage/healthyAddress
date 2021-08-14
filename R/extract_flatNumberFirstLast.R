@@ -10,7 +10,7 @@
 extract_flatNumberFirstLast <- function(address) {
   ans <- .Call("C_NumberFirstLast", address, PACKAGE = packageName())
   setDT(ans)
-  setnames(ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST", "j_POSITION"))
+  setnames(ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST", "j_POSITION", "NUMBER_SUFFIX"))
   ans[]
 }
 

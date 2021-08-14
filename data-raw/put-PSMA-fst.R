@@ -1,10 +1,11 @@
-
+suppressMessages({
 library(data.table)
 library(hutilscpp)
 library(hutils)
 library(magrittr)
 library(fst)
-devtools::load_all()
+devtools::load_all(quiet = TRUE)
+})
 
 find_psma_cols <- function(cols, state = "VIC") {
   all_psv <- dir(path = "~/Data/PSMA-Geocoded-Address-202105/G-NAF/",
@@ -53,7 +54,7 @@ files_psv <- dir("~/Data/PSMA-Geocoded-Address-202105/G-NAF/G-NAF MAY 2021/Stand
                  pattern = "\\.psv$")
 files_ <- trim_common_affixes(files_psv)
 for (i in seq_along(files_psv)) {
-  if (exists(files_[i])) {
+  if (exists(files_[i]) || grepl("201", files_[i])) {
     next
   }
   cat(hh_ss(), "\t", formatC(files_[i], width = max(nchar(files_))), "\n")
@@ -89,6 +90,7 @@ do_full_Address <- function(ste) {
     .[, "STREET_TYPE_CODE" := chmatch(STREET_TYPE_CODE,
                                       healthyAddress:::.permitted_street_type_ord())] %>%
     .[, "STREET_LOCALITY_PID" := NULL] %>%
+    .[, hSTREET_NAME := HashStreetName(STREET_NAME)] %>%
     set_cols_last("NUMBER_FIRST_SUFFIX") %>%
     setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME, NUMBER_FIRST, FLAT_NUMBER) %>%
     .[, "NUMBER_FIRST_SUFFIX" := NumberSuffix2Raw(NUMBER_FIRST_SUFFIX)] %>%
@@ -223,37 +225,4 @@ rbindlist(lapply(ListofSTE_FullAddresses, function(DT) DT[, .(POSTCODE = unique(
   setkey(POSTCODE, ste_int) %>%
   write_fst("inst/extdata/Postcode2ste.fst") %>%
   .[]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

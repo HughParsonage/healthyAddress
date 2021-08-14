@@ -16,7 +16,9 @@ Imports:
     data.table,
     fastmatch,
     fst,
+    hutils,
     hutilscpp,
+    magrittr,
     utils
 Suggests: 
     tinytest

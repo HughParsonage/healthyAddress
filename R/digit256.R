@@ -11,3 +11,5 @@
 .digit256 <- function(x, d) {
   .Call("Cdigit256", x, d, PACKAGE = packageName())
 }
+
+

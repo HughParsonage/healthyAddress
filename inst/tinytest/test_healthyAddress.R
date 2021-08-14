@@ -12,6 +12,9 @@ expect_equal(ans$NUMBER_LAST, 120)
 expect_equal(toupper(ans$STREET_NAME), "RUPERT")
 expect_equal(toupper(ans$STREET_TYPE), "STREET")
 expect_equal(ans$POSTCODE, 3012)
+expect_true(TRUE)
+
+
 
 ans <- standardize_address("UNIT 24 125 TURNER ST", "ABBOTSFORD VIC 3067")
 expect_equal(ans$FLAT_NUMBER, 24)
@@ -28,8 +31,8 @@ expect_equal(toupper(ans$STREET_TYPE), "STREET")
 expect_false(is.na(ans$POSTCODE))
 expect_equal(ans$POSTCODE, 3067)
 
-# ans <- standardize_address("10 MALVINA PLACE CARLTON VIC 3053", return.type = "integer")
-# expect_equal(ans, 10108234L)
+ans <- standardize_address("10 MALVINA PLACE CARLTON VIC 3053", return.type = "integer")
+expect_equal(ans, 10108234L)
 
 ans <- standardize_address("99 ROBBINS WAY, HAMPTON PARK, VIC, 3976")
 expect_equal(ans$NUMBER_FIRST, 99)

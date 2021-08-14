@@ -2,6 +2,10 @@
 #'
 #' @param ste The abbreviated state name.
 #' @param columns Character vector of columns to select. If \code{NULL}, all columns are selected.
+#' @param data_env The environment in which objects are cached. Mainly for
+#' internal use.
+#' @param rbind Whether or not to bind the list result should multiple states
+#' be requested.
 #'
 #'
 #' @export
@@ -39,8 +43,12 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
 sys_fst <- function(NAME,
                     columns = NULL,
                     data_env = getOption("healthyAddress.data_env")) {
-  if (is.environment(data_env) && exists(NAME, envir = data_env, inherits = FALSE)) {
-    full <- get(NAME, envir = data_env, inherits = FALSE)
+
+  if (.Exists(NAME, columns, data_env)) {
+    return(.Get(NAME, columns, data_env))
+  }
+  if (.Exists(NAME, NULL, data_env)) {
+    full <- .Get(NAME, NULL, envir = data_env)
     if (is.null(columns) || !is.data.table(full)) {
       return(full)
     } else {
@@ -58,11 +66,34 @@ sys_fst <- function(NAME,
   columns <- columns[columns %in% columns_avbl]
   ans <- fst::read_fst(file.fst, columns = columns, as.data.table = TRUE)
   if (is.environment(data_env)) {
-    assign(NAME, value = ans, envir = data_env)
+    assign(sys_NAME(NAME, columns = columns), value = ans, envir = data_env)
   }
   return(ans)
 }
 
+clear_data_env <- function(data_env = getOption("healthyAddress.data_env")) {
+  if (is.environment(data_env)) {
+    rm(list = ls(envir = data_env), envir = data_env)
+  }
+}
 
+sys_NAME <- function(NAME, columns = NULL) {
+  if (is.null(columns)) {
+    return(NAME)
+  }
+  paste0(NAME, ":columns:", toString(sort(columns)))
+}
 
+.Exists <- function(NAME, columns = NULL, envir = getOption("healthyAddress.data_env")) {
+  is.environment(envir) &&
+  exists(sys_NAME(NAME, columns = columns),
+         envir = envir,
+         inherits = FALSE)
+}
+
+.Get <- function(NAME, columns = NULL, envir = getOption("healthyAddress.data_env")) {
+  get0(sys_NAME(NAME, columns = columns),
+       envir = envir,
+       inherits = FALSE)
+}
 

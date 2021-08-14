@@ -435,6 +435,22 @@ street_cd_from_int <- function(x) {
   .Call("CStreetCd2Str", x, PACKAGE = packageName())
 }
 
+ensure_street_type_encode <- function(v) {
+  if (is.integer(v)) {
+    return(v)
+  }
+  pord <- .permitted_street_type_ord()
+  fastmatch::fmatch(v, pord)
+}
+
+ensure_street_type_decode <- function(v) {
+  if (is.character(v)) {
+    return(v)
+  }
+  .permitted_street_type_ord()[v]
+}
+
+
 
 
 

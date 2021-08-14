@@ -20,14 +20,14 @@ static char toupper1(char x) {
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
-unsigned int djb2_hash(const char * str, int n) {
+unsigned int djb2_hash(const char * str, int n, int i) {
   unsigned int hash = 5381;
   //
   // while (c = *str++)
   //   hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
   // using xor instead of + performs slightly better on STREET_NAME
-  for (int i = 0; i < n; ++i) {
+  while (++i < n) {
     unsigned char xi = str[i];
     hash = ((hash << 5) + hash) ^ xi;
   }
@@ -51,7 +51,7 @@ SEXP C_HashStreetName(SEXP x) {
 
     int n = length(xp[i]);
     const char * xi = CHAR(xp[i]);
-    ansp[i] = djb2_hash(xi, n);
+    ansp[i] = djb2_hash(xi, n, -1);
   }
   UNPROTECT(1);
   return ans;
@@ -227,6 +227,67 @@ bool has_ste_postcode(const char * x, int n) {
   }
   return ste_as_int(x, n - 8) && has_postcode(x, n);
 }
+
+// Convert number_suffix to raw for compression
+unsigned char number_suffix2raw(char x0, char x1) {
+  if (x0 == ' ') {
+    return 0; // i.e. no suffix
+  }
+  if (x1 == '\0' || x1 == ' ' || isdigit(x0)) {
+    return x0;
+  }
+  switch(x0) {
+  case 'A':
+    switch(x1) {
+    case 'A':
+      return 'a';
+    case 'B':
+      return 'b';
+    default:
+      return 254;
+    }
+  case 'B':
+    switch(x1) {
+    case 'B':
+      return 'c';
+    case 'C':
+      return 'd';
+    default:
+      return 253;
+    }
+  case 'C':
+    return 'e';
+  case 'G':
+    switch(x1) {
+    case 'R':
+      return 'g';
+    case 'X':
+      return 'h';
+    case 'Z':
+      return 'i';
+    default:
+      return 252;
+    }
+  case 'M':
+    return 'm';
+  case 'N':
+    return 'n';
+  case 'T':
+    switch(x1) {
+    case 'T':
+      return 't';
+    case '3':
+      return 'u';
+    default:
+      return 251;
+    }
+    break;
+  }
+  return 0;
+}
+
+
+
 
 SEXP CPoaHasSt(SEXP Poa, SEXP Type) {
   R_xlen_t N = xlength(Poa);
@@ -2181,11 +2242,13 @@ SEXP C_NumberFirstLast(SEXP xx) {
   SEXP nfirst = PROTECT(allocVector(INTSXP, N)); ++np;
   SEXP nfinal = PROTECT(allocVector(INTSXP, N)); ++np;
   SEXP posfin = PROTECT(allocVector(INTSXP, N)); ++np;
+  SEXP suffix = PROTECT(allocVector(RAWSXP, N)); ++np;
 
   int * restrict nun = INTEGER(n_unit);
   int * restrict nfp = INTEGER(nfirst);
   int * restrict nfl = INTEGER(nfinal);
   int * restrict pfp = INTEGER(posfin);
+  unsigned char * restrict sfp = RAW(suffix);
 
   for (R_xlen_t i = 0; i < N; ++i) {
     nun[i] = NA_INTEGER;
@@ -2241,16 +2304,22 @@ SEXP C_NumberFirstLast(SEXP xx) {
       }
       break; // don't continue on first encounter with non-number/dash
     }
+
+    unsigned char this_suffix = number_suffix2raw(x[j], x[j + 1]);
+    j += (this_suffix == 0 ? 0 : (islower(this_suffix) ? 2 : 1));
+    sfp[i] = this_suffix;
+
     nfp[i] = o1;
     nfl[i] = o2;
     pfp[i] = j;
 
   }
-  SEXP ans = PROTECT(allocVector(VECSXP, 4)); ++np;
+  SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
   SET_VECTOR_ELT(ans, 0, n_unit);
   SET_VECTOR_ELT(ans, 1, nfirst);
   SET_VECTOR_ELT(ans, 2, nfinal);
   SET_VECTOR_ELT(ans, 3, posfin);
+  SET_VECTOR_ELT(ans, 4, suffix);
 
   UNPROTECT(np);
   return ans;
@@ -4245,7 +4314,8 @@ SEXP digit2560(SEXP xx) {
   int * restrict ansp = INTEGER(ans);
 #pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
-    ansp[i] = x[i] & 255;
+    int xi = x[i];
+    ansp[i] = xi == NA_INTEGER ? xi : xi & 255;
   }
   UNPROTECT(1);
   return ans;
@@ -4256,7 +4326,7 @@ SEXP digit2561(SEXP xx) {
   const int * x = INTEGER(xx);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
-#pragma omp parallel for
+//#pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     unsigned int xi = x[i];
     xi /= 256u;
@@ -4322,7 +4392,8 @@ SEXP Cdigit256(SEXP xx, SEXP dd) {
 
 SEXP Cmatch_StreetName(SEXP xx,
                        SEXP StreetMatch1,
-                       SEXP jPos) {
+                       SEXP jPos,
+                       SEXP ReturnHash) {
   R_xlen_t N = xlength(xx);
   if (!isString(xx)) {
     error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
@@ -4333,6 +4404,7 @@ SEXP Cmatch_StreetName(SEXP xx,
   if (!isInteger(jPos)) {
     error("`jPos` was type '%s' but must be an integer vector.", type2char(TYPEOF(jPos)));
   }
+  const bool return_hash = asLogical(ReturnHash);
 
   const SEXP * xp = STRING_PTR(xx);
   const int * streetMatch1p = INTEGER(StreetMatch1);
@@ -4340,6 +4412,26 @@ SEXP Cmatch_StreetName(SEXP xx,
   const bool use_last_number = xlength(jPos) == N;
   if (xlength(StreetMatch1) != N) {
     error("Lengths differ(%d,%d).", use_last_number, xlength(StreetMatch1) & INT_MAX);
+  }
+
+  if (return_hash && use_last_number) {
+    SEXP ans = PROTECT(allocVector(INTSXP, N));
+    int * restrict ansp = INTEGER(ans);
+    for (R_xlen_t i = 0; i < N; ++i) {
+      SEXP CX = xp[i];
+      int n = length(xp[i]);
+      unsigned int si = streetMatch1p[i];
+      if (n <= 4 || si > INT_MAX) {
+        ansp[i] = NA_INTEGER;
+        continue;
+      }
+      int lhs = last_number_p[i];
+      int rhs = (si >> 8u) & 255;
+      const char * x = CHAR(xp[i]);
+      ansp[i] = djb2_hash(x, rhs, lhs);
+    }
+    UNPROTECT(1);
+    return ans;
   }
 
   SEXP ans = PROTECT(allocVector(STRSXP, N));
@@ -4399,65 +4491,7 @@ SEXP Cmatch_StreetName(SEXP xx,
 }
 
 
-// Convert number_suffix to raw for compression
-unsigned char number_suffix2raw(const char * x, int n) {
-  if (n == 0) {
-    return 0;
-  }
-  char x0 = x[0];
-  if (n == 1 || isdigit(x0)) {
-    return x0;
-  }
-  char x1 = x[1];
-  switch(x0) {
-  case 'A':
-    switch(x1) {
-    case 'A':
-      return 'a';
-    case 'B':
-      return 'b';
-    default:
-      return 254;
-    }
-  case 'B':
-    switch(x1) {
-    case 'B':
-      return 'c';
-    case 'C':
-      return 'd';
-    default:
-      return 253;
-    }
-  case 'C':
-    return 'e';
-  case 'G':
-    switch(x1) {
-    case 'R':
-      return 'g';
-    case 'X':
-      return 'h';
-    case 'Z':
-      return 'i';
-    default:
-      return 252;
-    }
-  case 'M':
-    return 'm';
-  case 'N':
-    return 'n';
-  case 'T':
-    switch(x1) {
-    case 'T':
-      return 't';
-    case '3':
-      return 'u';
-    default:
-      return 251;
-    }
-    break;
-  }
-  return 255;
-}
+
 
 SEXP C_NumberSuffix2Raw(SEXP xx) {
   if (!isString(xx)) {
@@ -4469,7 +4503,13 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   unsigned char * ansp = RAW(ans);
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
-    ansp[i] = number_suffix2raw(CHAR(xp[i]), n);
+    ansp[i] = 0;
+    if (n) {
+      const char * x = CHAR(xp[i]);
+      char x0 = x[0];
+      char x1 = n > 1 ? x[1] : '\0';
+      ansp[i] = number_suffix2raw(x0, x1);
+    }
   }
   UNPROTECT(1);
   return ans;

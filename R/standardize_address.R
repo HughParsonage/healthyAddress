@@ -10,10 +10,20 @@
 #' \code{"integer"} means an integer vector creating a bijection between the
 #' address and the \code{PSMA} internal id.
 #'
+#' @param integer_StreetType Should the street type be returned as an integer
+#' vector?
+#'
+#' @param StreetHash Should \code{STREET_NAME} be returned as an integer hash.
+#'
 #' @export
 
-standardize_address <- function(Address, AddressLine2 = NULL, return.type = c("data.table", "integer")) {
+standardize_address <- function(Address,
+                                AddressLine2 = NULL,
+                                return.type = c("data.table", "integer"),
+                                integer_StreetType = FALSE,
+                                StreetHash = FALSE) {
   return.type <- match.arg(return.type)
+  integer_StreetType <- isTRUE(integer_StreetType)
   if (nany_lowercase(Address)) {
 
   } else {
@@ -26,11 +36,23 @@ standardize_address <- function(Address, AddressLine2 = NULL, return.type = c("d
              POSTCODE_ <- extract_postcode(Address)
              Numbers <- extract_flatNumberFirstLast(Address)
              StreetType <- match_StreetType(Address, m = 2L)
-             StreetName <- match_StreetName(Address, StreetType, Numbers = Numbers)
+             StreetName <- match_StreetName(Address,
+                                            StreetType,
+                                            Numbers = Numbers,
+                                            hash = StreetHash)
              out <- setDT(Numbers)
              out[, "POSTCODE" := POSTCODE_]
-             out[, "STREET_NAME" := StreetName]
-             out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]
+             if (is.integer(StreetName)) {
+               # hash
+               out[, "hSTREET_NAME" := StreetName]
+             } else {
+               out[, "STREET_NAME" := StreetName]
+             }
+             if (integer_StreetType) {
+               out[, "STREET_TYPE" := .digit256(StreetType, 0L)]
+             } else {
+               out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]
+             }
            } else {
              if (nany_lowercase(AddressLine2)) {
                AddressLine2 <- toupper_basic(AddressLine2)
