@@ -3,37 +3,6 @@
 
 
 
-get_FullNamedAddressData <- function(envir = NULL) {
-  if (is.null(envir)) {
-    if (requireNamespace("PSMA", quietly = TRUE)) {
-      envir <- getOption("PSMA_env")
-    } else {
-      envir <- new.env()
-    }
-  }
-  FullNamedAddressData <-
-    if (exists("FullNamedAddressData", envir = envir, inherits = FALSE)) {
-      get("FullNamedAddressData", envir = envir, inherits = FALSE)
-    } else {
-      X <- PSMA::get_fst("STREET_LOCALITY_ID__STREET_NAME_STREET_TYPE_CODE")
-      Y <- PSMA::get_fst("STREET_ID_vs_ADDRESS_ID")
-      Z <- X[Y,
-             .(ADDRESS_DETAIL_INTRNL_ID,
-               POSTCODE,
-               STREET_TYPE_CODE,
-               STREET_NAME,
-               NUMBER_FIRST,
-               FLAT_NUMBER),
-             on = .(STREET_LOCALITY_INTRNL_ID)]
-      Z[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
-      setkeyv(Z, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST", "FLAT_NUMBER"))
-      assign("FullNamedAddressData",
-             Z,
-             envir = envir)
-    }
-  setkeyv(FullNamedAddressData, c("POSTCODE", "STREET_TYPE_CODE", "STREET_NAME", "NUMBER_FIRST"))[]
-}
-
 
 .MAX_uN_STCDs <- function() {
   .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())
@@ -49,13 +18,6 @@ tt3 <- function() {
 
 
 
-extract_postcode <- function(x, m = 0L) {
-  if (m) {
-    n <- nchar(x, type = "bytes")
-    return(as.integer(substr(x, n - 4L, n)))
-  }
-  .Call("CExtractPostcode", x, PACKAGE = packageName())
-}
 
 .set_cols_first <- function(DT, cols) {
   return(setcolorder(DT, c(intersect(cols, names(DT)), setdiff(names(DT), cols))))
