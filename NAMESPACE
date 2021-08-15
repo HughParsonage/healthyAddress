@@ -2,6 +2,7 @@
 
 export(.digit256)
 export(.permitted_street_type_ord)
+export(HashStreetName)
 export(encode_address)
 export(extract_flatNumberFirstLast)
 export(extract_postcode)
