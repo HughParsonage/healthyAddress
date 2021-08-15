@@ -79,7 +79,6 @@ bool jchar_is_LETTER_or_hyphen(const char * x, int j) {
 }
 
 int ndigits_positive(int x) {
-  unsigned int ux = x;
   if (x == 0) return 0;
   if (x < 10) return 1;
   if (x < 100) return 2;
@@ -504,7 +503,6 @@ SEXP C_NumberFirstLast(SEXP xx) {
     if (!isdigit(x[0])) {
       const char x1 = x[1];
       const char x2 = x[2];
-      const char x3 = x[3];
       if (x0 == 'C' && x1 == '/' && (x2 == '-' || x2 == 'O')) {
         // careof
         j_start = 3;
@@ -613,13 +611,6 @@ int has_comma(const char * x, int n) {
   }
   return i;
 }
-
-// array to project uncommon letters to 16
-static unsigned  int StreetLetter2uint[32] =  {  0, 13, 11,  9,  1, 20, 15, 12,  6, 22, 16,  4, 10,  3,  5, 19, 25,  2,  7,  8, 14, 21, 18, 24, 17, 23};
-
-static unsigned char uint2Streetletter[32] =  {'A','E','R','N','L','O','I','S','T','D','M','C','H',' ','B','U','G','K','Y','W','P','F','V','J','-','Z'};//,'X','Q',39,'1','.','2','3','4','0','&','5','6','8','9','7','(',')'};
-
-
 
 
 
@@ -857,12 +848,11 @@ SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm, SEXP jPos) {
   if (TYPEOF(xx) != STRSXP) {
     error("Wrong types"); // # nocov
   }
-  int zzz = 1;
+
   R_xlen_t N = xlength(xx);
   const int m = asInteger(mm) ;
   const unsigned int m1 = m > 0 ? 256 : 0;
   const unsigned int m2 = m == 2 ? 65536 : 0;
-  int isjpos_int = TYPEOF(jPos) == INTSXP ? 1 : 0;
   const bool hasNumberPosition = isInteger(jPos) && xlength(jPos) == N;
   const int * last_number_p = hasNumberPosition ? INTEGER(jPos) : INTEGER(mm);
   const SEXP * xp = STRING_PTR(xx);
@@ -2397,7 +2387,7 @@ SEXP Cmatch_StreetName(SEXP xx,
     SEXP ans = PROTECT(allocVector(INTSXP, N));
     int * restrict ansp = INTEGER(ans);
     for (R_xlen_t i = 0; i < N; ++i) {
-      SEXP CX = xp[i];
+
       int n = length(xp[i]);
       unsigned int si = streetMatch1p[i];
       if (n <= 4 || si > INT_MAX) {
