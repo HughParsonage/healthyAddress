@@ -39,10 +39,7 @@ get_FullNamedAddressData <- function(envir = NULL) {
   .Call("MAX_uN_STCDs", NULL, PACKAGE = packageName())
 }
 
-extract_street_code <- function(address, poa) {
-  avbl_street_codes <- .Call("Cpoa_has_stcd", as.integer(poa), PACKAGE = packageName())
-  head(avbl_street_codes)
-}
+
 tt3 <- function() {
   # Only display info during dev
   if (interactive() && file.exists("R/healthyAddress-package.R")) {
@@ -98,13 +95,7 @@ get_uStreetTypes_by_POSTCODE <- function(envir = getOption("PSMA_env", new.env()
 }
 
 
-CExtractStdAddress2 <- function(address, street_names) {
-  .Call("CExtractStdAddress", address, .permitted_street_type_ord(), PACKAGE = packageName())
-}
-CwhichStreetName3_ <- function(x) {
-  stopifnot(is.character(x))
-  .Call("CwhichStreetName3", x, PACKAGE = packageName())
-}
+
 
 
 
@@ -171,9 +162,7 @@ LocalityGivenPostcode <- function(address, poa) {
 
 
 
-test_touppers <- function(x) {
-  .Call("Ctest_touppers", x, PACKAGE = packageName())
-}
+
 
 PoaHasSt <- function(x, y) {
   .Call("CPoaHasSt", x, y, PACKAGE = packageName())

@@ -430,10 +430,6 @@ street_cd <- function(ADDRESS) {
   out[]
 }
 
-street_cd_from_int <- function(x) {
-  stopifnot(is.integer(x))
-  .Call("CStreetCd2Str", x, PACKAGE = packageName())
-}
 
 ensure_street_type_encode <- function(v) {
   if (is.integer(v)) {

@@ -35,7 +35,8 @@ match_StreetType <- function(address, m = 0L) {
 
 match_StreetType_Line1 <- function(address, m = 2L) {
   stopifnot(is.character(address), is.integer(m))
-  ans <- .Call("Cmatch_StreetType_Line1", address, m, PACKAGE = packageName())
+
+  ans <- .Call("Cmatch_StreetType_Line1", address, m, integer(0), PACKAGE = packageName())
   ans
 }
 

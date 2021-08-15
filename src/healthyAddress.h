@@ -26,7 +26,6 @@ int find_common_street(const char * x, int n, int i);
 
 bool jchar_is_number(const char * x, int j);
 
-bool string_equal(const char * x, int n, const char * y, int m);
 
 bool has_STREET(const char * x, int n);
 bool has_ROAD(const char * x, int n);

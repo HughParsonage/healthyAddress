@@ -62,6 +62,7 @@ standardize_address <- function(Address,
              StreetType <- match_StreetType_Line1(Address, m = 2L)
              StreetName <- match_StreetName(Address, StreetType)
              out <- setDT(Numbers)
+
              out[, "POSTCODE" := POSTCODE_]
              out[, "STREET_NAME" := StreetName]
              out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]

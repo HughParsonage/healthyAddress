@@ -13,8 +13,9 @@ expect_equal(toupper(ans$STREET_NAME), "RUPERT")
 expect_equal(toupper(ans$STREET_TYPE), "STREET")
 expect_equal(ans$POSTCODE, 3012)
 expect_true(TRUE)
-
-
+match_StreetType_Line1 <- healthyAddress:::match_StreetType_Line1
+ans1 <- match_StreetType_Line1("UNIT 24 125 TURNER ST", m = 0L)
+ans1 <- match_StreetType_Line1("UNIT 24 125 TURNER ST", m = 2L)
 
 ans <- standardize_address("UNIT 24 125 TURNER ST", "ABBOTSFORD VIC 3067")
 expect_equal(ans$FLAT_NUMBER, 24)
