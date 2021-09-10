@@ -1755,7 +1755,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
   // Difference with match_word is that we check the first 10 entries
   // First iteration
 
-#pragma omp parallel for
+// #pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = NA_INTEGER;
   }
@@ -2594,6 +2594,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
       continue;
     }
   }
+
 
 
 
