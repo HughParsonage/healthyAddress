@@ -78,6 +78,29 @@ bool jchar_is_LETTER_or_hyphen(const char * x, int j) {
   return char_is_LETTER(xj) || xj == '-';
 }
 
+// For detecting things like 'THE ESPLANADE'
+// Is the first 'word' the substring 'THE'
+bool string_first_word_THE(const char * x, int n, int j) {
+  while (++j < n - 5) {
+    if (x[j] != ' ') {
+      continue;
+    }
+    if (x[j + 1] == 'T' &&
+        x[j + 2] == 'H' &&
+        x[j + 3] == 'E' &&
+        x[j + 4] == ' ') {
+      return true;
+    }
+    // is a word
+    if (jchar_is_LETTER(x, j) && !jchar_is_number(x, j - 1) &&
+        jchar_is_LETTER(x, j + 1) && jchar_is_LETTER(x, j + 2)) {
+      break;
+    }
+  }
+  return false;
+}
+
+
 int ndigits_positive(int x) {
   if (x == 0) return 0;
   if (x < 10) return 1;
@@ -1731,9 +1754,15 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
 
   // Difference with match_word is that we check the first 10 entries
   // First iteration
-// #pragma omp parallel for
+
+#pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = NA_INTEGER;
+  }
+
+
+// #pragma omp parallel for
+  for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(STRING_ELT(xx, i));
     // almost impossible (but required because we multiply the character position
     // by 256 to encode the position of the match
@@ -1742,6 +1771,17 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
       continue;
     }
     const char * x = CHAR(STRING_ELT(xx, i));
+
+    // First check for 'THE ESPLANADE' etc
+    if (string_first_word_THE(x, n, 0)) {
+      ansp[i] = ST_CODE_ESPLANADE;
+      continue;
+    }
+
+
+
+
+
     int j = n - 4; // postcode
     while (j >= 4 && x[j] == ' ') {
       --j; // maybe 800
@@ -1860,14 +1900,14 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
   }
 
   // Special case 'ST' may be Street but could also be e.g. 'ST KILDA' 'ST LEONARDS' 'ST ALBANS'
-// #pragma omp parallel for
+//#pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     if (ansp[i] != NA_INTEGER) {
       continue;
     }
     int n = length(STRING_ELT(xx, i));
     const char * x = CHAR(STRING_ELT(xx, i));
-    int j = 10;
+    int j = 4;
     bool maybe_street = false;
     for (; j < n - 6; ++j) {
       if (x[j] != ' ' && x[j] != ',') {
@@ -1881,7 +1921,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
           break;
         }
         if (x[j + 3] == '.' && (x[j + 4] == ' ' || x[j + 4] == ',')) {
-          j = j + 5;
+          j = j + 4;
           maybe_street = true;
           break;
         }
@@ -2128,6 +2168,7 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
 
   }
 
+
   // A street name is more likely to follow a comma than a space
   // if commas are present.  Check commas:
 // #pragma omp parallel for
@@ -2205,6 +2246,8 @@ SEXP Cmatch_StreetType(SEXP xx, SEXP yy, SEXP mm) {
     }
 
   }
+
+
 
 // #pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
@@ -2416,6 +2459,12 @@ SEXP Cmatch_StreetName(SEXP xx,
       }
       int si2 = last_number_p[i] + 1;
       int si1 = (si >> 8u) & 255;
+      if (si1 <= si2) {
+        if (i == 0) {
+          Rprintf("(%d,%d)\n", si1, si2);
+          continue;
+        }
+      }
 
       const char * x = CHAR(CX);
       char oy[si1 - si2 + 1];
@@ -2483,6 +2532,78 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   UNPROTECT(1);
   return ans;
 }
+
+void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2]) {
+  int number_rhs = 0;
+  int j_start = 0;
+  const char x0 = x[0];
+  if (!isdigit(x[0])) {
+    const char x1 = x[1];
+    const char x2 = x[2];
+    if (x0 == 'C' && x1 == '/' && (x2 == '-' || x2 == 'O')) {
+      // careof
+      j_start = 3;
+    }
+  }
+  int flat_number2i[2] = {0};
+  do_flat_number(x, n, flat_number2i, j_start);
+
+  int o1 = 0;
+  int o2 = 0;
+
+  // two numbers are separated by a dash
+  bool two_numbers = false;
+  // move after flat number:
+  j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : j_start;
+  int j = j_start;
+  for (; j < n - 4; ++j) {
+    if (jchar_is_number(x, j)) {
+      int digit = x[j] - '0';
+      if (two_numbers) {
+        o2 *= 10;
+        o2 += digit;
+      } else {
+        o1 *= 10;
+        o1 += digit;
+      }
+      continue;
+    }
+    if (x[j] == '-') {
+      two_numbers = true;
+      continue;
+    }
+    break; // don't continue on first encounter with non-number/dash
+  }
+  unsigned char this_suffix = number_suffix2raw(x[j], x[j + 1]);
+  j += (this_suffix == 0 ? 0 : (islower(this_suffix) ? 2 : 1));
+
+
+  int next_space_or_commas[4] = {0};
+  bool has_comma = false;
+  int b = 0;
+  for (int k = j; (k < n && b < 4); ++k) {
+    if (x[k] == ' ') {
+      next_space_or_commas[b] = k;
+      ++b;
+      continue;
+    }
+    if (x[k] == ',') {
+      has_comma = true;
+      next_space_or_commas[b] = (k << 8u);
+      ++b;
+      continue;
+    }
+  }
+
+
+
+
+  // int hstreet_name = djb2_hash();
+
+
+}
+
+
 
 
 

@@ -58,7 +58,10 @@ expect_equal(ans$STREET_TYPE,
              c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT"))
 
 
-
+ans <- standardize_address("1 PARK ST, ST KILDA WEST VIC 3182")
+expect_equal(ans$STREET_NAME, "PARK")
+ans <- standardize_address("1 PARK ST ST KILDA WEST VIC 3182")
+expect_equal(ans$STREET_NAME, "PARK")
 
 
 

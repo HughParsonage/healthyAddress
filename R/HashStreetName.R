@@ -9,3 +9,4 @@
 HashStreetName <- function(x) {
   .Call("C_HashStreetName", x, PACKAGE = packageName())
 }
+
