@@ -8,7 +8,12 @@
  'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
  */
 
-
+typedef struct {
+  int n_words;
+  int lhs[WORD_DATUMS];
+  int rhs[WORD_DATUMS];
+  int widths[WORD_DATUMS];
+} WordData;
 
 
 static const char LETTERS[26] =
@@ -19,6 +24,9 @@ static char toupper1(char x) {
   unsigned int xi = x - 'a';
   return (xi < 26) ? LETTERS[xi] : x;
 }
+
+static const unsigned int SIXTEEN_PRIMER[16] =
+  {53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2};
 
 unsigned int djb2_hash(const char * str, int n, int i) {
   unsigned int hash = 5381;
@@ -33,6 +41,53 @@ unsigned int djb2_hash(const char * str, int n, int i) {
   }
   return hash;
 }
+
+//' @noRd
+//' @description
+//' Returns the positions of words, between [j0, n) among x,
+//' among x.  Only the *last* WORD_DATUMS are considered.
+//'
+//' After the function is called:
+//'
+//' N_WORDS[0] returns the number of words in the substring
+//' N_WORDS[1] = j + 1 for last j before exiting (i.e. n if N_WORDS[0] <= WORD_DATUMS or the position of the 16th word)
+//' lhs[w] is the position of the first char of the w'th word
+//' rhs[w] is the position of the first char _after_ the first word
+//'
+//' Assumptions:
+//'   x consists of uppercase char and breakers only.
+//'
+//'
+//' @param ans
+void word_data(int N_WORDS[2], int lhs[WORD_DATUMS], int rhs[WORD_DATUMS], const char * x, int n, int j0) {
+  // ensure we're at the start of a word
+  while (j0 < n && x[j0] == ' ') {
+    ++j0;
+  }
+  int w = 0;
+
+  for (int j = j0; j < n; ++j) {
+    unsigned char xj = x[j];
+    unsigned int uxj = xj;
+    bool is_breaker = xj == ' ' || xj == ',';
+    N_WORDS[1] = j + 1;
+    if (is_breaker) {
+      N_WORDS[w] += 1;
+      rhs[w] = j;
+      ++w;
+      if (w >= WORD_DATUMS) {
+        return;
+      }
+      ++j;
+      lhs[w] = j;
+      while (++j < n && (x[j] == ' ' || x[j] == ',')) {
+        lhs[w] = j;
+      }
+    }
+  }
+}
+
+
 
 SEXP C_HashStreetName(SEXP x) {
   if (!isString(x)) {
@@ -433,7 +488,7 @@ SEXP C_N_STREET_TYPES(SEXP x) {
 
 void do_flat_number(const char * x, int n, int ans[2], int jj) {
   ans[0] = 0; // position after last digit of flat number
-  ans[0] = 0; // the flat number itself
+  ans[1] = 0; // the flat number itself
   if (n < 4) {
     return;
   }
@@ -653,6 +708,10 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
     error("length(W1) != length(W2)");
   }
   int WN = length(W1);
+  if (((uint64_t)N) * ((uint64_t)WN) > 1e9) {
+    error("Quadratic algorithm would take too long.");
+  }
+
 
   SEXP W1_widths = PROTECT(allocVector(INTSXP, WN)); np++;
   SEXP W2_widths = PROTECT(allocVector(INTSXP, WN)); np++;
@@ -666,10 +725,11 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
   int * restrict ansp = INTEGER(ans);
   // only check 8 words
-  int word_widths[8] = {0};
-  int word_pos[9] = {0};
+
 
   for (R_xlen_t i = 0; i < N; ++i) {
+    int word_widths[8] = {0};
+    int word_pos[9] = {0};
     ansp[i] = NA_INTEGER;
     int n = length(STRING_ELT(xx, i));
     const char * x = CHAR(STRING_ELT(xx, i));
@@ -2533,10 +2593,19 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   return ans;
 }
 
-void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2]) {
+int street_type(const char * x, int n, int j, WordData wd, int Postcode) {
+
+}
+
+
+void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4]) {
   int number_rhs = 0;
   int j_start = 0;
   const char x0 = x[0];
+  WordData * wd = malloc(sizeof(WordData));
+
+
+
   if (!isdigit(x[0])) {
     const char x1 = x[1];
     const char x2 = x[2];
@@ -2595,22 +2664,105 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     }
   }
 
+  while (j < n && x[j] == ' ') {
+    ++j;
+  }
+  // int j_StreetName = j;
+
+  // Give the hashes of the next 1,2,3,4 words
+  // idea is the street name may be more than one name
+  unsigned int Hashes[4] = {5381, 5381, 5381, 5381};
+  int n_hashes_complete = 0;
+  unsigned int hash = 5381;
+  for (int k = j; k < n; ++k) {
+    if (n_hashes_complete >= 4) {
+      break;
+    }
+    Hashes[n_hashes_complete] = hash;
+    unsigned char xk = x[k];
+    if (!isupper(xk)) {
+      if (has_comma && xk == ',') {
+        break;
+      }
+      n_hashes_complete++;
+    }
+    hash = ((hash << 5) + hash) ^ xk;
+  }
+  for (int h = 0; h < 4; ++h) {
+    StreetHashes[h] = Hashes[h];
+  }
+
+  // now identify the street type
+  // must be after the street name (by assumption)
 
 
 
 
-  // int hstreet_name = djb2_hash();
 
-
+  numberFirstLast[0] = flat_number2i[1];
+  numberFirstLast[1] = o1;
+  numberFirstLast[2] = o2;
+  Postcode[0] = xpostcode_unsafe(x, n);
 }
 
+SEXP C_do_standard_address(SEXP xx) {
+  R_xlen_t N = xlength(xx);
+  const SEXP * xp = STRING_PTR(xx);
+  int np = 0;
+  // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
+  SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP H0 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP H1 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP H2 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP H3 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP Postcode = PROTECT(allocVector(INTSXP, N)); np++;
 
+  int * restrict flat_numberp = INTEGER(FlatNumber);
+  int * restrict number_firstp = INTEGER(NumberFirst);
+  int * restrict number_lastp = INTEGER(NumberLast);
+  int * restrict h0 = INTEGER(H0);
+  int * restrict h1 = INTEGER(H1);
+  int * restrict h2 = INTEGER(H2);
+  int * restrict h3 = INTEGER(H3);
+  int * restrict pp = INTEGER(Postcode);
 
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(xp[i]);
+    if (n <= 4) {
+      pp[i] = NA_INTEGER;
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      continue;
+    }
+    const char * x = CHAR(xp[i]);
+    int numberFirstLast[3] = {0};
+    int street[2] = {0};
+    int postcode[2] = {0};
+    int streetHashes[4] = {0};
+    do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes);
+    h0[i] = streetHashes[0];
+    h1[i] = streetHashes[1];
+    h2[i] = streetHashes[2];
+    h3[i] = streetHashes[3];
+    flat_numberp[i] = numberFirstLast[0];
+    number_firstp[i] = numberFirstLast[1];
+    number_lastp[i] = numberFirstLast[2];
+  }
+  SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
+  SET_VECTOR_ELT(ans, 0, NumberFirst);
+  SET_VECTOR_ELT(ans, 1, NumberLast) ;
+  SET_VECTOR_ELT(ans, 2, H0);
+  SET_VECTOR_ELT(ans, 3, H1);
+  SET_VECTOR_ELT(ans, 4, H2);
+  SET_VECTOR_ELT(ans, 5, H3);
+  SET_VECTOR_ELT(ans, 6, Postcode);
+  SET_VECTOR_ELT(ans, 7, FlatNumber);
+  UNPROTECT(np);
+  return ans;
 
-
-
-
-
+}
 
 
 
