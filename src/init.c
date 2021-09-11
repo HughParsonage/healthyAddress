@@ -8,6 +8,7 @@
 */
 
 /* .Call calls */
+extern SEXP C_do_standard_address(SEXP);
 extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
@@ -25,6 +26,7 @@ extern SEXP CToUpperBasic(SEXP);
 extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
+    {"C_do_standard_address",   (DL_FUNC) &C_do_standard_address,   1},
     {"C_HashStreetName",        (DL_FUNC) &C_HashStreetName,        1},
     {"C_noLC",                  (DL_FUNC) &C_noLC,                  1},
     {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,       1},

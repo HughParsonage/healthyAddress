@@ -77,6 +77,14 @@ standardize_address <- function(Address,
 }
 
 
+Do_standard_address <- function(x) {
+  Ans <- .Call("C_do_standard_address", x)
+  setDT(Ans)
+  Ans[]
+}
+
+
+
 
 
 

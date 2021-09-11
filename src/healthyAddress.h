@@ -1,6 +1,11 @@
 #ifndef healthyAddress_H
 #define healthyAddress_H
 
+#if _OPENMP
+#include <omp.h>
+#endif
+
+
 #include <R.h>
 #define USE_RINTERNALS
 #include <Rinternals.h>
@@ -10,8 +15,8 @@
 #include "streetcodes.h"
 #include <ctype.h>
 
-#include <omp.h>
 
+// Empirical data / known features of Australian postcodes
 #define N_POSTCODES 2640
 #define SUP_POSTCODES 8192
 #define SUP_POSTCODE_ 8191
@@ -20,6 +25,10 @@
 #define MAX_POSTCODE 7470
 #define N_UNIQUE_STREET_CODES 201
 #define MAX_STREET_CODE 224
+
+// Parameters or assumptions (often about stacks)
+// // Number of words per string to be considered
+#define WORD_DATUMS 16
 
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
