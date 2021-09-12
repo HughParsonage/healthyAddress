@@ -2,6 +2,316 @@
 #include "healthyAddress.h"
 #include "streetcodes.h"
 
+typedef struct {
+  int cd;
+  const char * x;
+  int lenx;
+} StreetType;
+
+
+const StreetType ZT_AV = {ST_CODE_AVENUE, "AV", 2};
+const StreetType ZT_CH = {ST_CODE_CHASE, "CH", 2};
+const StreetType ZT_CL = {ST_CODE_CLOSE, "CL", 2};
+const StreetType ZT_CR = {ST_CODE_CRESCENT, "CR", 2};
+const StreetType ZT_CT = {ST_CODE_COURT, "CT", 2};
+const StreetType ZT_DR = {ST_CODE_DRIVE, "DR", 2};
+const StreetType ZT_GR = {ST_CODE_GROVE, "GR", 2};
+const StreetType ZT_LN = {ST_CODE_LANE, "LN", 2};
+const StreetType ZT_PL = {ST_CODE_PLACE, "PL", 2};
+const StreetType ZT_RD = {ST_CODE_ROAD, "RD", 2};
+const StreetType ZT_SQ = {ST_CODE_SQUARE, "SQ", 2};
+const StreetType ZT_ST = {ST_CODE_STREET, "ST", 2};
+const StreetType ZT_AVE = {ST_CODE_AVENUE, "AVE", 3};
+const StreetType ZT_BAY = {ST_CODE_BAY, "BAY", 3};
+const StreetType ZT_BVD = {ST_CODE_BOULEVARD, "BVD", 3};
+const StreetType ZT_CCT = {ST_CODE_CIRCUIT, "CCT", 3};
+const StreetType ZT_CIR = {ST_CODE_CIRCLE, "CIR", 3};
+const StreetType ZT_CNR = {ST_CODE_CORNER, "CNR", 3};
+const StreetType ZT_DIP = {ST_CODE_DIP, "DIP", 3};
+const StreetType ZT_DPS = {ST_CODE_ROAD, "DPS", 3};
+const StreetType ZT_DVE = {ST_CODE_DRIVE, "DVE", 3};
+const StreetType ZT_END = {ST_CODE_END, "END", 3};
+const StreetType ZT_ESP = {ST_CODE_ESPLANADE, "ESP", 3};
+const StreetType ZT_EST = {ST_CODE_ESTATE, "EST", 3};
+const StreetType ZT_GAP = {ST_CODE_GAP, "GAP", 3};
+const StreetType ZT_GDN = {ST_CODE_GARDEN, "GDN", 3};
+const StreetType ZT_GLD = {ST_CODE_GLADE, "GLD", 3};
+const StreetType ZT_GRA = {ST_CODE_GRANGE, "GRA", 3};
+const StreetType ZT_GRN = {ST_CODE_GREEN, "GRN", 3};
+const StreetType ZT_GTE = {ST_CODE_GATE, "GTE", 3};
+const StreetType ZT_HUB = {ST_CODE_HUB, "HUB", 3};
+const StreetType ZT_HWY = {ST_CODE_HIGHWAY, "HWY", 3};
+const StreetType ZT_KEY = {ST_CODE_KEY, "KEY", 3};
+const StreetType ZT_PDE = {ST_CODE_PARADE, "PDE", 3};
+const StreetType ZT_PNT = {ST_CODE_POINT, "PNT", 3};
+const StreetType ZT_ROW = {ST_CODE_ROW, "ROW", 3};
+const StreetType ZT_RTE = {ST_CODE_ROUTE, "RTE", 3};
+const StreetType ZT_RTT = {ST_CODE_RETREAT, "RTT", 3};
+const StreetType ZT_RUN = {ST_CODE_RUN, "RUN", 3};
+const StreetType ZT_RVR = {ST_CODE_RIVER, "RVR", 3};
+const StreetType ZT_TCE = {ST_CODE_TERRACE, "TCE", 3};
+const StreetType ZT_TOP = {ST_CODE_TOP, "TOP", 3};
+const StreetType ZT_TOR = {ST_CODE_TOR, "TOR", 3};
+const StreetType ZT_TRK = {ST_CODE_TRACK, "TRK", 3};
+const StreetType ZT_TRL = {ST_CODE_TRAIL, "TRL", 3};
+const StreetType ZT_WAY = {ST_CODE_WAY, "WAY", 3};
+const StreetType ZT_ACCS = {ST_CODE_ACCESS, "ACCS", 4};
+const StreetType ZT_ACRE = {ST_CODE_ACRE, "ACRE", 4};
+const StreetType ZT_BANK = {ST_CODE_BANK, "BANK", 4};
+const StreetType ZT_BEND = {ST_CODE_BEND, "BEND", 4};
+const StreetType ZT_BLVD = {ST_CODE_BOULEVARD, "BLVD", 4};
+const StreetType ZT_BOWL = {ST_CODE_BOWL, "BOWL", 4};
+const StreetType ZT_BRAE = {ST_CODE_BRAE, "BRAE", 4};
+const StreetType ZT_BROW = {ST_CODE_BROW, "BROW", 4};
+const StreetType ZT_BVDE = {ST_CODE_BOULEVARD, "BVDE", 4};
+const StreetType ZT_COVE = {ST_CODE_COVE, "COVE", 4};
+const StreetType ZT_CRES = {ST_CODE_CRESCENT, "CRES", 4};
+const StreetType ZT_CRST = {ST_CODE_CREST, "CRST", 4};
+const StreetType ZT_DALE = {ST_CODE_DALE, "DALE", 4};
+const StreetType ZT_DASH = {ST_CODE_DASH, "DASH", 4};
+const StreetType ZT_DELL = {ST_CODE_DELL, "DELL", 4};
+const StreetType ZT_DENE = {ST_CODE_DENE, "DENE", 4};
+const StreetType ZT_DOCK = {ST_CODE_DOCK, "DOCK", 4};
+const StreetType ZT_DOWN = {ST_CODE_DOWN, "DOWN", 4};
+const StreetType ZT_DRWY = {ST_CODE_DRIVEWAY, "DRWY", 4};
+const StreetType ZT_EAST = {ST_CODE_EAST, "EAST", 4};
+const StreetType ZT_EDGE = {ST_CODE_EDGE, "EDGE", 4};
+const StreetType ZT_FLAT = {ST_CODE_FLAT, "FLAT", 4};
+const StreetType ZT_FORD = {ST_CODE_FORD, "FORD", 4};
+const StreetType ZT_FORK = {ST_CODE_FORK, "FORK", 4};
+const StreetType ZT_GATE = {ST_CODE_GATE, "GATE", 4};
+const StreetType ZT_GDNS = {ST_CODE_GARDENS, "GDNS", 4};
+const StreetType ZT_GLEN = {ST_CODE_GLEN, "GLEN", 4};
+const StreetType ZT_HIKE = {ST_CODE_HIKE, "HIKE", 4};
+const StreetType ZT_HILL = {ST_CODE_HILL, "HILL", 4};
+const StreetType ZT_KEYS = {ST_CODE_KEYS, "KEYS", 4};
+const StreetType ZT_LANE = {ST_CODE_LANE, "LANE", 4};
+const StreetType ZT_LINE = {ST_CODE_LINE, "LINE", 4};
+const StreetType ZT_LINK = {ST_CODE_LINK, "LINK", 4};
+const StreetType ZT_LOOP = {ST_CODE_LOOP, "LOOP", 4};
+const StreetType ZT_MALL = {ST_CODE_MALL, "MALL", 4};
+const StreetType ZT_MART = {ST_CODE_MART, "MART", 4};
+const StreetType ZT_MAZE = {ST_CODE_MAZE, "MAZE", 4};
+const StreetType ZT_MEAD = {ST_CODE_MEAD, "MEAD", 4};
+const StreetType ZT_MEWS = {ST_CODE_MEWS, "MEWS", 4};
+const StreetType ZT_MILE = {ST_CODE_MILE, "MILE", 4};
+const StreetType ZT_NOOK = {ST_CODE_NOOK, "NOOK", 4};
+const StreetType ZT_PARK = {ST_CODE_PARK, "PARK", 4};
+const StreetType ZT_PASS = {ST_CODE_PASS, "PASS", 4};
+const StreetType ZT_PATH = {ST_CODE_PATH, "PATH", 4};
+const StreetType ZT_PHWY = {ST_CODE_PATHWAY, "PHWY", 4};
+const StreetType ZT_PKWY = {ST_CODE_PARKWAY, "PKWY", 4};
+const StreetType ZT_PORT = {ST_CODE_PORT, "PORT", 4};
+const StreetType ZT_QUAY = {ST_CODE_QUAY, "QUAY", 4};
+const StreetType ZT_RAMP = {ST_CODE_RAMP, "RAMP", 4};
+const StreetType ZT_RDGE = {ST_CODE_RIDGE, "RDGE", 4};
+const StreetType ZT_RDWY = {ST_CODE_ROADWAY, "RDWY", 4};
+const StreetType ZT_REST = {ST_CODE_REST, "REST", 4};
+const StreetType ZT_RIDE = {ST_CODE_RIDE, "RIDE", 4};
+const StreetType ZT_RISE = {ST_CODE_RISE, "RISE", 4};
+const StreetType ZT_ROAD = {ST_CODE_ROAD, "ROAD", 4};
+const StreetType ZT_SPUR = {ST_CODE_SPUR, "SPUR", 4};
+const StreetType ZT_TARN = {ST_CODE_TARN, "TARN", 4};
+const StreetType ZT_TURN = {ST_CODE_TURN, "TURN", 4};
+const StreetType ZT_VALE = {ST_CODE_VALE, "VALE", 4};
+const StreetType ZT_VIEW = {ST_CODE_VIEW, "VIEW", 4};
+const StreetType ZT_WALK = {ST_CODE_WALK, "WALK", 4};
+const StreetType ZT_WEST = {ST_CODE_WEST, "WEST", 4};
+const StreetType ZT_WYND = {ST_CODE_WYND, "WYND", 4};
+const StreetType ZT_YARD = {ST_CODE_YARD, "YARD", 4};
+const StreetType ZT_ALLEY = {ST_CODE_ALLEY, "ALLEY", 5};
+const StreetType ZT_AMBLE = {ST_CODE_AMBLE, "AMBLE", 5};
+const StreetType ZT_BANAN = {ST_CODE_BANAN, "BANAN", 5};
+const StreetType ZT_BEACH = {ST_CODE_BEACH, "BEACH", 5};
+const StreetType ZT_BLVDE = {ST_CODE_BOULEVARD, "BLVDE", 5};
+const StreetType ZT_BRACE = {ST_CODE_BRACE, "BRACE", 5};
+const StreetType ZT_BREAK = {ST_CODE_BREAK, "BREAK", 5};
+const StreetType ZT_BYWAY = {ST_CODE_BYWAY, "BYWAY", 5};
+const StreetType ZT_CHASE = {ST_CODE_CHASE, "CHASE", 5};
+const StreetType ZT_CLOSE = {ST_CODE_CLOSE, "CLOSE", 5};
+const StreetType ZT_COPSE = {ST_CODE_COPSE, "COPSE", 5};
+const StreetType ZT_CORSO = {ST_CODE_CORSO, "CORSO", 5};
+const StreetType ZT_COURT = {ST_CODE_COURT, "COURT", 5};
+const StreetType ZT_CREST = {ST_CODE_CREST, "CREST", 5};
+const StreetType ZT_CRIEF = {ST_CODE_CRIEF, "CRIEF", 5};
+const StreetType ZT_CROSS = {ST_CODE_CROSS, "CROSS", 5};
+const StreetType ZT_DOWNS = {ST_CODE_DOWNS, "DOWNS", 5};
+const StreetType ZT_DRIVE = {ST_CODE_DRIVE, "DRIVE", 5};
+const StreetType ZT_ELBOW = {ST_CODE_ELBOW, "ELBOW", 5};
+const StreetType ZT_FLATS = {ST_CODE_FLATS, "FLATS", 5};
+const StreetType ZT_GLADE = {ST_CODE_GLADE, "GLADE", 5};
+const StreetType ZT_GREEN = {ST_CODE_GREEN, "GREEN", 5};
+const StreetType ZT_GROVE = {ST_CODE_GROVE, "GROVE", 5};
+const StreetType ZT_GULLY = {ST_CODE_GULLY, "GULLY", 5};
+const StreetType ZT_HAVEN = {ST_CODE_HAVEN, "HAVEN", 5};
+const StreetType ZT_HEATH = {ST_CODE_HEATH, "HEATH", 5};
+const StreetType ZT_HILLS = {ST_CODE_HILLS, "HILLS", 5};
+const StreetType ZT_LYNNE = {ST_CODE_LYNNE, "LYNNE", 5};
+const StreetType ZT_MANOR = {ST_CODE_MANOR, "MANOR", 5};
+const StreetType ZT_NORTH = {ST_CODE_NORTH, "NORTH", 5};
+const StreetType ZT_PALMS = {ST_CODE_PALMS, "PALMS", 5};
+const StreetType ZT_PLACE = {ST_CODE_PLACE, "PLACE", 5};
+const StreetType ZT_PLAZA = {ST_CODE_PLAZA, "PLAZA", 5};
+const StreetType ZT_POINT = {ST_CODE_POINT, "POINT", 5};
+const StreetType ZT_QUAYS = {ST_CODE_QUAYS, "QUAYS", 5};
+const StreetType ZT_RANGE = {ST_CODE_RANGE, "RANGE", 5};
+const StreetType ZT_REACH = {ST_CODE_REACH, "REACH", 5};
+const StreetType ZT_RIDGE = {ST_CODE_RIDGE, "RIDGE", 5};
+const StreetType ZT_RIVER = {ST_CODE_RIVER, "RIVER", 5};
+const StreetType ZT_ROADS = {ST_CODE_ROADS, "ROADS", 5};
+const StreetType ZT_ROUND = {ST_CODE_ROUND, "ROUND", 5};
+const StreetType ZT_ROUTE = {ST_CODE_ROUTE, "ROUTE", 5};
+const StreetType ZT_SLOPE = {ST_CODE_SLOPE, "SLOPE", 5};
+const StreetType ZT_SOUTH = {ST_CODE_SOUTH, "SOUTH", 5};
+const StreetType ZT_STEPS = {ST_CODE_STEPS, "STEPS", 5};
+const StreetType ZT_STRIP = {ST_CODE_STRIP, "STRIP", 5};
+const StreetType ZT_TRACK = {ST_CODE_TRACK, "TRACK", 5};
+const StreetType ZT_TRAIL = {ST_CODE_TRAIL, "TRAIL", 5};
+const StreetType ZT_TWIST = {ST_CODE_TWIST, "TWIST", 5};
+const StreetType ZT_VIEWS = {ST_CODE_VIEWS, "VIEWS", 5};
+const StreetType ZT_VILLA = {ST_CODE_VILLA, "VILLA", 5};
+const StreetType ZT_VISTA = {ST_CODE_VISTA, "VISTA", 5};
+const StreetType ZT_WHARF = {ST_CODE_WHARF, "WHARF", 5};
+const StreetType ZT_WOODS = {ST_CODE_WOODS, "WOODS", 5};
+const StreetType ZT_ACCESS = {ST_CODE_ACCESS, "ACCESS", 6};
+const StreetType ZT_ARCADE = {ST_CODE_ARCADE, "ARCADE", 6};
+const StreetType ZT_AVENUE = {ST_CODE_AVENUE, "AVENUE", 6};
+const StreetType ZT_BRANCH = {ST_CODE_BRANCH, "BRANCH", 6};
+const StreetType ZT_BRIDGE = {ST_CODE_BRIDGE, "BRIDGE", 6};
+const StreetType ZT_BUSWAY = {ST_CODE_BUSWAY, "BUSWAY", 6};
+const StreetType ZT_BYPASS = {ST_CODE_BYPASS, "BYPASS", 6};
+const StreetType ZT_CENTRE = {ST_CODE_CENTRE, "CENTRE", 6};
+const StreetType ZT_CIRCLE = {ST_CODE_CIRCLE, "CIRCLE", 6};
+const StreetType ZT_CIRCUS = {ST_CODE_CIRCUS, "CIRCUS", 6};
+const StreetType ZT_COMMON = {ST_CODE_COMMON, "COMMON", 6};
+const StreetType ZT_CORNER = {ST_CODE_CORNER, "CORNER", 6};
+const StreetType ZT_COURSE = {ST_CODE_COURSE, "COURSE", 6};
+const StreetType ZT_DIVIDE = {ST_CODE_DIVIDE, "DIVIDE", 6};
+const StreetType ZT_DOMAIN = {ST_CODE_DOMAIN, "DOMAIN", 6};
+const StreetType ZT_ESTATE = {ST_CODE_ESTATE, "ESTATE", 6};
+const StreetType ZT_FOLLOW = {ST_CODE_FOLLOW, "FOLLOW", 6};
+const StreetType ZT_GARDEN = {ST_CODE_GARDEN, "GARDEN", 6};
+const StreetType ZT_GRANGE = {ST_CODE_GRANGE, "GRANGE", 6};
+const StreetType ZT_HOLLOW = {ST_CODE_HOLLOW, "HOLLOW", 6};
+const StreetType ZT_ISLAND = {ST_CODE_ISLAND, "ISLAND", 6};
+const StreetType ZT_LADDER = {ST_CODE_LADDER, "LADDER", 6};
+const StreetType ZT_OUTLET = {ST_CODE_OUTLET, "OUTLET", 6};
+const StreetType ZT_PARADE = {ST_CODE_PARADE, "PARADE", 6};
+const StreetType ZT_POCKET = {ST_CODE_POCKET, "POCKET", 6};
+const StreetType ZT_RAMBLE = {ST_CODE_RAMBLE, "RAMBLE", 6};
+const StreetType ZT_RETURN = {ST_CODE_RETURN, "RETURN", 6};
+const StreetType ZT_RISING = {ST_CODE_RISING, "RISING", 6};
+const StreetType ZT_ROTARY = {ST_CODE_ROTARY, "ROTARY", 6};
+const StreetType ZT_SQUARE = {ST_CODE_SQUARE, "SQUARE", 6};
+const StreetType ZT_STRAIT = {ST_CODE_STRAIT, "STRAIT", 6};
+const StreetType ZT_STREET = {ST_CODE_STREET, "STREET", 6};
+const StreetType ZT_SUBWAY = {ST_CODE_SUBWAY, "SUBWAY", 6};
+const StreetType ZT_TUNNEL = {ST_CODE_TUNNEL, "TUNNEL", 6};
+const StreetType ZT_VALLEY = {ST_CODE_VALLEY, "VALLEY", 6};
+const StreetType ZT_WATERS = {ST_CODE_WATERS, "WATERS", 6};
+const StreetType ZT_CIRCUIT = {ST_CODE_CIRCUIT, "CIRCUIT", 7};
+const StreetType ZT_CLUSTER = {ST_CODE_CLUSTER, "CLUSTER", 7};
+const StreetType ZT_COMMONS = {ST_CODE_COMMONS, "COMMONS", 7};
+const StreetType ZT_CONCORD = {ST_CODE_CONCORD, "CONCORD", 7};
+const StreetType ZT_CUTTING = {ST_CODE_CUTTING, "CUTTING", 7};
+const StreetType ZT_FAIRWAY = {ST_CODE_FAIRWAY, "FAIRWAY", 7};
+const StreetType ZT_FREEWAY = {ST_CODE_FREEWAY, "FREEWAY", 7};
+const StreetType ZT_GARDENS = {ST_CODE_GARDENS, "GARDENS", 7};
+const StreetType ZT_GATEWAY = {ST_CODE_GATEWAY, "GATEWAY", 7};
+const StreetType ZT_HARBOUR = {ST_CODE_HARBOUR, "HARBOUR", 7};
+const StreetType ZT_HEIGHTS = {ST_CODE_HEIGHTS, "HEIGHTS", 7};
+const StreetType ZT_HIGHWAY = {ST_CODE_HIGHWAY, "HIGHWAY", 7};
+const StreetType ZT_LANDING = {ST_CODE_LANDING, "LANDING", 7};
+const StreetType ZT_LANEWAY = {ST_CODE_LANEWAY, "LANEWAY", 7};
+const StreetType ZT_LOOKOUT = {ST_CODE_LOOKOUT, "LOOKOUT", 7};
+const StreetType ZT_MEANDER = {ST_CODE_MEANDER, "MEANDER", 7};
+const StreetType ZT_OUTLOOK = {ST_CODE_OUTLOOK, "OUTLOOK", 7};
+const StreetType ZT_PARKWAY = {ST_CODE_PARKWAY, "PARKWAY", 7};
+const StreetType ZT_PASSAGE = {ST_CODE_PASSAGE, "PASSAGE", 7};
+const StreetType ZT_PATHWAY = {ST_CODE_PATHWAY, "PATHWAY", 7};
+const StreetType ZT_PURSUIT = {ST_CODE_PURSUIT, "PURSUIT", 7};
+const StreetType ZT_RESERVE = {ST_CODE_RESERVE, "RESERVE", 7};
+const StreetType ZT_RETREAT = {ST_CODE_RETREAT, "RETREAT", 7};
+const StreetType ZT_ROADWAY = {ST_CODE_ROADWAY, "ROADWAY", 7};
+const StreetType ZT_TERRACE = {ST_CODE_TERRACE, "TERRACE", 7};
+const StreetType ZT_TRAMWAY = {ST_CODE_TRAMWAY, "TRAMWAY", 7};
+const StreetType ZT_VILLAGE = {ST_CODE_VILLAGE, "VILLAGE", 7};
+const StreetType ZT_WALKWAY = {ST_CODE_WALKWAY, "WALKWAY", 7};
+const StreetType ZT_APPROACH = {ST_CODE_APPROACH, "APPROACH", 8};
+const StreetType ZT_ARTERIAL = {ST_CODE_ARTERIAL, "ARTERIAL", 8};
+const StreetType ZT_BROADWAY = {ST_CODE_BROADWAY, "BROADWAY", 8};
+const StreetType ZT_CAUSEWAY = {ST_CODE_CAUSEWAY, "CAUSEWAY", 8};
+const StreetType ZT_CRESCENT = {ST_CODE_CRESCENT, "CRESCENT", 8};
+const StreetType ZT_CROSSING = {ST_CODE_CROSSING, "CROSSING", 8};
+const StreetType ZT_DRIVEWAY = {ST_CODE_DRIVEWAY, "DRIVEWAY", 8};
+const StreetType ZT_EASEMENT = {ST_CODE_EASEMENT, "EASEMENT", 8};
+const StreetType ZT_ENTRANCE = {ST_CODE_ENTRANCE, "ENTRANCE", 8};
+const StreetType ZT_FIRELINE = {ST_CODE_FIRELINE, "FIRELINE", 8};
+const StreetType ZT_FRONTAGE = {ST_CODE_FRONTAGE, "FRONTAGE", 8};
+const StreetType ZT_JUNCTION = {ST_CODE_JUNCTION, "JUNCTION", 8};
+const StreetType ZT_MOTORWAY = {ST_CODE_MOTORWAY, "MOTORWAY", 8};
+const StreetType ZT_PRECINCT = {ST_CODE_PRECINCT, "PRECINCT", 8};
+const StreetType ZT_QUADRANT = {ST_CODE_QUADRANT, "QUADRANT", 8};
+const StreetType ZT_STRAIGHT = {ST_CODE_STRAIGHT, "STRAIGHT", 8};
+const StreetType ZT_TRAVERSE = {ST_CODE_TRAVERSE, "TRAVERSE", 8};
+const StreetType ZT_TRUNKWAY = {ST_CODE_TRUNKWAY, "TRUNKWAY", 8};
+const StreetType ZT_WATERWAY = {ST_CODE_WATERWAY, "WATERWAY", 8};
+const StreetType ZT_BOARDWALK = {ST_CODE_BOARDWALK, "BOARDWALK", 9};
+const StreetType ZT_BOULEVARD = {ST_CODE_BOULEVARD, "BOULEVARD", 9};
+const StreetType ZT_CENTREWAY = {ST_CODE_CENTREWAY, "CENTREWAY", 9};
+const StreetType ZT_CONCOURSE = {ST_CODE_CONCOURSE, "CONCOURSE", 9};
+const StreetType ZT_COURTYARD = {ST_CODE_COURTYARD, "COURTYARD", 9};
+const StreetType ZT_CRUISEWAY = {ST_CODE_CRUISEWAY, "CRUISEWAY", 9};
+const StreetType ZT_DEVIATION = {ST_CODE_DEVIATION, "DEVIATION", 9};
+const StreetType ZT_ESPLANADE = {ST_CODE_ESPLANADE, "ESPLANADE", 9};
+const StreetType ZT_EXTENSION = {ST_CODE_EXTENSION, "EXTENSION", 9};
+const StreetType ZT_FIREBREAK = {ST_CODE_FIREBREAK, "FIREBREAK", 9};
+const StreetType ZT_FIRETRACK = {ST_CODE_FIRETRACK, "FIRETRACK", 9};
+const StreetType ZT_FIRETRAIL = {ST_CODE_FIRETRAIL, "FIRETRAIL", 9};
+const StreetType ZT_FORESHORE = {ST_CODE_FORESHORE, "FORESHORE", 9};
+const StreetType ZT_FORMATION = {ST_CODE_FORMATION, "FORMATION", 9};
+const StreetType ZT_PROMENADE = {ST_CODE_PROMENADE, "PROMENADE", 9};
+const StreetType ZT_UNDERPASS = {ST_CODE_UNDERPASS, "UNDERPASS", 9};
+const StreetType ZT_BOULEVARDE = {ST_CODE_BOULEVARDE, "BOULEVARDE", 10};
+const StreetType ZT_CONNECTION = {ST_CODE_CONNECTION, "CONNECTION", 10};
+const StreetType ZT_CULDESAC = {ST_CODE_CULDESAC, "CUL-DE-SAC", 10};
+const StreetType ZT_EXPRESSWAY = {ST_CODE_EXPRESSWAY, "EXPRESSWAY", 10};
+const StreetType ZT_SERVICEWAY = {ST_CODE_SERVICEWAY, "SERVICEWAY", 10};
+const StreetType ZT_THROUGHWAY = {ST_CODE_THROUGHWAY, "THROUGHWAY", 10};
+const StreetType ZT_DISTRIBUTOR = {ST_CODE_DISTRIBUTOR, "DISTRIBUTOR", 11};
+const StreetType ZT_INTERCHANGE = {ST_CODE_INTERCHANGE, "INTERCHANGE", 11};
+const StreetType * ZTZ[271] = {
+  &ZT_AV, &ZT_CH, &ZT_CL, &ZT_CR, &ZT_CT, &ZT_DR, &ZT_GR, &ZT_LN, &ZT_PL, &ZT_RD,
+  &ZT_SQ, &ZT_ST, &ZT_AVE, &ZT_BAY, &ZT_BVD, &ZT_CCT, &ZT_CIR, &ZT_CNR, &ZT_DIP, &ZT_DPS,
+  &ZT_DVE, &ZT_END, &ZT_ESP, &ZT_EST, &ZT_GAP, &ZT_GDN, &ZT_GLD, &ZT_GRA, &ZT_GRN, &ZT_GTE,
+  &ZT_HUB, &ZT_HWY, &ZT_KEY, &ZT_PDE, &ZT_PNT, &ZT_ROW, &ZT_RTE, &ZT_RTT, &ZT_RUN, &ZT_RVR,
+  &ZT_TCE, &ZT_TOP, &ZT_TOR, &ZT_TRK, &ZT_TRL, &ZT_WAY, &ZT_ACCS, &ZT_ACRE, &ZT_BANK,
+  &ZT_BEND, &ZT_BLVD, &ZT_BOWL, &ZT_BRAE, &ZT_BROW, &ZT_BVDE, &ZT_COVE, &ZT_CRES, &ZT_CRST, &ZT_DALE,
+  &ZT_DASH, &ZT_DELL, &ZT_DENE, &ZT_DOCK, &ZT_DOWN, &ZT_DRWY, &ZT_EAST, &ZT_EDGE, &ZT_FLAT, &ZT_FORD,
+  &ZT_FORK, &ZT_GATE, &ZT_GDNS, &ZT_GLEN, &ZT_HIKE, &ZT_HILL, &ZT_KEYS, &ZT_LANE, &ZT_LINE, &ZT_LINK,
+  &ZT_LOOP, &ZT_MALL, &ZT_MART, &ZT_MAZE, &ZT_MEAD, &ZT_MEWS, &ZT_MILE, &ZT_NOOK, &ZT_PARK, &ZT_PASS,
+  &ZT_PATH, &ZT_PHWY, &ZT_PKWY, &ZT_PORT, &ZT_QUAY, &ZT_RAMP, &ZT_RDGE, &ZT_RDWY, &ZT_REST, &ZT_RIDE,
+  &ZT_RISE, &ZT_ROAD, &ZT_SPUR, &ZT_TARN, &ZT_TURN, &ZT_VALE, &ZT_VIEW, &ZT_WALK, &ZT_WEST, &ZT_WYND,
+  &ZT_YARD, &ZT_ALLEY, &ZT_AMBLE, &ZT_BANAN, &ZT_BEACH, &ZT_BLVDE, &ZT_BRACE, &ZT_BREAK, &ZT_BYWAY, &ZT_CHASE,
+  &ZT_CLOSE, &ZT_COPSE, &ZT_CORSO, &ZT_COURT, &ZT_CREST, &ZT_CRIEF, &ZT_CROSS, &ZT_DOWNS, &ZT_DRIVE, &ZT_ELBOW,
+  &ZT_FLATS, &ZT_GLADE, &ZT_GREEN, &ZT_GROVE, &ZT_GULLY, &ZT_HAVEN, &ZT_HEATH, &ZT_HILLS, &ZT_LYNNE, &ZT_MANOR,
+  &ZT_NORTH, &ZT_PALMS, &ZT_PLACE, &ZT_PLAZA, &ZT_POINT, &ZT_QUAYS, &ZT_RANGE, &ZT_REACH, &ZT_RIDGE, &ZT_RIVER,
+  &ZT_ROADS, &ZT_ROUND, &ZT_ROUTE, &ZT_SLOPE, &ZT_SOUTH, &ZT_STEPS, &ZT_STRIP, &ZT_TRACK, &ZT_TRAIL, &ZT_TWIST,
+  &ZT_VIEWS, &ZT_VILLA, &ZT_VISTA, &ZT_WHARF, &ZT_WOODS, &ZT_ACCESS, &ZT_ARCADE, &ZT_AVENUE, &ZT_BRANCH, &ZT_BRIDGE,
+  &ZT_BUSWAY, &ZT_BYPASS, &ZT_CENTRE, &ZT_CIRCLE, &ZT_CIRCUS, &ZT_COMMON, &ZT_CORNER, &ZT_COURSE, &ZT_DIVIDE, &ZT_DOMAIN,
+  &ZT_ESTATE, &ZT_FOLLOW, &ZT_GARDEN, &ZT_GRANGE, &ZT_HOLLOW, &ZT_ISLAND, &ZT_LADDER, &ZT_OUTLET, &ZT_PARADE, &ZT_POCKET,
+  &ZT_RAMBLE, &ZT_RETURN, &ZT_RISING, &ZT_ROTARY, &ZT_SQUARE, &ZT_STRAIT, &ZT_STREET, &ZT_SUBWAY, &ZT_TUNNEL, &ZT_VALLEY,
+  &ZT_WATERS, &ZT_CIRCUIT, &ZT_CLUSTER, &ZT_COMMONS, &ZT_CONCORD, &ZT_CUTTING, &ZT_FAIRWAY, &ZT_FREEWAY, &ZT_GARDENS, &ZT_GATEWAY,
+  &ZT_HARBOUR, &ZT_HEIGHTS, &ZT_HIGHWAY, &ZT_LANDING, &ZT_LANEWAY, &ZT_LOOKOUT, &ZT_MEANDER, &ZT_OUTLOOK, &ZT_PARKWAY, &ZT_PASSAGE,
+  &ZT_PATHWAY, &ZT_PURSUIT, &ZT_RESERVE, &ZT_RETREAT, &ZT_ROADWAY, &ZT_TERRACE, &ZT_TRAMWAY, &ZT_VILLAGE, &ZT_WALKWAY, &ZT_APPROACH,
+  &ZT_ARTERIAL, &ZT_BROADWAY, &ZT_CAUSEWAY, &ZT_CRESCENT, &ZT_CROSSING, &ZT_DRIVEWAY, &ZT_EASEMENT, &ZT_ENTRANCE, &ZT_FIRELINE, &ZT_FRONTAGE,
+  &ZT_JUNCTION, &ZT_MOTORWAY, &ZT_PRECINCT, &ZT_QUADRANT, &ZT_STRAIGHT, &ZT_TRAVERSE, &ZT_TRUNKWAY, &ZT_WATERWAY, &ZT_BOARDWALK, &ZT_BOULEVARD,
+  &ZT_CENTREWAY, &ZT_CONCOURSE, &ZT_COURTYARD, &ZT_CRUISEWAY, &ZT_DEVIATION, &ZT_ESPLANADE, &ZT_EXTENSION, &ZT_FIREBREAK, &ZT_FIRETRACK, &ZT_FIRETRAIL,
+  &ZT_FORESHORE, &ZT_FORMATION, &ZT_PROMENADE, &ZT_UNDERPASS, &ZT_BOULEVARDE, &ZT_CONNECTION, &ZT_CULDESAC, &ZT_EXPRESSWAY, &ZT_SERVICEWAY, &ZT_THROUGHWAY,
+  &ZT_DISTRIBUTOR, &ZT_INTERCHANGE};
+
+
+
 /*
  static const unsigned char letters[26] =
  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -12,7 +322,6 @@ typedef struct {
   int n_words;
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
-  int widths[WORD_DATUMS];
 } WordData;
 
 
@@ -25,8 +334,10 @@ static char toupper1(char x) {
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
+/*
 static const unsigned int SIXTEEN_PRIMER[16] =
   {53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2};
+*/
 
 unsigned int djb2_hash(const char * str, int n, int i) {
   unsigned int hash = 5381;
@@ -59,7 +370,16 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 //'
 //'
 //' @param ans
-void word_data(int N_WORDS[2], int lhs[WORD_DATUMS], int rhs[WORD_DATUMS], const char * x, int n, int j0) {
+void word_data(WordData * wd, const char * x, int n, int j0) {
+  int N_WORDS[2] = {0};
+  for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
+    wd->lhs[w_j] = 0;
+    wd->rhs[w_j] = 0;
+  }
+  Rprintf("..");
+  wd->n_words = WORD_DATUMS;
+  Rprintf("|");
+
   // ensure we're at the start of a word
   while (j0 < n && x[j0] == ' ') {
     ++j0;
@@ -68,23 +388,24 @@ void word_data(int N_WORDS[2], int lhs[WORD_DATUMS], int rhs[WORD_DATUMS], const
 
   for (int j = j0; j < n; ++j) {
     unsigned char xj = x[j];
-    unsigned int uxj = xj;
     bool is_breaker = xj == ' ' || xj == ',';
     N_WORDS[1] = j + 1;
     if (is_breaker) {
       N_WORDS[w] += 1;
-      rhs[w] = j;
+      wd->rhs[w] = j;
       ++w;
       if (w >= WORD_DATUMS) {
         return;
       }
       ++j;
-      lhs[w] = j;
+      wd->lhs[w] = j;
       while (++j < n && (x[j] == ' ' || x[j] == ',')) {
-        lhs[w] = j;
+        wd->lhs[w] = j;
       }
     }
   }
+  Rprintf("W");
+  wd->n_words = N_WORDS[0];
 }
 
 
@@ -2593,18 +2914,42 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   return ans;
 }
 
-int street_type(const char * x, int n, int j, WordData wd, int Postcode) {
-
+int street_type(const char * x, int n, int j, WordData * wd, int Postcode) {
+  if (Postcode <= 0) {
+    return NA_INTEGER;
+  }
+  int n_words = wd->n_words;
+  const int W_ORD[WORD_DATUMS] = { 3,  4,  5,  2,  6, 0, 1, 7,
+                                   11, 12, 13, 10, 14, 8, 9, 15};
+  for (int w_ = 0; w_ < 16; ++w_) {
+    int w = W_ORD[w_];
+    if (w > n_words) {
+      continue;
+    }
+    int lhs_w = wd->lhs[w];
+    int rhs_w = wd->rhs[w];
+    int width_w = rhs_w - lhs_w;
+    if (width_w == 2) {
+      char x_w0 = x[lhs_w];
+      char x_w1 = x[lhs_w + 1];
+      for (int z = 0; z < 12; ++z) {
+        const StreetType * Z = ZTZ[z];
+        const char * xz = Z->x;
+        int nz = Z->lenx;
+        if (nz == 2) {
+          if (x_w0 == xz[0] && x_w1 == xz[1]) {
+            return Z->cd;
+          }
+        }
+      }
+    }
+  }
+  return 0;
 }
 
-
 void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4]) {
-  int number_rhs = 0;
   int j_start = 0;
   const char x0 = x[0];
-  WordData * wd = malloc(sizeof(WordData));
-
-
 
   if (!isdigit(x[0])) {
     const char x1 = x[1];
@@ -2646,27 +2991,10 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
   unsigned char this_suffix = number_suffix2raw(x[j], x[j + 1]);
   j += (this_suffix == 0 ? 0 : (islower(this_suffix) ? 2 : 1));
 
-
-  int next_space_or_commas[4] = {0};
-  bool has_comma = false;
-  int b = 0;
-  for (int k = j; (k < n && b < 4); ++k) {
-    if (x[k] == ' ') {
-      next_space_or_commas[b] = k;
-      ++b;
-      continue;
-    }
-    if (x[k] == ',') {
-      has_comma = true;
-      next_space_or_commas[b] = (k << 8u);
-      ++b;
-      continue;
-    }
-  }
-
   while (j < n && x[j] == ' ') {
     ++j;
   }
+  WordData wd = { .n_words = 0, .lhs[0] = 0, .rhs[0] = 0};
   // int j_StreetName = j;
 
   // Give the hashes of the next 1,2,3,4 words
@@ -2681,7 +3009,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     Hashes[n_hashes_complete] = hash;
     unsigned char xk = x[k];
     if (!isupper(xk)) {
-      if (has_comma && xk == ',') {
+      if (xk == ',') {
         break;
       }
       n_hashes_complete++;
@@ -2694,15 +3022,13 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
 
   // now identify the street type
   // must be after the street name (by assumption)
-
-
-
-
+  int postcode = xpostcode_unsafe(x, n);
+  Street[1] = street_type(x, n, j, &wd, postcode);
 
   numberFirstLast[0] = flat_number2i[1];
   numberFirstLast[1] = o1;
   numberFirstLast[2] = o2;
-  Postcode[0] = xpostcode_unsafe(x, n);
+  Postcode[0] = postcode;
 }
 
 SEXP C_do_standard_address(SEXP xx) {
@@ -2717,6 +3043,7 @@ SEXP C_do_standard_address(SEXP xx) {
   SEXP H1 = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP H2 = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP H3 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP StreetCode = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP Postcode = PROTECT(allocVector(INTSXP, N)); np++;
 
   int * restrict flat_numberp = INTEGER(FlatNumber);
@@ -2726,29 +3053,40 @@ SEXP C_do_standard_address(SEXP xx) {
   int * restrict h1 = INTEGER(H1);
   int * restrict h2 = INTEGER(H2);
   int * restrict h3 = INTEGER(H3);
+  int * restrict street_codep = INTEGER(StreetCode);
   int * restrict pp = INTEGER(Postcode);
 
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
-    if (n <= 4) {
-      pp[i] = NA_INTEGER;
-      number_firstp[i] = NA_INTEGER;
-      number_lastp[i] = NA_INTEGER;
-      continue;
-    }
-    const char * x = CHAR(xp[i]);
     int numberFirstLast[3] = {0};
     int street[2] = {0};
     int postcode[2] = {0};
     int streetHashes[4] = {0};
+    if (n <= 4) {
+      pp[i] = NA_INTEGER;
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      h0[i] = streetHashes[0];
+      h1[i] = streetHashes[1];
+      h2[i] = streetHashes[2];
+      h3[i] = streetHashes[3];
+      street_codep[i] = NA_INTEGER;
+      flat_numberp[i] = NA_INTEGER;
+      continue;
+    }
+    const char * x = CHAR(xp[i]);
+
     do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes);
     h0[i] = streetHashes[0];
     h1[i] = streetHashes[1];
     h2[i] = streetHashes[2];
     h3[i] = streetHashes[3];
+    pp[i] = postcode[0];
+    street_codep[i] = street[1];
     flat_numberp[i] = numberFirstLast[0];
     number_firstp[i] = numberFirstLast[1];
     number_lastp[i] = numberFirstLast[2];
+    //if (!(i & 255)) Rprintf("\n");
   }
   SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
   SET_VECTOR_ELT(ans, 0, NumberFirst);
@@ -2759,6 +3097,7 @@ SEXP C_do_standard_address(SEXP xx) {
   SET_VECTOR_ELT(ans, 5, H3);
   SET_VECTOR_ELT(ans, 6, Postcode);
   SET_VECTOR_ELT(ans, 7, FlatNumber);
+  SET_VECTOR_ELT(ans, 8, StreetCode);
   UNPROTECT(np);
   return ans;
 

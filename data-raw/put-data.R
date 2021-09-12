@@ -210,4 +210,17 @@ ST_SUBURBS <-
   .[grep("\\bST\\b", NAME), unique(NAME)]
 usethis::use_data(ST_SUBURBS, internal = TRUE)
 
+# cat(.Permitted_street_type_ord_nchar_AZ()[, .(ans = paste0("const StreetType ZT_", STREET_CODE, " = {ST_CODE_", STREET_STANDARD, ", ", dQuote(STREET_CODE, q = F), ", ", nchar(STREET_CODE), "};"))][[1]], sep = "\n", file = provide.file("src/ZT.c"))
+
+PAZ <- copy(.Permitted_street_type_ord_nchar_AZ())
+cat("const StreetType ZTZ[", nrow(PAZ), "] = {\n", file = provide.file("src/ZT.c"), append = TRUE, sep = "")
+for (i in 1:nrow(PAZ)) {
+  cat("ZT_", PAZ$STREET_CODE[i], ", ", file = "src/ZT.c", append = TRUE, sep = "")
+  if ((i %% 10L) == 0L) {
+    cat("\n", file = "src/ZT.c", append = TRUE)
+  }
+}
+cat("}\n", file = "src/ZT.c", append = TRUE)
+
+
 
