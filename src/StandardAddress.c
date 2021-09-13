@@ -310,6 +310,13 @@ const StreetType * ZTZ[271] = {
   &ZT_FORESHORE, &ZT_FORMATION, &ZT_PROMENADE, &ZT_UNDERPASS, &ZT_BOULEVARDE, &ZT_CONNECTION, &ZT_CULDESAC, &ZT_EXPRESSWAY, &ZT_SERVICEWAY, &ZT_THROUGHWAY,
   &ZT_DISTRIBUTOR, &ZT_INTERCHANGE};
 
+// zpos_by_len[i] gives the the first position in ZT
+// of i length
+#define NZ0POS 16
+#define NZ0POR 15
+const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 12, 46, 110, 164, 200, 228, 247, 263, 269, 0};
+
+
 
 
 /*
@@ -370,15 +377,17 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 //'
 //'
 //' @param ans
-void word_data(WordData * wd, const char * x, int n, int j0) {
-  int N_WORDS[2] = {0};
+
+
+
+WordData word_data(const char * x, int n, int j0) {
+  int n_words = 0;
+  int lhs[WORD_DATUMS] = {0};
+  int rhs[WORD_DATUMS] = {0};
   for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
-    wd->lhs[w_j] = 0;
-    wd->rhs[w_j] = 0;
+    lhs[w_j] = 0;
+    rhs[w_j] = 0;
   }
-  Rprintf("..");
-  wd->n_words = WORD_DATUMS;
-  Rprintf("|");
 
   // ensure we're at the start of a word
   while (j0 < n && x[j0] == ' ') {
@@ -389,23 +398,26 @@ void word_data(WordData * wd, const char * x, int n, int j0) {
   for (int j = j0; j < n; ++j) {
     unsigned char xj = x[j];
     bool is_breaker = xj == ' ' || xj == ',';
-    N_WORDS[1] = j + 1;
     if (is_breaker) {
-      N_WORDS[w] += 1;
-      wd->rhs[w] = j;
+      rhs[w] = j;
       ++w;
       if (w >= WORD_DATUMS) {
-        return;
+        break;
       }
       ++j;
-      wd->lhs[w] = j;
+      lhs[w] = j;
       while (++j < n && (x[j] == ' ' || x[j] == ',')) {
-        wd->lhs[w] = j;
+        lhs[w] = j;
       }
     }
   }
-  Rprintf("W");
-  wd->n_words = N_WORDS[0];
+  WordData wd;
+  wd.n_words = w;
+  for (int jj = 0; jj < WORD_DATUMS; ++jj) {
+    wd.lhs[jj] = lhs[jj];
+    wd.rhs[jj] = rhs[jj];
+  }
+  return wd;
 }
 
 
@@ -2889,9 +2901,6 @@ SEXP Cmatch_StreetName(SEXP xx,
   return ans;
 }
 
-
-
-
 SEXP C_NumberSuffix2Raw(SEXP xx) {
   if (!isString(xx)) {
     error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(xx))); // # nocov
@@ -2929,6 +2938,7 @@ int street_type(const char * x, int n, int j, WordData * wd, int Postcode) {
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
     int width_w = rhs_w - lhs_w;
+    int zpos = z0pos_by_len[width_w];
     if (width_w == 2) {
       char x_w0 = x[lhs_w];
       char x_w1 = x[lhs_w + 1];
@@ -2994,7 +3004,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
   while (j < n && x[j] == ' ') {
     ++j;
   }
-  WordData wd = { .n_words = 0, .lhs[0] = 0, .rhs[0] = 0};
+  WordData wd = word_data(x, n, j);
   // int j_StreetName = j;
 
   // Give the hashes of the next 1,2,3,4 words
@@ -3034,6 +3044,10 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
+
+
+
+
   int np = 0;
   // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
@@ -3089,19 +3103,39 @@ SEXP C_do_standard_address(SEXP xx) {
     //if (!(i & 255)) Rprintf("\n");
   }
   SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
-  SET_VECTOR_ELT(ans, 0, NumberFirst);
-  SET_VECTOR_ELT(ans, 1, NumberLast) ;
-  SET_VECTOR_ELT(ans, 2, H0);
-  SET_VECTOR_ELT(ans, 3, H1);
-  SET_VECTOR_ELT(ans, 4, H2);
-  SET_VECTOR_ELT(ans, 5, H3);
-  SET_VECTOR_ELT(ans, 6, Postcode);
-  SET_VECTOR_ELT(ans, 7, FlatNumber);
-  SET_VECTOR_ELT(ans, 8, StreetCode);
+  SET_VECTOR_ELT(ans, 0, FlatNumber);
+  SET_VECTOR_ELT(ans, 1, NumberFirst);
+  SET_VECTOR_ELT(ans, 2, NumberLast) ;
+  SET_VECTOR_ELT(ans, 3, H0);
+  SET_VECTOR_ELT(ans, 4, H1);
+  SET_VECTOR_ELT(ans, 5, H2);
+  SET_VECTOR_ELT(ans, 6, H3);
+  SET_VECTOR_ELT(ans, 7, StreetCode);
+  SET_VECTOR_ELT(ans, 8, Postcode);
   UNPROTECT(np);
   return ans;
 
 }
 
+
+SEXP C_StaticAssert(SEXP x) {
+  // Check ZTZ concordance with z0pos_by_len
+  for (int i = 1; i < NZ0POS; ++i) {
+    int zi = z0pos_by_len[i];
+    if (zi && zi < 271) {
+      int len0 = ZTZ[zi - 1]->lenx;
+      int len1 = ZTZ[zi]->lenx;
+      if (len0 == len1) {
+        warning("(StaticAssert FAIL)len0 == len1 [%d == %d] at i = %d", len0, len1, i);
+      }
+      if (len1 != i) {
+        warning("(StaticAssert FAIL)len1 != i + 2 [%d != %d + 2]", len1, i);
+      }
+    }
+  }
+
+  return R_NilValue;
+
+}
 
 
