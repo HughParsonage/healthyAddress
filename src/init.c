@@ -13,6 +13,7 @@ extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
+extern SEXP C_StaticAssert(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
@@ -31,6 +32,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_noLC",                  (DL_FUNC) &C_noLC,                  1},
     {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,       1},
     {"C_NumberSuffix2Raw",      (DL_FUNC) &C_NumberSuffix2Raw,      1},
+    {"C_StaticAssert",          (DL_FUNC) &C_StaticAssert,          1},
     {"C_uniquePostcodes",       (DL_FUNC) &C_uniquePostcodes,       1},
     {"Cdigit256",               (DL_FUNC) &Cdigit256,               2},
     {"CExtractPostcode",        (DL_FUNC) &CExtractPostcode,        1},
