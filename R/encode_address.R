@@ -15,21 +15,12 @@ encode_address <- function(StandardAddress) {
   states <- postcode2ste(.subset2(StandardAddress, "POSTCODE"), result = "character")
   if (length(states) == 1) {
     FF <- sys_fst(sprintf("%s_FULL_ADDRESS", states))
-    setnames(FF,
-             paste0(states, "_GA_INTRNL_ADDRESS_ID"),
-             "STE_GA_INTRNL_ADDRESS_ID",
-             skip_absent = TRUE)
-    setnames(FF, names(FF), gsub(states, "STE", names(FF)))
   } else if (exists("AUS_FULL")) {
     FF <- AUS_FULL
   } else {
     FF <-
       lapply(states[match(states, ste_chars, nomatch = 0L)], function(ste) {
         ste_dt <- sys_fst(sprintf("%s_FULL_ADDRESS", ste))
-        setnames(ste_dt,
-                 paste0(ste, "_GA_INTRNL_ADDRESS_ID"),
-                 "STE_GA_INTRNL_ADDRESS_ID",
-                 skip_absent = TRUE)
       })
     FF <- rbindlist(FF, use.names = TRUE)
   }
@@ -42,20 +33,8 @@ encode_address <- function(StandardAddress) {
     StandardAddress[, hSTREET_NAME := HashStreetName(STREET_NAME)]
   }
 
-
-  # FF[StandardAddress,
-  #    .(POSTCODE, STE_GA_INTRNL_ADDRESS_ID),
-  #    on = .(POSTCODE,
-  #           STREET_TYPE_CODE,
-  #           hSTREET_NAME,
-  #           NUMBER_FIRST,
-  #           NUMBER_FIRST_SUFFIX,
-  #           FLAT_NUMBER),
-  #    nomatch = NA_integer_,
-  #    mult = "first"]
-
   StandardAddress[FF,
-                  enc := i.STE_GA_INTRNL_ADDRESS_ID,
+                  enc := i.ADDRESS_SITE_PID,
                   on = .(POSTCODE,
                          STREET_TYPE_CODE,
                          hSTREET_NAME,
