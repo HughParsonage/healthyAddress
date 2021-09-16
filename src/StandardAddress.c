@@ -316,22 +316,6 @@ const StreetType * ZTZ[271] = {
 #define NZ0POR 15
 const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 12, 46, 110, 164, 200, 228, 247, 263, 269, 0};
 
-
-
-
-/*
- static const unsigned char letters[26] =
- {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
- 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
- */
-
-typedef struct {
-  int n_words;
-  int lhs[WORD_DATUMS];
-  int rhs[WORD_DATUMS];
-} WordData;
-
-
 static const char LETTERS[26] =
   {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
@@ -341,10 +325,23 @@ static char toupper1(char x) {
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
+// Hashes of common street types
+#define TOP_ST_TYPES 32
+const unsigned int hash_street_types[32] =
+  {5862547 /* RD */,
+   193444898 /* DPS */,
+   2089353917 /* ROAD */,
+   5862626,
+   -938027068, 5862130, 213732634, 5861938, 193443895, -1758728215, 5862617, 231400990, 5862215, 2088983683, 5861971, 193445234, 208333225, 5862122, 213747795, 193461480, 226149834, 5862132, 2088892162, 1252464830, 193462922, 193462922, 193461487, 226150023, 193457987, 632738020};
+const unsigned int hash_street_typecd[32] =
+  {1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 10, 10, 11, 11, 12, 12, 13, 13};
+
+
+
 /*
-static const unsigned int SIXTEEN_PRIMER[16] =
-  {53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2};
-*/
+ static const unsigned int SIXTEEN_PRIMER[16] =
+ {53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2};
+ */
 
 unsigned int djb2_hash(const char * str, int n, int i) {
   unsigned int hash = 5381;
@@ -359,6 +356,21 @@ unsigned int djb2_hash(const char * str, int n, int i) {
   }
   return hash;
 }
+
+/*
+ static const unsigned char letters[26] =
+ {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+ 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+ */
+
+typedef struct {
+  int n_words;
+  int lhs[WORD_DATUMS];
+  int rhs[WORD_DATUMS];
+} WordData;
+
+
+
 
 //' @noRd
 //' @description
@@ -376,10 +388,6 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 //'   x consists of uppercase char and breakers only.
 //'
 //'
-//' @param ans
-
-
-
 WordData word_data(const char * x, int n, int j0) {
   int n_words = 0;
   int lhs[WORD_DATUMS] = {0};
@@ -395,22 +403,25 @@ WordData word_data(const char * x, int n, int j0) {
   }
   int w = 0;
 
-  for (int j = j0; j < n; ++j) {
-    unsigned char xj = x[j];
-    bool is_breaker = xj == ' ' || xj == ',';
-    if (is_breaker) {
+  for (int j = 1; j < n; ++j) {
+    if (w >= WORD_DATUMS) {
+      break;
+    }
+    unsigned char x_i = x[j - 1];
+    unsigned char x_j = x[j];
+    if (x_j == ' ' || x_j == ',') {
+      if (x_i == ' ' || x_i == ',') {
+        lhs[w] = j + 1;
+        continue;
+      }
       rhs[w] = j;
       ++w;
-      if (w >= WORD_DATUMS) {
-        break;
-      }
-      ++j;
-      lhs[w] = j;
-      while (++j < n && (x[j] == ' ' || x[j] == ',')) {
-        lhs[w] = j;
-      }
+      lhs[w] = j + 1;
     }
   }
+  rhs[w] = n - 1;
+  ++w;
+
   WordData wd;
   wd.n_words = w;
   for (int jj = 0; jj < WORD_DATUMS; ++jj) {
@@ -420,6 +431,38 @@ WordData word_data(const char * x, int n, int j0) {
   return wd;
 }
 
+SEXP Ctest_WordData(SEXP xx, SEXP rr) {
+  if (!isString(xx)) {
+    return R_NilValue;
+  }
+  const int r = asInteger(rr); // r = 0 n_words, r = 1 lhs, r = 2 rhs
+  int n = length(STRING_ELT(xx, 0));
+  const char * x = CHAR(STRING_ELT(xx, 0));
+  WordData wd = word_data(x, n, 0);
+
+  switch(r) {
+  case 0:
+    return ScalarInteger(wd.n_words);
+  case 1: {
+      SEXP ans = PROTECT(allocVector(INTSXP, WORD_DATUMS));
+      for (int i = 0; i < WORD_DATUMS; ++i) {
+        INTEGER(ans)[i] = wd.lhs[i];
+      }
+      UNPROTECT(1);
+      return ans;
+    }
+  case 2: {
+    SEXP ans = PROTECT(allocVector(INTSXP, WORD_DATUMS));
+    for (int i = 0; i < WORD_DATUMS; ++i) {
+      INTEGER(ans)[i] = wd.rhs[i];
+    }
+    UNPROTECT(1);
+    return ans;
+  }
+
+  }
+  return R_NilValue;
+}
 
 
 SEXP C_HashStreetName(SEXP x) {
@@ -2923,34 +2966,35 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   return ans;
 }
 
-int street_type(const char * x, int n, int j, WordData * wd, int Postcode) {
+
+
+void do_street_type(int street_type[2], const char * x, int n, int j, WordData * wd, int Postcode) {
   if (Postcode <= 0) {
     return NA_INTEGER;
   }
   int n_words = wd->n_words;
-  const int W_ORD[WORD_DATUMS] = { 3,  4,  5,  2,  6, 0, 1, 7,
+  const int W_ORD[WORD_DATUMS] = { 3,  4,  5,  2,  6,  0, 1, 7,
                                    11, 12, 13, 10, 14, 8, 9, 15};
   for (int w_ = 0; w_ < 16; ++w_) {
     int w = W_ORD[w_];
-    if (w > n_words) {
-      continue;
-    }
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
-    int width_w = rhs_w - lhs_w;
-    int zpos = z0pos_by_len[width_w];
-    if (width_w == 2) {
-      char x_w0 = x[lhs_w];
-      char x_w1 = x[lhs_w + 1];
-      for (int z = 0; z < 12; ++z) {
-        const StreetType * Z = ZTZ[z];
-        const char * xz = Z->x;
-        int nz = Z->lenx;
-        if (nz == 2) {
-          if (x_w0 == xz[0] && x_w1 == xz[1]) {
-            return Z->cd;
-          }
-        }
+    if (w > n_words || rhs_w == 0) {
+      continue;
+    }
+    unsigned int width_w = rhs_w - lhs_w;
+    int z0pos = z0pos_by_len[width_w & NZ0POR];
+    unsigned int width_w1 = width_w + 1;
+    int z1pos = z0pos_by_len[width_w1 & NZ0POR];
+    char x_w0 = x[lhs_w];
+    char x_w1 = x[lhs_w + 1];
+    for (int z = z0pos; z < z1pos; ++z) {
+      const StreetType * Z = ZTZ[z];
+      const char * xz = Z->x;
+      int nz = Z->lenx;
+      // bool substring_within(const char * x, int i, int n, const char * y, int m)
+      if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
+        return Z->cd;
       }
     }
   }
@@ -3010,30 +3054,49 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
   // Give the hashes of the next 1,2,3,4 words
   // idea is the street name may be more than one name
   unsigned int Hashes[4] = {5381, 5381, 5381, 5381};
+  unsigned int Iashes[4] = {5381, 5381, 5381, 5381};
   int n_hashes_complete = 0;
   unsigned int hash = 5381;
+  unsigned int iash = 5381;
   for (int k = j; k < n; ++k) {
     if (n_hashes_complete >= 4) {
       break;
     }
     Hashes[n_hashes_complete] = hash;
+    Iashes[n_hashes_complete] = iash;
     unsigned char xk = x[k];
     if (!isupper(xk)) {
       if (xk == ',') {
         break;
       }
       n_hashes_complete++;
+      iash = 5381;
+    } else {
+      iash = ((iash << 5) + iash) ^ xk;
     }
     hash = ((hash << 5) + hash) ^ xk;
+
   }
   for (int h = 0; h < 4; ++h) {
     StreetHashes[h] = Hashes[h];
+  }
+  int street_type_due_hash = 0;
+  for (int h_ = 0; h_ < 32; ++h_) {
+    for (int h = 1; h < 4; ++h) {
+      if (hash_street_types[h_] == Iashes[h]) {
+        street_type_due_hash = hash_street_typecd[h_];
+        break;
+      }
+    }
+    if (street_type_due_hash) {
+      break;
+    }
   }
 
   // now identify the street type
   // must be after the street name (by assumption)
   int postcode = xpostcode_unsafe(x, n);
-  Street[1] = street_type(x, n, j, &wd, postcode);
+  Street[1] = street_type_due_hash ? street_type_due_hash : street_type(x, n, j, &wd, postcode);
 
   numberFirstLast[0] = flat_number2i[1];
   numberFirstLast[1] = o1;
@@ -3044,10 +3107,6 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
-
-
-
-
   int np = 0;
   // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
@@ -3117,11 +3176,62 @@ SEXP C_do_standard_address(SEXP xx) {
 
 }
 
+SEXP ZMatchStreetName(SEXP x) {
+  if (!isString(x)) {
+    error("x not a STRSXP."); // # nocov
+  }
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    unsigned int o = 0;
+    int n = length(xp[i]);
+    if (n <= 2) {
+      ansp[i] = NA_INTEGER;
+      continue;
+    }
+    const char * xi = CHAR(xp[i]);
+    WordData wdi = word_data(xi, n, 0);
+    bool matched = false;
+    for (int z = 0; z < 271; ++z) {
+      const char * zi = ZTZ[z]->x;
+      int zlen = ZTZ[z]->lenx;
+      int zcd = ZTZ[z]->cd;
+      for (int w = 0; w < wdi.n_words; ++w) {
+        int lhs_w = wdi.lhs[w];
+        int rhs_w = wdi.rhs[w];
+        int www_w = rhs_w - lhs_w;
+        if (www_w != zlen) {
+          continue;
+        }
+        matched = true;
+        for (int j = lhs_w; j < rhs_w; ++j) {
+          Rprintf("j = %d\n", j);
+          if (xi[j] != zi[j]) {
+            matched = false;
+            o = zcd;
+            break;
+          }
+        }
+        if (matched) {
+          break;
+        }
+      }
+    }
+    ansp[i] = o;
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 
 SEXP C_StaticAssert(SEXP x) {
   // Check ZTZ concordance with z0pos_by_len
   for (int i = 1; i < NZ0POS; ++i) {
     int zi = z0pos_by_len[i];
+    // Rprintf("i = %d, zi = %d\n", i, zi);
     if (zi && zi < 271) {
       int len0 = ZTZ[zi - 1]->lenx;
       int len1 = ZTZ[zi]->lenx;
@@ -3138,4 +3248,9 @@ SEXP C_StaticAssert(SEXP x) {
 
 }
 
-
+SEXP Cs2u(SEXP ss, SEXP uu) {
+  signed int s = asInteger(ss);
+  unsigned int u = asInteger(uu);
+  Rprintf("%d %u\n", s, u);
+  return R_NilValue;
+}

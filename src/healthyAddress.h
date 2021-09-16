@@ -5,7 +5,6 @@
 #include <omp.h>
 #endif
 
-
 #include <R.h>
 #define USE_RINTERNALS
 #include <Rinternals.h>

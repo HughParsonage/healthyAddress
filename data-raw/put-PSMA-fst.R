@@ -69,7 +69,7 @@ do_full_Address <- function(ste) {
 
   STE_FULL_ADDRESS <-
     merge(selector(STE_ADDRESS_DETAIL,
-                   cols = c("ADDRESS_DETAIL_PID",
+                   cols = c("ADDRESS_SITE_PID",
                             # "BUILDING_NAME",
                             # "LOT_NUMBER",
                             "FLAT_NUMBER",
@@ -85,8 +85,6 @@ do_full_Address <- function(ste) {
                             "STREET_TYPE_CODE")),
           by = "STREET_LOCALITY_PID") %>%
     #
-    .[, (paste0(ste, "_GA_INTRNL_ADDRESS_ID")) := as.integer(substr(ADDRESS_DETAIL_PID, 6L, 14L))] %>%
-    .[, ADDRESS_DETAIL_PID := NULL] %>%
     .[, "STREET_TYPE_CODE" := chmatch(STREET_TYPE_CODE,
                                       healthyAddress:::.permitted_street_type_ord())] %>%
     .[, "STREET_LOCALITY_PID" := NULL] %>%

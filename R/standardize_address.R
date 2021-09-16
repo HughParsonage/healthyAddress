@@ -78,8 +78,11 @@ standardize_address <- function(Address,
 
 
 Do_standard_address <- function(x) {
+  # 1.8 M addresses / s
   Ans <- .Call("C_do_standard_address", x)
   setDT(Ans)
+  setnames(Ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST", "H0", "H1", "H2", "H3",
+                  "STREET_TYPE_CODE", "POSTCODE"))
   Ans[]
 }
 

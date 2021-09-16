@@ -29,6 +29,12 @@ FindSentence <- function(x, word1, word2) {
 }
 
 
+test_WordData <- function(x, r = 0L) {
+  stopifnot(is.character(x), is.integer(r))
+  .Call("Ctest_WordData", x, r)
+}
+
+
 
 
 
@@ -41,4 +47,13 @@ PoaHasSt <- function(x, y) {
   .Call("CPoaHasSt", x, y, PACKAGE = packageName())
 }
 
+
+
+zMatchStreetName <- function(x) {
+  .Call("ZMatchStreetName", x)
+}
+
+s2u <- function(s, u) {
+  .Call("Cs2u", s, u, PACKAGE = packageName())
+}
 

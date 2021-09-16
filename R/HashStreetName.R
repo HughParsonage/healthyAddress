@@ -1,4 +1,4 @@
-#' Hash a street name quickly and
+#' Hash a street name quickly and accurately
 #' @param x A character vector of uppercase street names (without the street type).
 #'
 #' @examples

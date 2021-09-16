@@ -2,7 +2,7 @@
 % Please edit documentation in R/HashStreetName.R
 \name{HashStreetName}
 \alias{HashStreetName}
-\title{Hash a street name quickly and}
+\title{Hash a street name quickly and accurately}
 \usage{
 HashStreetName(x)
 }
@@ -10,7 +10,7 @@ HashStreetName(x)
 \item{x}{A character vector of uppercase street names (without the street type).}
 }
 \description{
-Hash a street name quickly and
+Hash a street name quickly and accurately
 }
 \examples{
 HashStreetName("FLINDERS")

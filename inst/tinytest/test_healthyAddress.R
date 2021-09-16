@@ -62,6 +62,9 @@ ans <- standardize_address("1 PARK ST, ST KILDA WEST VIC 3182")
 expect_equal(ans$STREET_NAME, "PARK")
 ans <- standardize_address("1 PARK ST ST KILDA WEST VIC 3182")
 expect_equal(ans$STREET_NAME, "PARK")
+ans <- healthyAddress:::Do_standard_address("99 PRINCE OF WALES AVE, MILL PARK VIC 3005")
+ans <- healthyAddress:::Do_standard_address("99 PRINCE OF WALES CT, MILL PARK VIC 3005")
+
 
 
 
