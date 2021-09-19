@@ -9,6 +9,20 @@ typedef struct {
 } StreetType;
 
 
+typedef struct {
+  int postcode;
+  int n_saints;
+  const char * suf;
+  int nsuf;
+  const char * suf2;
+  int nsuf2;
+
+} Saint;
+
+#define NZ 271
+#define ST_ST_ST 11
+// ST_ST_ST position in the StreetType array for ST as 'Street'
+
 const StreetType ZT_AV = {ST_CODE_AVENUE, "AV", 2};
 const StreetType ZT_CH = {ST_CODE_CHASE, "CH", 2};
 const StreetType ZT_CL = {ST_CODE_CLOSE, "CL", 2};
@@ -280,7 +294,7 @@ const StreetType ZT_SERVICEWAY = {ST_CODE_SERVICEWAY, "SERVICEWAY", 10};
 const StreetType ZT_THROUGHWAY = {ST_CODE_THROUGHWAY, "THROUGHWAY", 10};
 const StreetType ZT_DISTRIBUTOR = {ST_CODE_DISTRIBUTOR, "DISTRIBUTOR", 11};
 const StreetType ZT_INTERCHANGE = {ST_CODE_INTERCHANGE, "INTERCHANGE", 11};
-const StreetType * ZTZ[271] = {
+const StreetType * ZTZ[NZ] = {
   &ZT_AV, &ZT_CH, &ZT_CL, &ZT_CR, &ZT_CT, &ZT_DR, &ZT_GR, &ZT_LN, &ZT_PL, &ZT_RD,
   &ZT_SQ, &ZT_ST, &ZT_AVE, &ZT_BAY, &ZT_BVD, &ZT_CCT, &ZT_CIR, &ZT_CNR, &ZT_DIP, &ZT_DPS,
   &ZT_DVE, &ZT_END, &ZT_ESP, &ZT_EST, &ZT_GAP, &ZT_GDN, &ZT_GLD, &ZT_GRA, &ZT_GRN, &ZT_GTE,
@@ -316,6 +330,96 @@ const StreetType * ZTZ[271] = {
 #define NZ0POR 15
 const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 12, 46, 110, 164, 200, 228, 247, 263, 269, 0};
 
+// unique(.Permitted_street_type_ord_nchar_AZ())[, cat(strwrap(toString(order(ordering) - 1)), sep = "\n")]
+const static int oZTC[NZ] =
+  {9, 19, 100, 11, 195, 4, 122, 0, 12, 166, 8, 141, 7, 76, 5, 20, 127, 2, 119, 43, 156, 3, 56, 232, 45,
+   44, 157, 31, 211, 40, 224, 33, 187, 6, 132, 46, 164, 15, 200, 94, 14, 50, 54, 114, 248, 106, 99,
+   258, 116, 79, 84, 78, 71, 207, 16, 172, 91, 217, 206, 105, 37, 222, 55, 22, 254, 10, 193, 88, 240,
+   90, 219, 161, 103, 49, 1, 118, 28, 131, 236, 210, 72, 261, 35, 95, 147, 256, 26, 130, 228, 89, 38,
+   170, 110, 165, 128, 115, 17, 175, 36, 151, 189, 237, 233, 29, 70, 27, 182, 205, 214, 34, 143, 74,
+   57, 123, 213, 266, 77, 80, 215, 216, 13, 125, 227, 257, 168, 87, 142, 86, 108, 104, 126, 101, 169,
+   173, 188, 247, 250, 39, 148, 144, 221, 58, 184, 97, 264, 21, 93, 159, 32, 244, 263, 260, 186, 64,
+   234, 212, 66, 242, 198, 199, 231, 113, 267, 171, 235, 218, 155, 102, 52, 253, 239, 154, 162, 51,
+   176, 24, 133, 197, 204, 23, 179, 255, 259, 208, 134, 192, 174, 120, 269, 180, 238, 42, 229, 48, 139,
+   149, 262, 53, 135, 185, 241, 145, 153, 245, 111, 112, 167, 121, 177, 62, 68, 69, 25, 181, 73, 183,
+   270, 140, 98, 150, 152, 194, 196, 41, 225, 230, 201, 60, 178, 67, 30, 137, 83, 85, 92, 146, 190,
+   243, 226, 107, 163, 47, 117, 249, 202, 203, 251, 124, 252, 265, 59, 61, 18, 63, 65, 129, 209, 136,
+   75, 138, 81, 82, 220, 191, 96, 223, 268, 158, 160, 246, 109};
+
+const static Saint St2044 = { 2044, 1, "PETERS", 6 };
+const static Saint St2064 = { 2064, 1, "LEONARDS", 8 };
+const static Saint St2065 = { 2065, 1, "LEONARDS", 8 };
+const static Saint St2066 = { 2066, 1, "LEONARDS", 8 };
+const static Saint St2072 = { 2072, 1, "IVES", 4 };
+const static Saint St2073 = { 2073, 1, "IVES", 4 };
+const static Saint St2075 = { 2075, 1, "IVES", 4 };
+const static Saint St2176 = { 2176, 1, "JOHNS", 5 };
+const static Saint St2177 = { 2177, 1, "JOHNS", 5 };
+const static Saint St2204 = { 2204, 1, "PETERS", 6 };
+const static Saint St2350 = { 2350, 1, "PATRICKS", 8 };
+const static Saint St2354 = { 2354, 1, "LEONARDS", 8 };
+const static Saint St2500 = { 2500, 1, "MOUNT THOMAS", 12 };
+const static Saint St2540 = { 2540, 1, "GEORGES", 7 };
+const static Saint St2560 = { 2560, 1, "HELENS", 6 };
+const static Saint St2565 = { 2565, 1, "ANDREWS", 7 };
+const static Saint St2760 = { 2760, 2, "MARYS", 5, "NORTH MARYS", 11 };
+const static Saint St2770 = { 2770, 1, "MARYS", 5 };
+const static Saint St3020 = { 3020, 1, "ALBANS", 6 };
+const static Saint St3037 = { 3037, 1, "ALBANS", 6 };
+const static Saint St3184 = { 3184, 1, "KILDA", 5 };
+const static Saint St3223 = { 3223, 1, "LEONARDS", 8 };
+const static Saint St3384 = { 3384, 1, "ARNAUD", 6 };
+const static Saint St3726 = { 3726, 1, "JAMES", 5 };
+const static Saint St3727 = { 3727, 1, "JAMES", 5 };
+const static Saint St3760 = { 3760, 1, "ANDREWS", 7 };
+const static Saint St3992 = { 3992, 1, "CLAIR", 5 };
+const static Saint St3995 = { 3995, 1, "CLAIR", 5 };
+const static Saint St4066 = { 4066, 1, "LUCIA", 5 };
+const static Saint St4364 = { 4364, 1, "HELENS", 6 };
+const static Saint St4405 = { 4405, 1, "RUTH", 4 };
+const static Saint St4486 = { 4486, 1, "GEORGE", 6 };
+const static Saint St4488 = { 4488, 1, "GEORGE", 6 };
+const static Saint St4650 = { 4650, 1, "MARY", 4 };
+const static Saint St4671 = { 4671, 1, "KILDA", 5 };
+const static Saint St4706 = { 4706, 1, "LAWRENCE", 8 };
+const static Saint St4798 = { 4798, 1, "HELENS", 6 };
+const static Saint St4800 = { 4800, 1, "BEES", 4 };
+const static Saint St4814 = { 4814, 1, "MOUNT JOHN", 10 };
+const static Saint St4818 = { 4818, 1, "MT JOHN", 7 };
+const static Saint St5011 = { 5011, 1, "CLAIR", 5 };
+const static Saint St5014 = { 5014, 1, "CLAIR", 5 };
+const static Saint St5042 = { 5042, 1, "MARYS", 5 };
+const static Saint St5064 = { 5064, 1, "GEORGES", 7 };
+const static Saint St5068 = { 5068, 1, "MORRIS", 6 };
+const static Saint St5069 = { 5069, 1, "PETERS", 6 };
+const static Saint St5081 = { 5081, 1, "PETERS", 6 };
+const static Saint St5097 = { 5097, 1, "AGNES", 5 };
+const static Saint St5110 = { 5110, 1, "KILDA", 5 };
+const static Saint St5254 = { 5254, 1, "IVES", 4 };
+const static Saint St5356 = { 5356, 1, "KITTS", 5 };
+const static Saint St6010 = { 6010, 1, "JOHNS", 5 };
+const static Saint St6021 = { 6021, 2, "ANTHONYS", 8, "LAWRENCE", 8 };
+const static Saint St6052 = { 6052, 1, "PETERS", 6 };
+const static Saint St6055 = { 6055, 1, "LEONARDS", 8 };
+const static Saint St6101 = { 6101, 1, "JAMES", 5 };
+const static Saint St6102 = { 6102, 1, "JAMES", 5 };
+const static Saint St6122 = { 6122, 1, "THOMAS", 6 };
+const static Saint St6152 = { 6152, 1, "LUCIA", 5 };
+const static Saint St6172 = { 6172, 2, "MICHEL", 6, "CLAIR", 5 };
+const static Saint St6285 = { 6285, 1, "MARGARETS", 9 };
+const static Saint St6765 = { 6765, 1, "GEORGE", 6 };
+const static Saint St7214 = { 7214, 1, "MARYS", 5 };
+const static Saint St7216 = { 7216, 1, "HELENS", 6 };
+const static Saint St7250 = { 7250, 1, "LEONARDS", 8 };
+
+#define NSAINT 65
+const Saint * Sts[NSAINT] = {&St2044, &St2064, &St2065, &St2066, &St2072, &St2073, &St2075, &St2176, &St2177, &St2204, &St2350,
+                             &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3020, &St3037, &St3184, &St3223,
+                             &St3384, &St3726, &St3727, &St3760, &St3992, &St3995, &St4066, &St4364, &St4405, &St4486, &St4488,
+                             &St4650, &St4671, &St4706, &St4798, &St4800, &St4814, &St4818, &St5011, &St5014, &St5042, &St5064,
+                             &St5068, &St5069, &St5081, &St5097, &St5110, &St5254, &St5356, &St6010, &St6021, &St6052, &St6055,
+                             &St6101, &St6102, &St6122, &St6152, &St6172, &St6285, &St6765, &St7214, &St7216, &St7250};
+
 static const char LETTERS[26] =
   {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
@@ -335,6 +439,8 @@ const unsigned int hash_street_types[32] =
    -938027068, 5862130, 213732634, 5861938, 193443895, -1758728215, 5862617, 231400990, 5862215, 2088983683, 5861971, 193445234, 208333225, 5862122, 213747795, 193461480, 226149834, 5862132, 2088892162, 1252464830, 193462922, 193462922, 193461487, 226150023, 193457987, 632738020};
 const unsigned int hash_street_typecd[32] =
   {1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 10, 10, 11, 11, 12, 12, 13, 13};
+
+
 
 
 
@@ -389,7 +495,6 @@ typedef struct {
 //'
 //'
 WordData word_data(const char * x, int n, int j0) {
-  int n_words = 0;
   int lhs[WORD_DATUMS] = {0};
   int rhs[WORD_DATUMS] = {0};
   for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
@@ -529,6 +634,25 @@ bool string_first_word_THE(const char * x, int n, int j) {
     }
   }
   return false;
+}
+
+// Is y a substring within x, starting at position i?
+// x The string within which y is suspected to exist
+// i the character position of x from which y is expected
+// n The (entire) length of x
+// y The search term/the substring
+// m The length of this substring
+bool substring_within(const char * x, int i, int n, const char * y, int m) {
+  // if the remaining length of x is insufficient to contain y, then no
+  if (n - i < m) {
+    return false;
+  }
+  for (int j = 0; j < m; ++j) {
+    if (x[i + j] != y[j]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -870,12 +994,18 @@ void do_flat_number(const char * x, int n, int ans[2], int jj) {
   }
   // position j so that it points to the first digit of the flat number
   int j = jj;
-  switch(x[0]) {
+  switch(x[j]) {
+  case 'A':
+    j += substring_within(x, j, n, "APT", 3) ? 3 : (substring_within(x, j, n, "APARTMENT", 9) ? 9 : 0);
   case 'U':
-    j = (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
+    j += (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
+    // e.g. UNIT G
+    while (j < n && !isdigit(x[j])) {
+      ++j;
+    }
     break;
   case 'G':
-    j = 1;
+    j += 1;
     break;
   default: {
       // have to seek ahead
@@ -1021,24 +1151,7 @@ SEXP C_NumberFirstLast(SEXP xx) {
 
 
 
-// Is y a substring within x, starting at position i?
-// x The string within which y is suspected to exist
-// i the character position of x from which y is expected
-// n The (entire) length of x
-// y The search term/the substring
-// m The length of this substring
-bool substring_within(const char * x, int i, int n, const char * y, int m) {
-  // if the remaining length of x is insufficient to contain y, then no
-  if (n - i < m) {
-    return false;
-  }
-  for (int j = 0; j < m; ++j) {
-    if (x[i + j] != y[j]) {
-      return false;
-    }
-  }
-  return true;
-}
+
 
 
 
@@ -2966,15 +3079,144 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
   return ans;
 }
 
+// Returns street code from word in x
+int wd2st(const char * x, int n, WordData * wd, int w) {
+  int n_words = wd->n_words;
+  int lhs_w = wd->lhs[w];
+  int rhs_w = wd->rhs[w];
+  if (w > n_words || rhs_w == 0 || !isupper(x[lhs_w])) {
+    return 0;
+  }
+  unsigned int width_w = rhs_w - lhs_w;
+  int z0pos = z0pos_by_len[width_w & NZ0POR];
+  unsigned int width_w1 = width_w + 1;
+  int z1pos = z0pos_by_len[width_w1 & NZ0POR];
+  for (int z = z0pos; z < z1pos; ++z) {
+    const StreetType * Z = ZTZ[z];
+    const char * xz = Z->x;
+    int nz = Z->lenx;
+    if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
+      return Z->cd;
+    }
+  }
+  return 0;
+}
 
+bool iz_saint(int w, const char * x, int n, WordData * wd, unsigned char * m1, unsigned int Postcode) {
+  unsigned char m1_postcode = m1[Postcode];
 
-void do_street_type(int street_type[2], const char * x, int n, int j, WordData * wd, int Postcode) {
-  if (Postcode <= 0) {
-    return NA_INTEGER;
+  if (!m1_postcode) {
+    return false;
   }
   int n_words = wd->n_words;
-  const int W_ORD[WORD_DATUMS] = { 3,  4,  5,  2,  6,  0, 1, 7,
+  if (w + 1 >= n_words) {
+    return false;
+  }
+  // next word
+  int lhs_w1 = wd->lhs[w + 1];
+  int rhs_w1 = wd->rhs[w + 1];
+  int width_w1 = rhs_w1 - lhs_w1;
+
+  unsigned int Stsi = m1_postcode & 127;
+  const Saint * Stp = Sts[Stsi];
+  int n_saints = Stp->n_saints;
+  int nsuf = Stp->nsuf;
+  // There are only two postcodes with more than two locality suffixes
+  if (n_saints == 2) {
+    int nsuf2 = Stp->nsuf2;
+    if (nsuf == width_w1) {
+      const char * suf = Stp->suf;
+      if (substring_within(x, lhs_w1, n, suf, nsuf)) {
+        return true;
+      }
+    }
+    if (nsuf == width_w1) {
+      const char * suf2 = Stp->suf2;
+      if (substring_within(x, lhs_w1, n, suf2, nsuf2)) {
+        return true;
+      }
+    }
+  }
+  if (n_saints == 1) {
+    if (nsuf == width_w1) {
+      const char * suf = Stp->suf;
+      if (substring_within(x, lhs_w1, n, suf, nsuf)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, unsigned int Postcode, unsigned char * m1) {
+  if (Postcode > SUP_POSTCODE_) {
+    return;
+  }
+  int n_words = wd->n_words;
+  const int W_ORD[WORD_DATUMS] = {  2, 3,  4,   5,  6, 0, 1, 7,
                                    11, 12, 13, 10, 14, 8, 9, 15};
+
+  // one with first 16
+  for (int w_ = 0; w_ < 4; ++w_) {
+    int w = W_ORD[w_];
+    int lhs_w = wd->lhs[w];
+    int rhs_w = wd->rhs[w];
+    if (w > n_words || rhs_w == 0) {
+      continue;
+    }
+    unsigned int width_w = rhs_w - lhs_w;
+    int z0pos = z0pos_by_len[width_w & NZ0POR];
+    unsigned int width_w1 = width_w + 1;
+    int z1pos = z0pos_by_len[width_w1 & NZ0POR];
+    for (int z = z0pos; z < z1pos; ++z) {
+      const StreetType * Z = ZTZ[z];
+      if (Z->cd > 16) {
+        // Don't check if code is outside top 16 common
+        continue;
+      }
+      const char * xz = Z->x;
+      int nz = Z->lenx;
+      // bool substring_within(const char * x, int i, int n, const char * y, int m)
+      if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
+        if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
+          continue;
+        }
+        ans[0] = Z->cd;
+        ans[1] = lhs_w;
+        return;
+      }
+    }
+  }
+
+  for (int z_ = 0; z_ < NZ; ++z_) {
+    // go in order of 'ordering'
+    int z = oZTC[z_];
+    const StreetType * Z = ZTZ[z];
+    int nz = Z->lenx;
+    for (int w_ = 0; w_ < WORD_DATUMS; ++w_) {
+      int w = W_ORD[w_];
+      int lhs_w = wd->lhs[w];
+      int rhs_w = wd->rhs[w];
+      if (w > n_words || rhs_w == 0) {
+        continue;
+      }
+      unsigned int width_w = rhs_w - lhs_w;
+      if (width_w != nz) {
+        continue;
+      }
+      const char * xz = Z->x;
+      if (substring_within(x, lhs_w, n, xz, nz)) {
+        if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
+          continue;
+        }
+        ans[0] = Z->cd;
+        ans[1] = lhs_w;
+        return;
+      }
+    }
+  }
+
   for (int w_ = 0; w_ < 16; ++w_) {
     int w = W_ORD[w_];
     int lhs_w = wd->lhs[w];
@@ -2986,22 +3228,24 @@ void do_street_type(int street_type[2], const char * x, int n, int j, WordData *
     int z0pos = z0pos_by_len[width_w & NZ0POR];
     unsigned int width_w1 = width_w + 1;
     int z1pos = z0pos_by_len[width_w1 & NZ0POR];
-    char x_w0 = x[lhs_w];
-    char x_w1 = x[lhs_w + 1];
     for (int z = z0pos; z < z1pos; ++z) {
       const StreetType * Z = ZTZ[z];
       const char * xz = Z->x;
       int nz = Z->lenx;
       // bool substring_within(const char * x, int i, int n, const char * y, int m)
       if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
-        return Z->cd;
+        if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
+          continue;
+        }
+        ans[0] = Z->cd;
+        ans[1] = lhs_w;
+        return;
       }
     }
   }
-  return 0;
 }
 
-void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4]) {
+void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
   int j_start = 0;
   const char x0 = x[0];
 
@@ -3049,55 +3293,28 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     ++j;
   }
   WordData wd = word_data(x, n, j);
+  int postcode = xpostcode_unsafe(x, n);
+  int street_type[2] = {0};
+  do_street_type(street_type, x, n, j, &wd, postcode, m1);
+  Street[1] = street_type[0];
   // int j_StreetName = j;
 
   // Give the hashes of the next 1,2,3,4 words
   // idea is the street name may be more than one name
-  unsigned int Hashes[4] = {5381, 5381, 5381, 5381};
-  unsigned int Iashes[4] = {5381, 5381, 5381, 5381};
-  int n_hashes_complete = 0;
+
   unsigned int hash = 5381;
-  unsigned int iash = 5381;
-  for (int k = j; k < n; ++k) {
-    if (n_hashes_complete >= 4) {
-      break;
-    }
-    Hashes[n_hashes_complete] = hash;
-    Iashes[n_hashes_complete] = iash;
+  // street_type[1] = pos of first word of street type
+  // so < -1 to omit space
+  int hash_lhs = j;
+  int hash_rhs = street_type[1] - 1;
+  while (hash_rhs > j && !isupper(x[hash_rhs])) {
+    --hash_rhs;
+  }
+  for (int k = hash_lhs; k <= hash_rhs; ++k) {
     unsigned char xk = x[k];
-    if (!isupper(xk)) {
-      if (xk == ',') {
-        break;
-      }
-      n_hashes_complete++;
-      iash = 5381;
-    } else {
-      iash = ((iash << 5) + iash) ^ xk;
-    }
     hash = ((hash << 5) + hash) ^ xk;
-
   }
-  for (int h = 0; h < 4; ++h) {
-    StreetHashes[h] = Hashes[h];
-  }
-  int street_type_due_hash = 0;
-  for (int h_ = 0; h_ < 32; ++h_) {
-    for (int h = 1; h < 4; ++h) {
-      if (hash_street_types[h_] == Iashes[h]) {
-        street_type_due_hash = hash_street_typecd[h_];
-        break;
-      }
-    }
-    if (street_type_due_hash) {
-      break;
-    }
-  }
-
-  // now identify the street type
-  // must be after the street name (by assumption)
-  int postcode = xpostcode_unsafe(x, n);
-  Street[1] = street_type_due_hash ? street_type_due_hash : street_type(x, n, j, &wd, postcode);
-
+  StreetHashes[0] = hash;
   numberFirstLast[0] = flat_number2i[1];
   numberFirstLast[1] = o1;
   numberFirstLast[2] = o2;
@@ -3107,15 +3324,28 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
+
+
+  // Memoiziation
+  unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
+  if (M1 == NULL) {
+    error("Internal error(C_do_standard_address): unable to allocate M1");
+  }
+  memset(M1, 0, SUP_POSTCODES);
+  for (int p = 0; p < NSAINT; ++p) {
+    const Saint * Stp = Sts[p];
+    int postcode_p = Stp->postcode;
+    int n_saintsp = Stp->n_saints;
+    M1[postcode_p] = 128 * (n_saintsp == 2) + p;
+  }
+
+
   int np = 0;
   // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP H0 = PROTECT(allocVector(INTSXP, N)); np++;
-  SEXP H1 = PROTECT(allocVector(INTSXP, N)); np++;
-  SEXP H2 = PROTECT(allocVector(INTSXP, N)); np++;
-  SEXP H3 = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP StreetCode = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP Postcode = PROTECT(allocVector(INTSXP, N)); np++;
 
@@ -3123,9 +3353,6 @@ SEXP C_do_standard_address(SEXP xx) {
   int * restrict number_firstp = INTEGER(NumberFirst);
   int * restrict number_lastp = INTEGER(NumberLast);
   int * restrict h0 = INTEGER(H0);
-  int * restrict h1 = INTEGER(H1);
-  int * restrict h2 = INTEGER(H2);
-  int * restrict h3 = INTEGER(H3);
   int * restrict street_codep = INTEGER(StreetCode);
   int * restrict pp = INTEGER(Postcode);
 
@@ -3140,20 +3367,14 @@ SEXP C_do_standard_address(SEXP xx) {
       number_firstp[i] = NA_INTEGER;
       number_lastp[i] = NA_INTEGER;
       h0[i] = streetHashes[0];
-      h1[i] = streetHashes[1];
-      h2[i] = streetHashes[2];
-      h3[i] = streetHashes[3];
       street_codep[i] = NA_INTEGER;
       flat_numberp[i] = NA_INTEGER;
       continue;
     }
     const char * x = CHAR(xp[i]);
 
-    do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes);
+    do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes, M1);
     h0[i] = streetHashes[0];
-    h1[i] = streetHashes[1];
-    h2[i] = streetHashes[2];
-    h3[i] = streetHashes[3];
     pp[i] = postcode[0];
     street_codep[i] = street[1];
     flat_numberp[i] = numberFirstLast[0];
@@ -3161,17 +3382,16 @@ SEXP C_do_standard_address(SEXP xx) {
     number_lastp[i] = numberFirstLast[2];
     //if (!(i & 255)) Rprintf("\n");
   }
+
   SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
   SET_VECTOR_ELT(ans, 0, FlatNumber);
   SET_VECTOR_ELT(ans, 1, NumberFirst);
   SET_VECTOR_ELT(ans, 2, NumberLast) ;
   SET_VECTOR_ELT(ans, 3, H0);
-  SET_VECTOR_ELT(ans, 4, H1);
-  SET_VECTOR_ELT(ans, 5, H2);
-  SET_VECTOR_ELT(ans, 6, H3);
-  SET_VECTOR_ELT(ans, 7, StreetCode);
-  SET_VECTOR_ELT(ans, 8, Postcode);
+  SET_VECTOR_ELT(ans, 4, StreetCode);
+  SET_VECTOR_ELT(ans, 5, Postcode);
   UNPROTECT(np);
+  free(M1);
   return ans;
 
 }
@@ -3243,9 +3463,7 @@ SEXP C_StaticAssert(SEXP x) {
       }
     }
   }
-
   return R_NilValue;
-
 }
 
 SEXP Cs2u(SEXP ss, SEXP uu) {
