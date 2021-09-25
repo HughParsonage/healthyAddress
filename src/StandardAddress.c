@@ -3,6 +3,16 @@
 #include "streetcodes.h"
 
 typedef struct {
+  int flat_number;
+  int number_first;
+  int number_last;
+  unsigned char suffix;
+  int hashStreetName;
+  int street_type;
+  int postcode;
+} Address;
+
+typedef struct {
   int cd;
   const char * x;
   int lenx;
@@ -3310,7 +3320,7 @@ int has_flat(const char * x, int n) {
   return 0;
 }
 
-void first_three_numbers(int ans[4], const char * x, int n) {
+void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
   int i = 0; // index of number
   int k = 0;
   for (int j = 0; j < n; ++j) {
@@ -3319,6 +3329,7 @@ void first_three_numbers(int ans[4], const char * x, int n) {
       ans[i] *= 10;
       ans[i] += xj - '0';
       if (!isdigit(x[j + 1])) {
+        suf[i] = x[j + 1];
         ++i;
         ++j;
         k = j;
@@ -3332,13 +3343,18 @@ void first_three_numbers(int ans[4], const char * x, int n) {
   ans[3] = k;
 }
 
-void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
+// void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
+Address do_standard_address(const char * x, int n, unsigned char * m1) {
+  int numberFirstLast[3] = {0};
+  int Street[2] = {0};
+  Address ad;
   int postcode = xpostcode_unsafe(x, n);
   WordData wd = word_data(x, n, 0);
   int three_nos[4] = {0};
+  unsigned char suf[3] = {0};
   int poa_digits = (postcode == 0 ? 0 : (postcode < 1000 ? 3 : 4));
   int n_less_poa = n - poa_digits;
-  first_three_numbers(three_nos, x, n_less_poa);
+  first_three_numbers(three_nos, suf, x, n_less_poa);
 
   if (three_nos[2] == 0) {
     // i.e. only two numbers identified (excl postcode)
@@ -3380,8 +3396,13 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     unsigned char xk = x[k];
     hash = ((hash << 5) + hash) ^ xk;
   }
-  StreetHashes[0] = hash;
-  Postcode[0] = postcode;
+  ad.postcode = postcode;
+  ad.flat_number = numberFirstLast[0];
+  ad.number_first = numberFirstLast[1];
+  ad.number_last = numberFirstLast[2];
+  ad.hashStreetName = hash;
+  ad.street_type = Street[1];
+  return ad;
 }
 
 SEXP C_do_standard_address(SEXP xx) {
@@ -3421,28 +3442,29 @@ SEXP C_do_standard_address(SEXP xx) {
 
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
-    int numberFirstLast[3] = {0};
-    int street[2] = {0};
-    int postcode[2] = {0};
-    int streetHashes[4] = {0};
     if (n <= 4) {
       pp[i] = NA_INTEGER;
       number_firstp[i] = NA_INTEGER;
       number_lastp[i] = NA_INTEGER;
-      h0[i] = streetHashes[0];
+      h0[i] = 0;
       street_codep[i] = NA_INTEGER;
       flat_numberp[i] = NA_INTEGER;
       continue;
     }
     const char * x = CHAR(xp[i]);
-    do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes, M1);
-    h0[i] = streetHashes[0];
-    pp[i] = postcode[0];
-    street_codep[i] = street[1];
-    flat_numberp[i] = numberFirstLast[0];
-    number_firstp[i] = numberFirstLast[1];
-    number_lastp[i] = numberFirstLast[2];
-    //if (!(i & 255)) Rprintf("\n");
+    Address ad = do_standard_address(x, n, M1);
+    // h0[i] = streetHashes[0];
+    // pp[i] = postcode[0];
+    // street_codep[i] = street[1];
+    // flat_numberp[i] = numberFirstLast[0];
+    // number_firstp[i] = numberFirstLast[1];
+    // number_lastp[i] = numberFirstLast[2];
+    h0[i] = ad.hashStreetName;
+    pp[i] = ad.postcode;
+    street_codep[i] = ad.street_type;
+    flat_numberp[i] = ad.flat_number;
+    number_firstp[i] = ad.number_first;
+    number_lastp[i] = ad.number_last;
   }
 
   SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
