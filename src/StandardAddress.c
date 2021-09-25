@@ -473,10 +473,10 @@ typedef struct {
   int n_words;
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
+  int nnos;
+  int no1st;
+  int noEnd;
 } WordData;
-
-
-
 
 //' @noRd
 //' @description
@@ -489,12 +489,14 @@ typedef struct {
 //' N_WORDS[1] = j + 1 for last j before exiting (i.e. n if N_WORDS[0] <= WORD_DATUMS or the position of the 16th word)
 //' lhs[w] is the position of the first char of the w'th word
 //' rhs[w] is the position of the first char _after_ the first word
+//' nnos is the number of
 //'
 //' Assumptions:
 //'   x consists of uppercase char and breakers only.
 //'
 //'
 WordData word_data(const char * x, int n, int j0) {
+  int nnos = 0, no1st = 0, noEnd = 0;
   int lhs[WORD_DATUMS] = {0};
   int rhs[WORD_DATUMS] = {0};
   for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
@@ -508,24 +510,45 @@ WordData word_data(const char * x, int n, int j0) {
   }
   int w = 0;
 
-  for (int j = 1; j < n; ++j) {
+
+  if (isdigit(x[j0])) {
+    no1st = j0;
+  }
+
+  for (int j = j0; j < n; ++j) {
     if (w >= WORD_DATUMS) {
       break;
     }
-    unsigned char x_i = x[j - 1];
-    unsigned char x_j = x[j];
-    if (x_j == ' ' || x_j == ',') {
-      if (x_i == ' ' || x_i == ',') {
+
+    unsigned char b = x[j];
+    if (!no1st && isdigit(b)) {
+      no1st = j;
+    }
+    if (b == ' ' || b == ',') {
+      unsigned char a = x[j - 1];
+      if (a == ' ' || a == ',') {
+        // not yet start of new word
         lhs[w] = j + 1;
         continue;
       }
       rhs[w] = j;
       ++w;
+      nnos += isdigit(a);
       lhs[w] = j + 1;
     }
   }
   rhs[w] = n - 1;
   ++w;
+
+  if (nnos) {
+    for (int w_ = 1; w_ < w; ++w_) {
+      int lhs_w0 = lhs[w_ - 1];
+      int lhs_w1 = lhs[w_];
+      if (isdigit(x[lhs_w0]) && isdigit(x[lhs_w1])) {
+        noEnd = rhs[w_];
+      }
+    }
+  }
 
   WordData wd;
   wd.n_words = w;
@@ -533,6 +556,10 @@ WordData word_data(const char * x, int n, int j0) {
     wd.lhs[jj] = lhs[jj];
     wd.rhs[jj] = rhs[jj];
   }
+
+  wd.no1st = no1st;
+  wd.noEnd = noEnd;
+  wd.nnos = nnos;
   return wd;
 }
 
@@ -997,12 +1024,20 @@ void do_flat_number(const char * x, int n, int ans[2], int jj) {
   switch(x[j]) {
   case 'A':
     j += substring_within(x, j, n, "APT", 3) ? 3 : (substring_within(x, j, n, "APARTMENT", 9) ? 9 : 0);
+    break;
   case 'U':
     j += (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
     // e.g. UNIT G
-    while (j < n && !isdigit(x[j])) {
-      ++j;
+
+    break;
+  case 'F':
+    if (x[1] == 'L' && x[2] == 'A' && x[3] == 'T') {
+      j += 4;
+    } else {
+      ans[0] = 1;
+      return;
     }
+
     break;
   case 'G':
     j += 1;
@@ -1031,11 +1066,17 @@ void do_flat_number(const char * x, int n, int ans[2], int jj) {
         }
         ans[0] = has_slash;
         ans[1] = o;
+        return;
       }
+      while (j < n && !isdigit(x[j])) {
+        ++j;
+      }
+      ans[0] = j;
+      ans[1] = 0;
       return;
     }
   }
-  while (j < n && x[j] == ' ') {
+  while (j < n && !isdigit(x[j])) {
     ++j;
   }
   int o = 0;
@@ -3248,8 +3289,9 @@ void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, uns
 void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
   int j_start = 0;
   const char x0 = x[0];
+  WordData wd = word_data(x, n, 0);
 
-  if (!isdigit(x[0])) {
+  if (!isdigit(x[j_start])) {
     const char x1 = x[1];
     const char x2 = x[2];
     if (x0 == 'C' && x1 == '/' && (x2 == '-' || x2 == 'O')) {
@@ -3258,7 +3300,8 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     }
   }
   int flat_number2i[2] = {0};
-  do_flat_number(x, n, flat_number2i, j_start);
+  do_flat_number(x, n, flat_number2i, wd.no1st);
+
 
   int o1 = 0;
   int o2 = 0;
@@ -3267,6 +3310,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
   bool two_numbers = false;
   // move after flat number:
   j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : j_start;
+
   int j = j_start;
   for (; j < n - 4; ++j) {
     if (jchar_is_number(x, j)) {
@@ -3280,7 +3324,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
       }
       continue;
     }
-    if (x[j] == '-') {
+    if (x[j] == '-' || ((x[j] == ' ') && isdigit(x[j + 1]))) {
       two_numbers = true;
       continue;
     }
@@ -3292,7 +3336,7 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
   while (j < n && x[j] == ' ') {
     ++j;
   }
-  WordData wd = word_data(x, n, j);
+
   int postcode = xpostcode_unsafe(x, n);
   int street_type[2] = {0};
   do_street_type(street_type, x, n, j, &wd, postcode, m1);
@@ -3472,3 +3516,47 @@ SEXP Cs2u(SEXP ss, SEXP uu) {
   Rprintf("%d %u\n", s, u);
   return R_NilValue;
 }
+
+SEXP C_areST(SEXP x) {
+  if (!isString(x)) {
+    error("x must be a STRSXP."); // # nocov
+  }
+  const SEXP * xp = STRING_PTR(x);
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(LGLSXP, N));
+  int * restrict ansp = LOGICAL(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(xp[i]);
+    ansp[i] = FALSE;
+    if (n < 2) {
+      continue;
+    }
+    const char * xi = CHAR(xp[i]);
+    if (n == 2) {
+      ansp[i] = xi[0] == 'S' && xi[1] == 'T';
+      continue;
+    }
+
+    int j = 0;
+    if (xi[j] == 'S' && xi[j + 1] == 'T' && !isalnum(xi[j + 2])) {
+      ansp[i] = 1;
+      continue;
+    }
+
+    bool o = false;
+    while (++j < n - 2) {
+      if (!isalnum(xi[j - 1]) && xi[j] == 'S') {
+        if (xi[j + 1] != 'T') {
+          ++j;
+          continue;
+        }
+        o = true;
+        break;
+      }
+    }
+    ansp[i] = o;
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
