@@ -33,6 +33,7 @@ int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
 
 bool jchar_is_number(const char * x, int j);
+int next_numeral(int j, const char * x, int n);
 
 
 bool has_STREET(const char * x, int n);

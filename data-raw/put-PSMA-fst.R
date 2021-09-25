@@ -224,3 +224,62 @@ rbindlist(lapply(ListofSTE_FullAddresses, function(DT) DT[, .(POSTCODE = unique(
   write_fst("inst/extdata/Postcode2ste.fst") %>%
   .[]
 
+
+# Get Saint
+N_by_LOCALITY_NAME_POSTCODE <-
+  lapply(.ste_chars, function(.ste) {
+    STE_ADDRESS_DETAIL <- get(paste0(.ste, "_ADDRESS_DETAIL"))
+    STE_LOCALITY_ALIAS <- get(paste0(.ste, "_LOCALITY_ALIAS"))
+    STE_STREET_LOCALITY <- get(paste0(.ste, "_STREET_LOCALITY"))
+    S <- STE_STREET_LOCALITY[, .(NStreet = sum(STREET_TYPE_CODE == "STREET", na.rm = TRUE)), keyby =  .(LOCALITY_PID)]
+    A <- STE_ADDRESS_DETAIL[, .N, keyby = .(LOCALITY_PID, POSTCODE)]
+    B <- STE_LOCALITY_ALIAS[, .(LOCALITY_PID, LOCALITY_NAME = NAME)]
+    B <- unique(B)
+    A[B, on = .(LOCALITY_PID)][S, on = .(LOCALITY_PID)]
+  }) %>%
+  rbindlist(use.names = TRUE, fill = TRUE)
+
+Saints <- N_by_LOCALITY_NAME_POSTCODE[NStreet > 0L][grep("\\bST\\b", LOCALITY_NAME, perl = TRUE)]
+Saints[, SUFF := sub("ST\\W+(\\w++).*$", "\\1", LOCALITY_NAME, perl = TRUE)]
+
+# Names
+ST_LOCALITY_NAMES <-
+  Saints[grep("\\bST\\b", LOCALITY_NAME)][, unique(sub("^ST\\W+(\\w+).*$", "\\1", LOCALITY_NAME))]
+
+
+uSaints <- unique(Saints[, .(POSTCODE, SUFF)])
+uSaints <-
+  uSaints[, .(n_saints = .N,
+              suf = first(SUFF),
+              nusf = nchar(first(SUFF)),
+              suf2 = last(SUFF),
+              nsuf2 = last(nchar(SUFF))),
+          keyby = .(POSTCODE)]
+
+# lens
+g <- glue::glue
+for (j in 1:nrow(uSaints)) {
+  poaj <- uSaints$POSTCODE[j]
+  nsai <- uSaints$n_saints[j]
+  sufj <- uSaints$suf[j]
+  sufj2 <- uSaints$suf2[j]
+  nsuf <- nchar(sufj)
+  nsuf2 <- nchar(sufj2)
+  if (nsai == 2) {
+    cat(g("const static Saint St<poaj> = { <poaj>, <nsai>, \"<sufj>\", <nsuf>, \"<sufj2>\", <nsuf2> };",
+          .open = "<", .close = ">"), "\n")
+  } else {
+    cat(g("const static Saint St<poaj> = { <poaj>, <nsai>, \"<sufj>\", <nsuf> };",
+          .open = "<", .close = ">"), "\n")
+  }
+}
+
+
+
+
+
+
+
+
+
+

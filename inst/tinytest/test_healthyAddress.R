@@ -64,7 +64,18 @@ ans <- standardize_address("1 PARK ST ST KILDA WEST VIC 3182")
 expect_equal(ans$STREET_NAME, "PARK")
 ans <- healthyAddress:::Do_standard_address("99 PRINCE OF WALES AVE, MILL PARK VIC 3005")
 ans <- healthyAddress:::Do_standard_address("99 PRINCE OF WALES CT, MILL PARK VIC 3005")
+ans <- healthyAddress:::Do_standard_address("77 PARK ST ST KILDA WEST VIC 3184")
+expect_equal(ans$H0, HashStreetName("PARK"))
+ans <- healthyAddress:::Do_standard_address("1/2 BRAND ST ST LEONARDS 2064")
+ans <- healthyAddress:::Do_standard_address("46 ABBOTT RD ST LEONARDS 2064")
+expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
+ans <- healthyAddress:::Do_standard_address("46 ABBOTT ROAD ST LEONARDS 2064")
+expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
 
+ans <- healthyAddress:::Do_standard_address("UNIT G2 5 OLIVE YORK WAY BRUNSWICK WEST VICTORIA 3055")
+expect_equal(ans$FLAT_NUMBER, 2L)
+expect_equal(ans$NUMBER_FIRST, 5L)
+expect_equal(ans$STREET_TYPE_CODE, 11L)
 
 
 
