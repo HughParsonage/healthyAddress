@@ -77,6 +77,17 @@ expect_equal(ans$FLAT_NUMBER, 2L)
 expect_equal(ans$NUMBER_FIRST, 5L)
 expect_equal(ans$STREET_TYPE_CODE, 11L)
 
+ans <- healthyAddress:::Do_standard_address(toupper("Hillside Court Rooming House 155-159 Hoddle St, Richmond VIC 3121"))
+expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord()))
+expect_equal(ans$NUMBER_FIRST, 155L)
+# ans <- healthyAddress:::Do_standard_address(toupper("Room 5 Hillside Court Rooming House 155-159 Hoddle St, Richmond VIC 3121"))
+ans <- healthyAddress:::Do_standard_address(toupper("Room 5 Hillside Rooming House 155-159 Hoddle St, Richmond VIC 3121"))
+expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord()))
+expect_equal(ans$NUMBER_FIRST, 155L)
+expect_equal(ans$FLAT_NUMBER, 5L)
 
+# TODO:
+# ans <- healthyAddress:::Do_standard_address(toupper("365-370 High Street Road, Mount Waverley VIC 3149"))
+# expect_equal(ans$STREET_TYPE_CODE, 1L)
 
 

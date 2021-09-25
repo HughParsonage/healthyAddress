@@ -49,4 +49,6 @@ encode_address <- function(StandardAddress) {
   }
 }
 
-
+areST <- function(x) {
+  .Call("C_areST", x, PACKAGE = packageName())
+}

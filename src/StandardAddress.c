@@ -473,9 +473,6 @@ typedef struct {
   int n_words;
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
-  int nnos;
-  int no1st;
-  int noEnd;
 } WordData;
 
 //' @noRd
@@ -496,7 +493,7 @@ typedef struct {
 //'
 //'
 WordData word_data(const char * x, int n, int j0) {
-  int nnos = 0, no1st = 0, noEnd = 0;
+  int nnos = 0, no1st = 0;
   int lhs[WORD_DATUMS] = {0};
   int rhs[WORD_DATUMS] = {0};
   for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
@@ -509,11 +506,6 @@ WordData word_data(const char * x, int n, int j0) {
     ++j0;
   }
   int w = 0;
-
-
-  if (isdigit(x[j0])) {
-    no1st = j0;
-  }
 
   for (int j = j0; j < n; ++j) {
     if (w >= WORD_DATUMS) {
@@ -540,26 +532,12 @@ WordData word_data(const char * x, int n, int j0) {
   rhs[w] = n - 1;
   ++w;
 
-  if (nnos) {
-    for (int w_ = 1; w_ < w; ++w_) {
-      int lhs_w0 = lhs[w_ - 1];
-      int lhs_w1 = lhs[w_];
-      if (isdigit(x[lhs_w0]) && isdigit(x[lhs_w1])) {
-        noEnd = rhs[w_];
-      }
-    }
-  }
-
   WordData wd;
   wd.n_words = w;
   for (int jj = 0; jj < WORD_DATUMS; ++jj) {
     wd.lhs[jj] = lhs[jj];
     wd.rhs[jj] = rhs[jj];
   }
-
-  wd.no1st = no1st;
-  wd.noEnd = noEnd;
-  wd.nnos = nnos;
   return wd;
 }
 
@@ -1019,6 +997,7 @@ void do_flat_number(const char * x, int n, int ans[2], int jj) {
   if (n < 4) {
     return;
   }
+
   // position j so that it points to the first digit of the flat number
   int j = jj;
   switch(x[j]) {
@@ -3051,7 +3030,6 @@ SEXP Cmatch_StreetName(SEXP xx,
       int si1 = (si >> 8u) & 255;
       if (si1 <= si2) {
         if (i == 0) {
-          Rprintf("(%d,%d)\n", si1, si2);
           continue;
         }
       }
@@ -3286,58 +3264,102 @@ void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, uns
   }
 }
 
-void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
-  int j_start = 0;
-  const char x0 = x[0];
-  WordData wd = word_data(x, n, 0);
+int has_flat(const char * x, int n) {
 
-  if (!isdigit(x[j_start])) {
-    const char x1 = x[1];
-    const char x2 = x[2];
-    if (x0 == 'C' && x1 == '/' && (x2 == '-' || x2 == 'O')) {
-      // careof
-      j_start = 3;
-    }
-  }
-  int flat_number2i[2] = {0};
-  do_flat_number(x, n, flat_number2i, wd.no1st);
-
-
-  int o1 = 0;
-  int o2 = 0;
-
-  // two numbers are separated by a dash
-  bool two_numbers = false;
-  // move after flat number:
-  j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : j_start;
-
-  int j = j_start;
-  for (; j < n - 4; ++j) {
-    if (jchar_is_number(x, j)) {
-      int digit = x[j] - '0';
-      if (two_numbers) {
-        o2 *= 10;
-        o2 += digit;
-      } else {
-        o1 *= 10;
-        o1 += digit;
+  for (int j = 0; j < n; ++j) {
+    unsigned char xj = x[j];
+    if (isdigit(x[j])) {
+      // if a digit but no 'flat' synonym encountered, we check for
+      // a slash to signify unit
+      ++j;
+      while (isdigit(x[j])) {
+        ++j;
       }
-      continue;
+      while (isspace(x[j])) {
+        ++j;
+      }
+      if (x[j] == '/') {
+        return 1;
+      }
+      return 0;
     }
-    if (x[j] == '-' || ((x[j] == ' ') && isdigit(x[j + 1]))) {
-      two_numbers = true;
-      continue;
+    if (j == 0 || x[j - 1] == ' ') {
+      if (substring_within(x, j, n, "UNIT", 4)) {
+        return 1;
+      }
+      if (substring_within(x, j, n, "APARTMENT ", 10)) {
+        return 2;
+      }
+      if (substring_within(x, j, n, "FLAT ", 5)) {
+        return 1;
+      }
+      if (substring_within(x, j, n, "ROOM ", 5)) {
+        return 1;
+      }
+      // e.g. G05
+      unsigned char xk = x[j + 1];
+      int out_digit = isdigit(xk) ? 6 : 0;
+      switch(xj) {
+      case 'G':
+        return out_digit;
+      case 'U':
+        return out_digit;
+      }
     }
-    break; // don't continue on first encounter with non-number/dash
   }
-  unsigned char this_suffix = number_suffix2raw(x[j], x[j + 1]);
-  j += (this_suffix == 0 ? 0 : (islower(this_suffix) ? 2 : 1));
+  return 0;
+}
+
+void first_three_numbers(int ans[4], const char * x, int n) {
+  int i = 0; // index of number
+  int k = 0;
+  for (int j = 0; j < n; ++j) {
+    unsigned char xj = x[j];
+    if (isdigit(xj)) {
+      ans[i] *= 10;
+      ans[i] += xj - '0';
+      if (!isdigit(x[j + 1])) {
+        ++i;
+        ++j;
+        k = j;
+        if (i == 3) {
+          break;
+        }
+      }
+    }
+
+  }
+  ans[3] = k;
+}
+
+void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
+  int postcode = xpostcode_unsafe(x, n);
+  WordData wd = word_data(x, n, 0);
+  int three_nos[4] = {0};
+  int poa_digits = (postcode == 0 ? 0 : (postcode < 1000 ? 3 : 4));
+  int n_less_poa = n - poa_digits;
+  first_three_numbers(three_nos, x, n_less_poa);
+
+  if (three_nos[2] == 0) {
+    // i.e. only two numbers identified (excl postcode)
+    // could be flat then number or number then number
+    if (has_flat(x, n_less_poa - 1)) {
+      numberFirstLast[0] = three_nos[0];
+      numberFirstLast[1] = three_nos[1];
+    } else {
+      numberFirstLast[1] = three_nos[0];
+      numberFirstLast[2] = three_nos[1];
+    }
+  } else {
+    numberFirstLast[0] = three_nos[0];
+    numberFirstLast[1] = three_nos[1];
+    numberFirstLast[2] = three_nos[2];
+  }
+  int j = three_nos[3]; // position after final digit
 
   while (j < n && x[j] == ' ') {
     ++j;
   }
-
-  int postcode = xpostcode_unsafe(x, n);
   int street_type[2] = {0};
   do_street_type(street_type, x, n, j, &wd, postcode, m1);
   Street[1] = street_type[0];
@@ -3359,9 +3381,6 @@ void do_standard_address(const char * x, int n, int numberFirstLast[3], int Stre
     hash = ((hash << 5) + hash) ^ xk;
   }
   StreetHashes[0] = hash;
-  numberFirstLast[0] = flat_number2i[1];
-  numberFirstLast[1] = o1;
-  numberFirstLast[2] = o2;
   Postcode[0] = postcode;
 }
 
@@ -3416,7 +3435,6 @@ SEXP C_do_standard_address(SEXP xx) {
       continue;
     }
     const char * x = CHAR(xp[i]);
-
     do_standard_address(x, n, numberFirstLast, street, postcode, streetHashes, M1);
     h0[i] = streetHashes[0];
     pp[i] = postcode[0];
@@ -3472,7 +3490,6 @@ SEXP ZMatchStreetName(SEXP x) {
         }
         matched = true;
         for (int j = lhs_w; j < rhs_w; ++j) {
-          Rprintf("j = %d\n", j);
           if (xi[j] != zi[j]) {
             matched = false;
             o = zcd;
