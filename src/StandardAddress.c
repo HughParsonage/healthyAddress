@@ -483,6 +483,9 @@ typedef struct {
   int n_words;
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
+  int no1st;
+  const char * x;
+  int n;
 } WordData;
 
 //' @noRd
@@ -548,6 +551,9 @@ WordData word_data(const char * x, int n, int j0) {
     wd.lhs[jj] = lhs[jj];
     wd.rhs[jj] = rhs[jj];
   }
+  wd.x = x;
+  wd.n = n;
+  wd.no1st = no1st;
   return wd;
 }
 
@@ -629,6 +635,25 @@ bool jchar_is_LETTER_or_hyphen(const char * x, int j) {
   return char_is_LETTER(xj) || xj == '-';
 }
 
+// Is y a substring within x, starting at position i?
+// x The string within which y is suspected to exist
+// i the character position of x from which y is expected
+// n The (entire) length of x
+// y The search term/the substring
+// m The length of this substring
+bool substring_within(const char * x, int i, int n, const char * y, int m) {
+  // if the remaining length of x is insufficient to contain y, then no
+  if (n - i < m) {
+    return false;
+  }
+  for (int j = 0; j < m; ++j) {
+    if (x[i + j] != y[j]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // For detecting things like 'THE ESPLANADE'
 // Is the first 'word' the substring 'THE'
 bool string_first_word_THE(const char * x, int n, int j) {
@@ -651,24 +676,57 @@ bool string_first_word_THE(const char * x, int n, int j) {
   return false;
 }
 
-// Is y a substring within x, starting at position i?
-// x The string within which y is suspected to exist
-// i the character position of x from which y is expected
-// n The (entire) length of x
-// y The search term/the substring
-// m The length of this substring
-bool substring_within(const char * x, int i, int n, const char * y, int m) {
-  // if the remaining length of x is insufficient to contain y, then no
-  if (n - i < m) {
-    return false;
-  }
-  for (int j = 0; j < m; ++j) {
-    if (x[i + j] != y[j]) {
-      return false;
+
+
+// 0 if no THE in word
+int THE_xxx(WordData wd) {
+  const char * x = wd.x;
+  int n = wd.n;
+  int n_words = wd.n_words;
+  for (int w = 0; w < n_words - 1; ++w) {
+    int lhs = wd.lhs[w];
+    int rhs = wd.rhs[w];
+    if (rhs - lhs != 3) {
+      continue;
     }
+    int j = lhs;
+    if (x[j++] != 'T' || x[j++] != 'H' || x[j++] != 'E') {
+      continue;
+    }
+    lhs = wd.lhs[w + 1];
+    rhs = wd.rhs[w + 1];
+    // int width_next = rhs - lhs;
+    if (substring_within(x, lhs, n, "ESPLANADE", 9)) {
+      return ST_CODE_ESPLANADE;
+    }
+    if (substring_within(x, lhs, n, "AVENUE", 6)) {
+      return ST_CODE_AVENUE;
+    }
+    if (substring_within(x, lhs, n, "CRESCENT", 8)) {
+      return ST_CODE_CRESCENT;
+    }
+    // DE before D to avoid having to distinguish
+    if (substring_within(x, lhs, n, "BOULEVARDE", 10)) {
+      return ST_CODE_BOULEVARDE;
+    }
+    if (substring_within(x, lhs, n, "BOULEVARD", 9)) {
+      return ST_CODE_BOULEVARD;
+    }
+    if (substring_within(x, lhs, n, "PARADE", 6)) {
+      return ST_CODE_PARADE;
+    }
+    if (substring_within(x, lhs, n, "PROMENADE", 9)) {
+      return ST_CODE_PROMENADE;
+    }
+    if (substring_within(x, lhs, n, "TERRACE", 7)) {
+      return ST_CODE_TERRACE;
+    }
+
   }
-  return true;
+  return 0;
 }
+
+
 
 
 int ndigits_positive(int x) {
@@ -3182,13 +3240,28 @@ void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, uns
   if (Postcode > SUP_POSTCODE_) {
     return;
   }
+  int no1st = wd->no1st;
   int n_words = wd->n_words;
+  // int first_word_post_number = 0;
+  // if (no1st) {
+  //   for (int w = 0; w < WORD_DATUMS; ++w) {
+  //     if (wd->lhs[w] > no1st) {
+  //       first_word_post_number = w;
+  //       break;
+  //     }
+  //   }
+  // }
+
   const int W_ORD[WORD_DATUMS] = {  2, 3,  4,   5,  6, 0, 1, 7,
-                                   11, 12, 13, 10, 14, 8, 9, 15};
+                                    11, 12, 13, 10, 14, 8, 9, 15};
+
 
   // one with first 16
   for (int w_ = 0; w_ < 4; ++w_) {
     int w = W_ORD[w_];
+    // if (w < first_word_post_number) {
+    //   continue;
+    // }
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
     if (w > n_words || rhs_w == 0) {
@@ -3225,6 +3298,9 @@ void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, uns
     int nz = Z->lenx;
     for (int w_ = 0; w_ < WORD_DATUMS; ++w_) {
       int w = W_ORD[w_];
+      // if (w < first_word_post_number) {
+      //   continue;
+      // }
       int lhs_w = wd->lhs[w];
       int rhs_w = wd->rhs[w];
       if (w > n_words || rhs_w == 0) {
@@ -3248,6 +3324,9 @@ void do_street_type(int ans[2], const char * x, int n, int j, WordData * wd, uns
 
   for (int w_ = 0; w_ < 16; ++w_) {
     int w = W_ORD[w_];
+    // if (w < first_word_post_number) {
+    //   continue;
+    // }
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
     if (w > n_words || rhs_w == 0) {
@@ -3320,6 +3399,16 @@ int has_flat(const char * x, int n) {
   return 0;
 }
 
+int next_word(int j, WordData wd) {
+  int n_words = wd.n_words;
+  for (int w = 1; w < n_words - 1; ++w) {
+    if (wd.lhs[w] > j) {
+      return wd.lhs[w];
+    }
+  }
+  return wd.lhs[n_words - 1];
+}
+
 void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
   int i = 0; // index of number
   int k = 0;
@@ -3341,6 +3430,19 @@ void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n
 
   }
   ans[3] = k;
+}
+
+unsigned char suf3suf(unsigned char x[3]) {
+  if (x[2] > '/') {
+    return x[2];
+  }
+  if (x[1] > '/') {
+    return x[1];
+  }
+  if (x[0] > '/') {
+    return x[0];
+  }
+  return 0;
 }
 
 // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
@@ -3371,14 +3473,26 @@ Address do_standard_address(const char * x, int n, unsigned char * m1) {
     numberFirstLast[1] = three_nos[1];
     numberFirstLast[2] = three_nos[2];
   }
-  int j = three_nos[3]; // position after final digit
-
-  while (j < n && x[j] == ' ') {
-    ++j;
-  }
+  int j = next_word(three_nos[3], wd) ; // position after final digit
   int street_type[2] = {0};
+  int the_street = THE_xxx(wd);
+  if (the_street) {
+    ad.postcode = postcode;
+    ad.flat_number = numberFirstLast[0];
+    ad.number_first = numberFirstLast[1];
+    ad.number_last = numberFirstLast[2];
+    // assume such a street may not be hashed
+    ad.hashStreetName = the_street;
+    ad.street_type = 0;
+    ad.suffix = suf3suf(suf);
+    return ad;
+  }
+
   do_street_type(street_type, x, n, j, &wd, postcode, m1);
   Street[1] = street_type[0];
+
+
+
   // int j_StreetName = j;
 
   // Give the hashes of the next 1,2,3,4 words
@@ -3396,12 +3510,15 @@ Address do_standard_address(const char * x, int n, unsigned char * m1) {
     unsigned char xk = x[k];
     hash = ((hash << 5) + hash) ^ xk;
   }
+
   ad.postcode = postcode;
   ad.flat_number = numberFirstLast[0];
   ad.number_first = numberFirstLast[1];
   ad.number_last = numberFirstLast[2];
   ad.hashStreetName = hash;
   ad.street_type = Street[1];
+  ad.suffix = suf3suf(suf);
+
   return ad;
 }
 
@@ -3432,6 +3549,7 @@ SEXP C_do_standard_address(SEXP xx) {
   SEXP H0 = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP StreetCode = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP Postcode = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberSuffix = PROTECT(allocVector(RAWSXP, N)); ++np;
 
   int * restrict flat_numberp = INTEGER(FlatNumber);
   int * restrict number_firstp = INTEGER(NumberFirst);
@@ -3439,6 +3557,7 @@ SEXP C_do_standard_address(SEXP xx) {
   int * restrict h0 = INTEGER(H0);
   int * restrict street_codep = INTEGER(StreetCode);
   int * restrict pp = INTEGER(Postcode);
+  unsigned char * restrict number_suffixp = RAW(NumberSuffix);
 
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
@@ -3449,31 +3568,29 @@ SEXP C_do_standard_address(SEXP xx) {
       h0[i] = 0;
       street_codep[i] = NA_INTEGER;
       flat_numberp[i] = NA_INTEGER;
+      number_suffixp[i] = 0;
       continue;
     }
     const char * x = CHAR(xp[i]);
     Address ad = do_standard_address(x, n, M1);
-    // h0[i] = streetHashes[0];
-    // pp[i] = postcode[0];
-    // street_codep[i] = street[1];
-    // flat_numberp[i] = numberFirstLast[0];
-    // number_firstp[i] = numberFirstLast[1];
-    // number_lastp[i] = numberFirstLast[2];
     h0[i] = ad.hashStreetName;
     pp[i] = ad.postcode;
     street_codep[i] = ad.street_type;
     flat_numberp[i] = ad.flat_number;
     number_firstp[i] = ad.number_first;
     number_lastp[i] = ad.number_last;
+    number_suffixp[i] = ad.suffix;
   }
 
   SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
-  SET_VECTOR_ELT(ans, 0, FlatNumber);
-  SET_VECTOR_ELT(ans, 1, NumberFirst);
-  SET_VECTOR_ELT(ans, 2, NumberLast) ;
-  SET_VECTOR_ELT(ans, 3, H0);
-  SET_VECTOR_ELT(ans, 4, StreetCode);
-  SET_VECTOR_ELT(ans, 5, Postcode);
+  int li = 0;
+  SET_VECTOR_ELT(ans, li, FlatNumber);   ++li;
+  SET_VECTOR_ELT(ans, li, NumberFirst);  ++li;
+  SET_VECTOR_ELT(ans, li, NumberLast) ;  ++li;
+  SET_VECTOR_ELT(ans, li, NumberSuffix); ++li;
+  SET_VECTOR_ELT(ans, li, H0);           ++li;
+  SET_VECTOR_ELT(ans, li, StreetCode);   ++li;
+  SET_VECTOR_ELT(ans, li, Postcode);     ++li;
   UNPROTECT(np);
   free(M1);
   return ans;
