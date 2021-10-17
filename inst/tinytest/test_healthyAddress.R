@@ -86,8 +86,17 @@ expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord())
 expect_equal(ans$NUMBER_FIRST, 155L)
 expect_equal(ans$FLAT_NUMBER, 5L)
 
-# TODO:
-# ans <- healthyAddress:::Do_standard_address(toupper("365-370 High Street Road, Mount Waverley VIC 3149"))
-# expect_equal(ans$STREET_TYPE_CODE, 1L)
+ans <- healthyAddress:::Do_standard_address(toupper("365-370 High Street Road, Mount Waverley VIC 3149"))
+expect_equal(ans$STREET_TYPE_CODE, 1L)
+ans <- healthyAddress:::Do_standard_address("47/174 ESPLANADE EAST PORT MELBOURNE 3207")
+expect_equal(ans$STREET_TYPE_CODE, 0L)
+expect_equal(ans$H0, 1418946723L)  # ESPLANADE EAST
+ans <- healthyAddress:::Do_standard_address("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
+expect_equal(ans$STREET_TYPE_CODE, 0L)
+expect_equal(ans$H0, HashStreetName("ESPLANADE WEST"))
 
+ans <- healthyAddress:::Do_standard_address("UNIT 47 LEVEL 1 174-175 ESPLANADE WEST PORT MELBOURNE 3207")
+expect_equal(ans$NUMBER_FIRST, 174L)  # not 1
+expect_equal(ans$STREET_TYPE_CODE, 0L)
+expect_equal(ans$H0, HashStreetName("ESPLANADE WEST"))
 

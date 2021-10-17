@@ -10,6 +10,7 @@
 /* .Call calls */
 extern SEXP C_areST(SEXP);
 extern SEXP C_do_standard_address(SEXP);
+extern SEXP C_has_word(SEXP, SEXP);
 extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
@@ -23,7 +24,6 @@ extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
-extern SEXP CPoaHasSt(SEXP, SEXP);
 extern SEXP Cs2u(SEXP, SEXP);
 extern SEXP Ctest_WordData(SEXP, SEXP);
 extern SEXP CToUpperBasic(SEXP);
@@ -33,6 +33,7 @@ extern SEXP ZMatchStreetName(SEXP);
 static const R_CallMethodDef CallEntries[] = {
     {"C_areST",                 (DL_FUNC) &C_areST,                 1},
     {"C_do_standard_address",   (DL_FUNC) &C_do_standard_address,   1},
+    {"C_has_word",              (DL_FUNC) &C_has_word,              2},
     {"C_HashStreetName",        (DL_FUNC) &C_HashStreetName,        1},
     {"C_noLC",                  (DL_FUNC) &C_noLC,                  1},
     {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,       1},
@@ -46,7 +47,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"Cmatch_StreetType",       (DL_FUNC) &Cmatch_StreetType,       3},
     {"Cmatch_StreetType_Line1", (DL_FUNC) &Cmatch_StreetType_Line1, 3},
     {"Cmatch_word",             (DL_FUNC) &Cmatch_word,             2},
-    {"CPoaHasSt",               (DL_FUNC) &CPoaHasSt,               2},
     {"Cs2u",                    (DL_FUNC) &Cs2u,                    2},
     {"Ctest_WordData",          (DL_FUNC) &Ctest_WordData,          2},
     {"CToUpperBasic",           (DL_FUNC) &CToUpperBasic,           1},
