@@ -35,20 +35,6 @@ test_WordData <- function(x, r = 0L) {
 }
 
 
-
-
-
-
-
-
-
-
-PoaHasSt <- function(x, y) {
-  .Call("CPoaHasSt", x, y, PACKAGE = packageName())
-}
-
-
-
 zMatchStreetName <- function(x) {
   .Call("ZMatchStreetName", x)
 }

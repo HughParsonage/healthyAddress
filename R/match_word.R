@@ -13,3 +13,8 @@ match_word <- function(x, tbl) {
   stopifnot(is.character(x), is.character(tbl))
   .Call("Cmatch_word", x, tbl, PACKAGE = packageName())
 }
+
+
+has_word <- function(x, m = 0L) {
+  .Call("C_has_word", x, m, PACKAGE = packageName())
+}
