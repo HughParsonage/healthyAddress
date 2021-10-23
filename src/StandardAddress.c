@@ -477,6 +477,7 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 #define DJB2_ST_GEORGES 685862476
 #define DJB2_ESPLANADE_EAST 1418946723
 #define DJB2_ESPLANADE_WEST 1419448821
+#define DJB2_THE_STRAND -1123822046
 
 /*
  static const unsigned char letters[26] =
@@ -771,8 +772,11 @@ int THE_xxx(WordData wd) {
     if (substring_within(x, lhs, n, "TERRACE", 7)) {
       return ST_CODE_TERRACE;
     }
-    if (substring_within(x, lhs, n, "GROVE", 6)) {
+    if (substring_within(x, lhs, n, "GROVE", 5)) {
       return ST_CODE_GROVE;
+    }
+    if (substring_within(x, lhs, n, "STRAND", 6)) {
+      return DJB2_THE_STRAND;
     }
 
   }
@@ -3605,9 +3609,6 @@ Address do_standard_address(const char * x, int n, unsigned char * m1) {
     j = next_word(four_nos[4], wd) ; // position after final digit
   } else {
     int three_nos[4] = {0};
-
-
-
     first_three_numbers(three_nos, suf, x, n_less_poa);
 
 
