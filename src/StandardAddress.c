@@ -2,6 +2,21 @@
 #include "healthyAddress.h"
 #include "streetcodes.h"
 
+
+static void do_print(R_xlen_t i) {
+  if (i == 0)
+    Rprintf("i = %d", i);
+  switch(i % 4) {
+  case 1:
+  case 0:
+  case 2:
+    Rprintf("%d,", i);
+    break;
+  case 3:
+    Rprintf("%d,\n", i);
+  }
+}
+
 typedef struct {
   int flat_number;
   int number_first;
@@ -3080,10 +3095,10 @@ SEXP Cmatch_StreetName(SEXP xx,
       }
       int si2 = last_number_p[i] + 1;
       int si1 = (si >> 8u) & 255;
+
       if (si1 <= si2) {
-        if (i == 0) {
-          continue;
-        }
+        SET_STRING_ELT(ans, i, NA_STRING);
+        continue;
       }
 
       const char * x = CHAR(CX);
@@ -3113,9 +3128,15 @@ SEXP Cmatch_StreetName(SEXP xx,
       // int si0 = si & 255;
       int si1 = (si / 256) & 255;
       int si2 = si / 65536;
+      int oy_len = si1 - si2 + 1;
+      if (oy_len <= 0) {
+        SET_STRING_ELT(ans, i, NA_STRING);
+        continue;
+      }
+
 
       const char * x = CHAR(CX);
-      char oy[si1 - si2 + 1];
+      char oy[oy_len];
       for (int j = si2; j < si1; ++j) {
         oy[j - si2] = x[j];
       }
@@ -3284,13 +3305,17 @@ void do_street_type(int ans[3], const char * x, int n, int j, WordData * wd, uns
       }
 
       char w20 = x[lhs_w1];
+
+      if (w20 != 'G') {
+        continue;
+      }
       char w30 = x[lhs_w2];
-      if (w20 != 'G' || w30 != 'R') {
+      if (w30 != 'R' && w30 != 'C') {
         continue;
       }
       // int rhs_w1 = wd->rhs[w + 1];
       // int rhs_w2 = wd->rhs[w + 2];
-      ans[0] = 1;
+      ans[0] = w30 == 'R' ? ST_CODE_ROAD : ST_CODE_COURT;
       ans[1] = lhs_w2;
       ans[2] = DJB2_ST_GEORGES;
       return;
