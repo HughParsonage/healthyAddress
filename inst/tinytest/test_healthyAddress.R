@@ -100,3 +100,8 @@ expect_equal(ans$NUMBER_FIRST, 174L)  # not 1
 expect_equal(ans$STREET_TYPE_CODE, 0L)
 expect_equal(ans$H0, HashStreetName("ESPLANADE WEST"))
 
+ans <- healthyAddress:::Do_standard_address("George Street, MAFFRA VIC 3860")
+expect_equal(ans$NUMBER_FIRST, NA_integer_)  # not 1
+expect_equal(ans$STREET_TYPE_CODE, 1L)
+expect_equal(ans$H0, HashStreetName("GEORGE"))
+
