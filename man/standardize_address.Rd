@@ -2,6 +2,7 @@
 % Please edit documentation in R/standardize_address.R
 \name{standardize_address}
 \alias{standardize_address}
+\alias{standard_address2}
 \title{Standard address}
 \usage{
 standardize_address(
@@ -11,6 +12,8 @@ standardize_address(
   integer_StreetType = FALSE,
   StreetHash = FALSE
 )
+
+standard_address2(Address)
 }
 \arguments{
 \item{Address}{A character vector, either a full address or (if \code{AddressLine2}
@@ -28,6 +31,10 @@ address and the \code{PSMA} internal id.}
 vector?}
 
 \item{StreetHash}{Should \code{STREET_NAME} be returned as an integer hash.}
+}
+\value{
+A \code{data.table} containing columns indicating the components of the standard address,
+including \code{H0} which is the \code{\link{HashStreetName}} of the street name.
 }
 \description{
 Standard address
