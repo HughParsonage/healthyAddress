@@ -3601,7 +3601,7 @@ unsigned char suf3suf(unsigned char x[3]) {
   return 0;
 }
 
-// void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4], unsigned char * m1) {
+
 Address do_standard_address(const char * x, int n, unsigned char * m1) {
   int numberFirstLast[3] = {0};
   int Street[2] = {0};
@@ -3635,24 +3635,31 @@ Address do_standard_address(const char * x, int n, unsigned char * m1) {
   } else {
     int three_nos[4] = {0};
     first_three_numbers(three_nos, suf, x, n_less_poa);
+    if (three_nos[0] == 0) {
+      // no numbers (exclude postcode)
+      j = 0;
+      wd.no1st = 0;
+    } else {
+
+      if (three_nos[2] == 0) {
+        // i.e. only two numbers identified (excl postcode)
+        // could be flat then number or number then number
 
 
-    if (three_nos[2] == 0) {
-      // i.e. only two numbers identified (excl postcode)
-      // could be flat then number or number then number
-      if (has_flat(x, n_less_poa - 1)) {
+        if (has_flat(x, n_less_poa - 1)) {
+          numberFirstLast[0] = three_nos[0];
+          numberFirstLast[1] = three_nos[1];
+        } else {
+          numberFirstLast[1] = three_nos[0];
+          numberFirstLast[2] = three_nos[1];
+        }
+      } else {
         numberFirstLast[0] = three_nos[0];
         numberFirstLast[1] = three_nos[1];
-      } else {
-        numberFirstLast[1] = three_nos[0];
-        numberFirstLast[2] = three_nos[1];
+        numberFirstLast[2] = three_nos[2];
       }
-    } else {
-      numberFirstLast[0] = three_nos[0];
-      numberFirstLast[1] = three_nos[1];
-      numberFirstLast[2] = three_nos[2];
+      j = next_word(three_nos[3], wd) ; // position after final digit
     }
-    j = next_word(three_nos[3], wd) ; // position after final digit
   }
   int the_street = THE_xxx(wd);
   if (the_street) {

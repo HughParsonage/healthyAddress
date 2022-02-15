@@ -15,6 +15,9 @@
 #'
 #' @param StreetHash Should \code{STREET_NAME} be returned as an integer hash.
 #'
+#' @return A \code{data.table} containing columns indicating the components of the standard address,
+#' including \code{H0} which is the \code{\link{HashStreetName}} of the street name.
+#'
 #' @export
 
 standardize_address <- function(Address,
@@ -76,10 +79,14 @@ standardize_address <- function(Address,
 
 }
 
-
-Do_standard_address <- function(x) {
+#' @rdname standardize_address
+#' @export
+standard_address2 <- function(Address) {
+  if (!nany_lowercase(Address)) {
+    Address <- toupper_basic(Address)
+  }
   # 1.8 M addresses / s
-  Ans <- .Call("C_do_standard_address", x)
+  Ans <- .Call("C_do_standard_address", Address)
   setDT(Ans)
   setnames(Ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST",
                   "NUMBER_SUFFIX",
