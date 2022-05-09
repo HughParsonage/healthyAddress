@@ -3578,7 +3578,13 @@ void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n)
       ans[i] *= 10;
       ans[i] += xj - '0';
       if (!isdigit(x[j + 1])) {
-        suf[i] = x[j + 1];
+        // note i must be < 3, but if
+        // we have never entered this section
+        // where (i == 3) => break
+        // it can be at most 1
+        if (i < 3) {
+          suf[i] = x[j + 1];
+        }
         ++i;
         ++j;
         k = j;
