@@ -1,7 +1,5 @@
 name: Check
 'on': push
-env:
-  GITHUB_PAT: ${{ secrets.S2_GHP }}
 
 jobs:
   build:
