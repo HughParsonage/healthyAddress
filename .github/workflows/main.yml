@@ -11,8 +11,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@master
       - name: Install Package Dependencies
-        env:
-          GITHUB_PAT: ${{ secrets.S2_GHP }}
         run: |-
           Rscript setup.R
           Rscript -e "install.packages(c('rcmdcheck', 'covr'), repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
@@ -27,8 +25,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@master
       - name: Install Package Dependencies
-        env:
-          GITHUB_PAT: ${{ secrets.S2_GHP }}
         run: |-
             Rscript setup.R
             Rscript -e "install.packages(c('rcmdcheck', 'remotes'), repos = 'https://demo.rstudiopm.com/all/__linux__/bionic/latest')"
@@ -40,11 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      env:
-        GITHUB_PAT: ${{ secrets.S2_GHP }}
     - uses: r-lib/actions/run-rchk@master
-      env:
-        GITHUB_PAT: ${{ secrets.S2_GHP }}
   test-r-sanitizers:
     name: ASAN-UBSAN
     timeout-minutes: 60
@@ -59,8 +51,6 @@ jobs:
           submodules: true
       - name: Install packages
         shell: bash
-        env:
-          GITHUB_PAT: ${{ secrets.S2_GHP }}
         run: |
           Rdevel -q -f setup.R
           Rdevel CMD build .
