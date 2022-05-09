@@ -3926,4 +3926,57 @@ SEXP C_has_word(SEXP xx, SEXP ww) {
 }
 
 
+//' When the address input is in multiple vectors.
+SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP State, SEXP Postcode) {
+  error("Not yet implemented.");
+  R_xlen_t N = xlength(Postcode);
+  verifyEquiStr2(Line1, "Line1", Line2, "Line2");
+  if (!isInteger(Postcode)) {
+    error("`Postcode` was type '%s' but must be type integer.", type2char(TYPEOF(Postcode)));
+  }
+  if (!isInteger(State)) {
+    error("`State` was type '%s' but must be type integer.", type2char(TYPEOF(State)));
+  }
+  errIfNotLen(Line1, "Line1", N);
+  const int * postcode = INTEGER(Postcode);
+  const SEXP * x1p = STRING_PTR(Line1);
+  const SEXP * x2p = STRING_PTR(Line2);
+
+  int np = 0;
+  // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
+  SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP H0 = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP StreetCode = PROTECT(allocVector(INTSXP, N)); np++;
+  SEXP NumberSuffix = PROTECT(allocVector(RAWSXP, N)); np++;
+
+  int * restrict flat_numberp = INTEGER(FlatNumber);
+  int * restrict number_firstp = INTEGER(NumberFirst);
+  int * restrict number_lastp = INTEGER(NumberLast);
+  int * restrict h0 = INTEGER(H0);
+  int * restrict street_codep = INTEGER(StreetCode);
+  unsigned char * restrict number_suffixp = RAW(NumberSuffix);
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n1 = length(x1p[i]);
+    if (n1 <= 4) {
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      h0[i] = 0;
+      street_codep[i] = NA_INTEGER;
+      flat_numberp[i] = NA_INTEGER;
+      number_suffixp[i] = 0;
+      continue;
+    }
+
+
+
+
+  }
+  return R_NilValue;
+}
+
+
+
 

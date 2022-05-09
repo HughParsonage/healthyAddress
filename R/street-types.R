@@ -423,9 +423,10 @@ street_cd <- function(ADDRESS) {
     WHICH_TYPE[ewi] <- fewi
   }
 
+  TYPE <- NULL
   out <- data.table(ADDRESS,
                     TYPE = permitted_street_type_ord[WHICH_TYPE])
-  out[, NAME := sub(paste0("^.*[0-9] ([A-Z ]+) ", .BY[[1]]), "\\1", ADDRESS), by = .(TYPE)]
+  out[, "NAME" := sub(paste0("^.*[0-9] ([A-Z ]+) ", .BY[[1]]), "\\1", ADDRESS), by = .(TYPE)]
   setcolorder(out, c("ADDRESS", "NAME", "TYPE"))
   out[]
 }

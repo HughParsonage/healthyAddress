@@ -10,6 +10,7 @@
 #' @export
 
 encode_address <- function(StandardAddress) {
+  AUS <- NULL
   stopifnot(is.data.table(StandardAddress))
   StandardAddress[, "orig_ordering" := .I]
   states <- postcode2ste(.subset2(StandardAddress, "POSTCODE"), result = "character")
@@ -25,28 +26,28 @@ encode_address <- function(StandardAddress) {
     FF <- rbindlist(FF, use.names = TRUE)
   }
 
+  NUMBER_FIRST_SUFFIX <- STREET_TYPE_CODE <- STREET_TYPE <- NUMBER_SUFFIX <-
+    FLAT_NUMBER <- NULL
   StandardAddress[, "STREET_TYPE_CODE" := ensure_street_type_encode(STREET_TYPE)]
-  StandardAddress[, NUMBER_FIRST_SUFFIX := as.integer(NUMBER_SUFFIX)]
+  StandardAddress[, "NUMBER_FIRST_SUFFIX" := as.integer(NUMBER_SUFFIX)]
   FF[, NUMBER_FIRST_SUFFIX := as.integer(NUMBER_FIRST_SUFFIX)]
   FF[, FLAT_NUMBER := fcoalesce(FLAT_NUMBER, 0L)]
-  if (!hasName(StandardAddress, "hSTREET_NAME")) {
-    StandardAddress[, hSTREET_NAME := HashStreetName(STREET_NAME)]
+  if (!hasName(StandardAddress, "hSTREET_NAME") &&
+      hasName(StandardAddress, "STREET_NAME")) {
+    set(StandardAddress,
+        j = "hSTREET_NAME",
+        value = HashStreetName(.subset2(StandardAddress, "STREET_NAME")))
   }
 
+  i.ADDRESS_SITE_PID <- NULL
   StandardAddress[FF,
-                  enc := i.ADDRESS_SITE_PID,
-                  on = .(POSTCODE,
-                         STREET_TYPE_CODE,
-                         hSTREET_NAME,
-                         NUMBER_FIRST,
-                         NUMBER_FIRST_SUFFIX,
-                         FLAT_NUMBER)]
-}
-
-.encode_address_per_state <- function(StandardAddress, ste = NULL) {
-  if (is.null(Postcodek)) {
-
-  }
+                  "enc" := i.ADDRESS_SITE_PID,
+                  on = c("POSTCODE",
+                         "STREET_TYPE_CODE",
+                         "hSTREET_NAME",
+                         "NUMBER_FIRST",
+                         "NUMBER_FIRST_SUFFIX",
+                         "FLAT_NUMBER")]
 }
 
 areST <- function(x) {
