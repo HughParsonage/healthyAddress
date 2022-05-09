@@ -1,3 +1,5 @@
+library(tinytest)
+library(healthyAddress)
 .test <- function (filter = NULL, ...) {
   for (file.R in dir("inst/tinytest",
                      pattern = paste0("^test.*", filter),
