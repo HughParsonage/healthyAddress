@@ -10,7 +10,7 @@
 #' @export
 
 encode_address <- function(StandardAddress) {
-  AUS <- NULL
+  AUS_FULL <- NULL
   stopifnot(is.data.table(StandardAddress))
   StandardAddress[, "orig_ordering" := .I]
   states <- postcode2ste(.subset2(StandardAddress, "POSTCODE"), result = "character")
