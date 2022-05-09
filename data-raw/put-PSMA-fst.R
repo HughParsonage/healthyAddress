@@ -97,6 +97,10 @@ do_full_Address <- function(ste) {
     fst::write_fst(STE_FULL_ADDRESS,
                    paste0("inst/extdata/", ste, "_FULL_ADDRESS.fst"),
                    compress = 85)
+    if (dir.exists("~/healthyAddressData")) {
+      file.copy(paste0("inst/extdata/", ste, "_FULL_ADDRESS.fst"),
+                paste0("~/healthyAddressData/", ste, "_FULL_ADDRESS.fst"))
+    }
   }
   STE_FULL_ADDRESS
 }

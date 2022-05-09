@@ -22,7 +22,14 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
 
     file.fst <- paste0("inst/extdata/", ste, "_FULL_ADDRESS.fst")
     if (!file.exists(file.fst)) {
-      file.fst <- system.file("extdata", paste0(ste, "_FULL_ADDRESS.fst"), PACKAGE = packageName())
+      file.fst <- system.file("extdata", paste0(ste, "_FULL_ADDRESS.fst"), package = packageName())
+      if (!file.exists(file.fst)) {
+        url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
+        status <- utils::download.file(url, mode = "wb", destfile = file.fst, quiet = TRUE)
+        if (status) {
+          stop("Unable to download ", ste, "from URL:\n\t", url)
+        }
+      }
     }
     columns_avbl <- fst::metadata_fst(file.fst)[["columnNames"]]
     columns <- columns[columns %in% columns_avbl]
