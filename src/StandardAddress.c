@@ -3327,13 +3327,17 @@ void do_street_type(int ans[3], const char * x, int n, int j, WordData * wd, uns
       int lhs_w0 = wd->lhs[w];
       int lhs_w2 = wd->lhs[w + 2];
       char w10 = x[lhs_w0];
+      // Check first letter of ESPLANADE
       if (w10 != 'E') {
         continue;
       }
-      const char ESPLANADE___ST[14] = "ESPLANADE EAST";
+      const char ESPLANADE___ST[15] = "ESPLANADE EAST";
       bool is_esplanade = true;
       for (int j = 1; j < 14; ++j) {
         if (j == 10 || j == 11) {
+          // WEST
+          // EAST
+          // ^^
           continue;
         }
         if (x[lhs_w0 + j] != ESPLANADE___ST[j]) {
