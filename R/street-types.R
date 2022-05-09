@@ -385,8 +385,8 @@ permitted_street_cds <- function() {
 
 .Permitted_street_type_ord_nchar_AZ <- function() {
   STREET_CODE_len <- ordering <-  NULL
-  # Abbrevs <- .abbrev_street_names()
-  Abbrevs <- PSMA::street_type_decoder
+  Abbrevs <- .abbrev_street_names()
+  # Abbrevs <- PSMA::street_type_decoder
 
   STREET_CODE <- c(.permitted_street_type_ord(),
                    Abbrevs[[1]])

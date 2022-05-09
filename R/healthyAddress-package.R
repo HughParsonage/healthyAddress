@@ -1,7 +1,6 @@
 #' Package for address standardization
 #' @useDynLib healthyAddress, .registration = TRUE
 #' @import data.table
-#' @importFrom PSMA get_fst
 #' @importFrom fastmatch %fin%
 #' @importFrom hutilscpp isntConstant
 #' @importFrom hutils coalesce
