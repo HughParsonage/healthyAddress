@@ -5,7 +5,8 @@
   if (startsWith(Sys.getenv("USERNAME"), "hugh")) {
     .Call("C_StaticAssert", 0L, PACKAGE = packageName())
   }
-
+  utils::globalVariables(".")
+  return(invisible(NULL))
 }
 
 .onUnload <- function (libpath) {

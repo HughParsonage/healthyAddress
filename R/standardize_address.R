@@ -5,6 +5,8 @@
 #' @param AddressLine2 Either \code{NULL} (the default) or a character vector,
 #' the same length as \code{Address} giving the second line of the Address.
 #'
+#' @param Line1,Line2,State,Postcode (Not yet used.)
+#'
 #' @param return.type Either \code{"data.table"} or \code{"integer"}.
 #' \code{"data.table"} implies a table of columns separating the address components.
 #' \code{"integer"} means an integer vector creating a bijection between the
@@ -93,6 +95,14 @@ standard_address2 <- function(Address) {
                   "H0",
                   "STREET_TYPE_CODE", "POSTCODE"))
   Ans[]
+}
+
+#' @rdname standardize_address
+#' @export
+standard_address3 <- function(Line1, Line2, State, Postcode) {
+  stopifnot(is.character(Line1),
+            is.character(Line2))
+  Ans <- .Call("C_do_standard_address3", Line1, Line2, State, Postcode)
 }
 
 

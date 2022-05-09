@@ -3,6 +3,7 @@
 \name{standardize_address}
 \alias{standardize_address}
 \alias{standard_address2}
+\alias{standard_address3}
 \title{Standard address}
 \usage{
 standardize_address(
@@ -14,6 +15,8 @@ standardize_address(
 )
 
 standard_address2(Address)
+
+standard_address3(Line1, Line2, State, Postcode)
 }
 \arguments{
 \item{Address}{A character vector, either a full address or (if \code{AddressLine2}
@@ -31,6 +34,8 @@ address and the \code{PSMA} internal id.}
 vector?}
 
 \item{StreetHash}{Should \code{STREET_NAME} be returned as an integer hash.}
+
+\item{Line1, Line2, State, Postcode}{(Not yet used.)}
 }
 \value{
 A \code{data.table} containing columns indicating the components of the standard address,
