@@ -5,8 +5,8 @@
     tinytest::run_test_file(file.R)
   }
 }
-
+healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
+healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
 .test()
-healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
-healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
+
 
