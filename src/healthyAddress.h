@@ -58,6 +58,8 @@ int intrnl2postcode(unsigned int ipoa);
 void errIfNotLen(SEXP x, const char * xx, R_xlen_t N);
 void verifyEquiStr2(SEXP x, const char * xx,
                     SEXP y, const char * yy);
+void verifyEquiOrLen1Str2(SEXP x, const char * xx,
+                          SEXP y, const char * yy);
 void verifyEquiStr4(SEXP x, const char * xx,
                     SEXP y, const char * yy,
                     SEXP z, const char * zz,

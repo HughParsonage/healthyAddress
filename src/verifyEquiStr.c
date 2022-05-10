@@ -12,12 +12,26 @@ void errIfNotLen(SEXP x, const char * xx, R_xlen_t N) {
   }
 }
 
+void errIfNotLen1orN(SEXP x, const char * xx, R_xlen_t N) {
+  if (xlength(x) != N && xlength(x) != 1) {
+    error("`%s` was length '%lld' but must be length %lld or length-one.", xx, xlength(x), N);
+  }
+}
+
 void verifyEquiStr2(SEXP x, const char * xx,
                     SEXP y, const char * yy) {
   errIfNotStr(x, xx);
   errIfNotStr(y, yy);
   R_xlen_t N = xlength(x);
   errIfNotLen(y, yy, N);
+}
+
+void verifyEquiOrLen1Str2(SEXP x, const char * xx,
+                          SEXP y, const char * yy) {
+  errIfNotStr(x, xx);
+  errIfNotStr(y, yy);
+  R_xlen_t N = xlength(x);
+  errIfNotLen1orN(y, yy, N);
 }
 
 void verifyEquiStr4(SEXP x, const char * xx,
