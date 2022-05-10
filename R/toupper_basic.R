@@ -8,3 +8,4 @@ toupper_basic <- function(x) {
   .Call("CToUpperBasic", x, PACKAGE = packageName())
 }
 
+
