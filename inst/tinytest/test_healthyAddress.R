@@ -105,3 +105,9 @@ expect_equal(ans$NUMBER_FIRST, 0L)
 expect_equal(ans$STREET_TYPE_CODE, 2L)
 expect_equal(ans$H0, HashStreetName("GEORGE"))
 
+ans <- standard_address2("FLINDERS ST MELBOURNE VIC 3000")
+expect_equal(ans$STREET_TYPE_CODE, 2L)
+expect_equal(ans$H0, HashStreetName("FLINDERS"))
+
+
+

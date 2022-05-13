@@ -220,13 +220,90 @@ SEXP Cconcat_upper3(SEXP xx1, SEXP xx2, SEXP xx3, int sep) {
   return ans;
 }
 
+static SEXP xpaste4(const char * x1, int n1,
+                    const char * x2, int n2,
+                    const char * x3, int n3,
+                    const char * x4, int n4,
+                    bool comma_sep) {
+  int n = n1 + n2 + n3 + n4;
+  if (comma_sep) {
+    if (n1) {
+      n += 2; // in particular if zero char, do not sep
+    }
+    if (n2) {
+      n += 2;
+    }
+    if (n3) {
+      n += 2;
+    }
+  }
+
+  char oi[n];
+  int k = 0;
+  for (int j = 0; j < n1; ++j) {
+    oi[k++] = x1[j];
+  }
+  if (comma_sep && n1) {
+    oi[k++] = ',';
+    oi[k++] = ' ';
+  }
+  for (int j = 0; j < n2; ++j) {
+    oi[k++] = x2[j];
+  }
+  if (comma_sep && n2) {
+    oi[k++] = ',';
+    oi[k++] = ' ';
+  }
+  for (int j = 0; j < n3; ++j) {
+    oi[k++] = x3[j];
+  }
+  if (comma_sep && n3) {
+    oi[k++] = ',';
+    oi[k++] = ' ';
+  }
+  for (int j = 0; j < n4; ++j) {
+    oi[k++] = x4[j];
+  }
+  oi[k] = '\0';
+
+  return mkCharCE((const char *)oi, CE_UTF8);
+}
+
 SEXP Cconcat_upper(SEXP xx1, SEXP xx2, SEXP xx3, SEXP xx4, SEXP ssep) {
   int sep = asInteger(ssep);
   R_xlen_t N = xlength(xx1);
   if (TYPEOF(xx4) == NILSXP) {
     return Cconcat_upper3(xx1, xx2, xx3, sep);
   }
+  SEXP * x1p = STRING_PTR(xx1);
+  SEXP * x2p = STRING_PTR(xx2);
+  SEXP * x3p = STRING_PTR(xx3);
+  SEXP * x4p = STRING_PTR(xx4);
+  int m2 = 0;
+  const bool comma_sep = sep == SEP_COMMA_SPACE;
+  if (comma_sep) {
+    m2 = 2;
+  }
+
+
+  if (xlength(xx2) == 1 ||
+      xlength(xx3) == 1 ||
+      xlength(xx4) == 1) {
+    return R_NilValue;
+  }
+  verifyEquiStr4(xx1, "x1", xx2, "x2", xx3, "x3", xx4, "x4");
   SEXP ans = PROTECT(allocVector(STRSXP, N));
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n1 = length(x1p[i]);
+    int n2 = length(x2p[i]);
+    int n3 = length(x3p[i]);
+    int n4 = length(x4p[i]);
+    const char * x1 = CHAR(x1p[i]);
+    const char * x2 = CHAR(x2p[i]);
+    const char * x3 = CHAR(x3p[i]);
+    const char * x4 = CHAR(x4p[i]);
+    SET_STRING_ELT(ans, i, xpaste4(x1, n1, x2, n2, x3, n3, x4, n4, comma_sep));
+  }
   UNPROTECT(1);
   return ans;
 }

@@ -465,7 +465,14 @@ const unsigned int hash_street_types[32] =
 const unsigned int hash_street_typecd[32] =
   {1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 10, 10, 11, 11, 12, 12, 13, 13};
 
-
+typedef struct {
+  int n_words;
+  int lhs[WORD_DATUMS];
+  int rhs[WORD_DATUMS];
+  int no1st;
+  const char * x;
+  int n;
+} WordData;
 
 
 
@@ -494,20 +501,33 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 #define DJB2_ESPLANADE_WEST 1419448821
 #define DJB2_THE_STRAND -1123822046
 
+
+unsigned int djb2_hash_w1w2_only_letters(const char * str, WordData * wd, int w1, int w2) {
+  unsigned int hash = 5381;
+  for (int w = w1; w <= w2; ++w) {
+    for (int j = wd->lhs[w]; j < wd->rhs[w]; ++j) {
+      unsigned char xi = str[j];
+      if (isupper(xi)) {
+        hash = ((hash << 5) + hash) ^ xi;
+      }
+    }
+    if (w < w2) {
+      // include space between (so not after final, nor if only one word)
+      hash = ((hash << 5) + hash) ^ ' ';
+    }
+  }
+  return hash;
+}
+
+
+
 /*
  static const unsigned char letters[26] =
  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
  'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
  */
 
-typedef struct {
-  int n_words;
-  int lhs[WORD_DATUMS];
-  int rhs[WORD_DATUMS];
-  int no1st;
-  const char * x;
-  int n;
-} WordData;
+
 
 //' @noRd
 //' @description
@@ -3240,10 +3260,104 @@ bool iz_saint(int w, const char * x, int n, WordData * wd, unsigned char * m1, u
   return false;
 }
 
-void do_street_type(int ans[3], const char * x, int n, int j, WordData * wd, unsigned int Postcode, unsigned char * m1) {
+int has_CRT(const char * x, int n, WordData * wd) {
+  int n_words = wd->n_words;
+  for (int w = 0; w < n_words; ++w) {
+    int lhs_w = wd->lhs[w];
+    int rhs_w = wd->rhs[w];
+    if (rhs_w - lhs_w == 3) {
+      if (x[lhs_w++] == 'C' && x[lhs_w++] == 'R' && x[lhs_w] == 'T') {
+        return w + 1;
+      }
+    }
+  }
+  return 0;
+}
+
+void do_street_type_no_number(int ans[3], const char * x, int n, WordData * wd, unsigned int Postcode, unsigned char * m1) {
+  unsigned int hashes[WORD_DATUMS] = {0};
+  int n_words = wd->n_words;
+  for (int w = 0; w < n_words; ++w) {
+    hashes[w] = djb2_hash(x, wd->rhs[w], wd->lhs[w] - 1);
+  }
+  int street_type = 0;
+  for (int s = 0; s < 32; ++s) {
+    // Check the hash of the second word -- most likely to be the street type
+    if (hashes[1] == hash_street_types[s]) {
+      ans[0] = hash_street_typecd[s];
+      ans[1] = wd->lhs[1];
+      ans[2] = hashes[0];
+      return;
+    }
+  }
+
+  bool found_first_32 = false;
+  for (int w = 1; w < n_words; ++w) {
+    if (found_first_32) {
+      break;
+    }
+    for (int s = 0; s < 32; ++s) {
+      if (hashes[w] == hash_street_types[s]) {
+        street_type = hash_street_typecd[s];
+        ans[0] = street_type;
+        ans[1] = wd->lhs[w];
+        ans[0] = hashes[w - 1];
+        found_first_32 = true;
+        break;
+      }
+    }
+  }
+  for (int z_ = 0; z_ < NZ; ++z_) {
+    // go in order of 'ordering'
+    int z = oZTC[z_];
+    const StreetType * Z = ZTZ[z];
+    int nz = Z->lenx;
+    for (int w_ = 1; w_ < WORD_DATUMS; ++w_) {
+      int w = w_; // for no numbering, just go in 'natural' order
+      if (w > n_words) {
+        break;
+      }
+      int lhs_w = wd->lhs[w];
+      int rhs_w = wd->rhs[w];
+      if (rhs_w == 0) {
+        continue;
+      }
+      unsigned int width_w = rhs_w - lhs_w;
+      if (width_w != nz) {
+        continue;
+      }
+      const char * xz = Z->x;
+      if (substring_within(x, lhs_w, n, xz, nz)) {
+        if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
+          continue;
+        }
+        ans[0] = Z->cd;
+        ans[1] = lhs_w;
+        ans[2] = djb2_hash(x, wd->lhs[w - 1], -1);
+        return;
+      }
+    }
+  }
+
+}
+
+void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after number, zero significant => no number */,
+                    WordData * wd, unsigned int Postcode, unsigned char * m1) {
   if (Postcode > SUP_POSTCODE_) {
     return;
   }
+  int the_CRT = has_CRT(x, n, wd);
+  if (the_CRT) {
+    ans[0] = ST_CODE_COURT;
+    ans[1] = wd->lhs[the_CRT - 1];
+    return;
+  }
+  if (j__ == 0) {
+    do_street_type_no_number(ans, x, n, wd, Postcode, m1);
+    return;
+  }
+
+
 
   int no1st = wd->no1st;
   int n_words = wd->n_words;
