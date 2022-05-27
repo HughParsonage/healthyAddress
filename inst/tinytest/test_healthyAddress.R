@@ -109,5 +109,8 @@ ans <- standard_address2("FLINDERS ST MELBOURNE VIC 3000")
 expect_equal(ans$STREET_TYPE_CODE, 2L)
 expect_equal(ans$H0, HashStreetName("FLINDERS"))
 
+ans <- standard_address2("U 711 L 7 108 FLINDERS ST MELBOURNE VIC 3004")
+expect_equal(ans$FLAT_NUMBER, 711)
+expect_equal(ans$NUMBER_FIRST, 108)
 
 
