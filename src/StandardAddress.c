@@ -3588,6 +3588,11 @@ int has_flat(const char * x, int n) {
       return 0;
     }
     if (j == 0 || x[j - 1] == ' ') {
+      if (x[j] == 'U') {
+        if ((x[j + 1] == ' ' && isdigit(x[j + 2])) || isdigit(x[j + 1])) {
+          return 1;
+        }
+      }
       if (substring_within(x, j, n, "UNIT", 4)) {
         return 1;
       }
