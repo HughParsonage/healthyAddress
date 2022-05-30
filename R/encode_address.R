@@ -15,7 +15,7 @@ encode_address <- function(StandardAddress) {
   StandardAddress[, "orig_ordering" := .I]
   states <- postcode2ste(.subset2(StandardAddress, "POSTCODE"), result = "character")
   if (length(states) == 1) {
-    FF <- sys_fst(sprintf("%s_FULL_ADDRESS", states))
+    FF <- read_ste_fst(states)
   } else if (exists("AUS_FULL")) {
     FF <- AUS_FULL
   } else {

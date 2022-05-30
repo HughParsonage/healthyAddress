@@ -17,7 +17,11 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
 
   if (length(ste) == 1L) {
     if (is.environment(data_env) && exists(var_ste <- paste0(ste, "_FULL_ADDRESS"), envir = data_env)) {
-      return(get(var_ste, envir = data_env))
+      ans <- get(var_ste, envir = data_env)
+      if (is.null(columns)) {
+        return(ans)
+      }
+      return(hutils::selector(ans, cols = columns))
     }
 
     file.fst <- paste0("inst/extdata/", ste, "_FULL_ADDRESS.fst")
@@ -25,7 +29,12 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
       file.fst <- system.file("extdata", paste0(ste, "_FULL_ADDRESS.fst"), package = packageName())
       if (!file.exists(file.fst)) {
         url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
-        status <- utils::download.file(url, mode = "wb", destfile = file.fst, quiet = TRUE)
+        pkg_path <- find.package("healthyAddress")
+        file.fst <- file.path(pkg_path, "inst", "extdata", paste0(ste, "_FULL_ADDRESS.fst"))
+        status <- utils::download.file(url,
+                                       mode = "wb",
+                                       destfile = file.fst,
+                                       quiet = TRUE)
         if (status) {
           stop("Unable to download ", ste, "from URL:\n\t", url)
         }
@@ -34,7 +43,7 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
     columns_avbl <- fst::metadata_fst(file.fst)[["columnNames"]]
     columns <- columns[columns %in% columns_avbl]
     ans <- fst::read_fst(file.fst, columns = columns, as.data.table = TRUE)
-    if (is.environment(data_env)) {
+    if (is.environment(data_env) && is.null(columns)) {
       assign(var_ste, value = ans, envir = data_env)
     }
     return(ans)

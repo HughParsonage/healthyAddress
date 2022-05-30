@@ -10,3 +10,8 @@ HashStreetName <- function(x) {
   .Call("C_HashStreetName", x, PACKAGE = packageName())
 }
 
+unHashStreetName <- function(x) {
+  noms <- .subset2(read_ste_fst(columns = "STREET_NAME"), 1L)
+  homs <- HashStreetName(noms)
+  noms[fmatchp(x, homs)]
+}

@@ -54,3 +54,4 @@ vignettes/*.pdf
 !man/
 !man/*.Rd
 inst/extdata/*S.fst
+!NEWS.md
