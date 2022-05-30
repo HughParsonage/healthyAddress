@@ -3,6 +3,7 @@
 #' @import data.table
 #' @importFrom fastmatch %fin%
 #' @importFrom hutilscpp isntConstant
+#' @importFrom hutilscpp fmatchp
 #' @importFrom hutils coalesce
 #' @importFrom magrittr %>%
 #' @importFrom utils packageName
