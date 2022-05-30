@@ -1,4 +1,5 @@
 library(tinytest)
+concat_upper <- healthyAddress:::concat_upper
 
 up0 <- function(...) toupper(paste(..., sep = ", "))
 expect_equal(concat_upper("foo", "a"), up0("foo", "a"))
