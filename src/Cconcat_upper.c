@@ -17,16 +17,6 @@ static void set_upper(char * x) {
   }
 }
 
-const char * touppers(const char * x, int n) {
-  char o[n + 1];
-  for (int j = 0; j < n; ++j) {
-    o[j] = x[j];
-  }
-  o[n] = '\0';
-  char * oo = (char *)o;
-  return (const char *)oo;
-}
-
 #define SEP_COMMA_SPACE 1
 
 
