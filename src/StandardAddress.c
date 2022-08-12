@@ -3731,11 +3731,10 @@ unsigned char suf3suf(unsigned char x[3]) {
 }
 
 
-Address do_standard_address(const char * x, int n, unsigned char * m1) {
+Address do_standard_address(const char * x, int n, unsigned char * m1, int postcode) {
   int numberFirstLast[3] = {0};
   int Street[2] = {0};
   Address ad;
-  int postcode = xpostcode_unsafe(x, n);
   WordData wd = word_data(x, n, 0);
   int level = xLEVEL(wd);
   unsigned char suf[3] = {0};
@@ -3837,6 +3836,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1) {
   return ad;
 }
 
+
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
@@ -3885,7 +3885,7 @@ SEXP C_do_standard_address(SEXP xx) {
       continue;
     }
     const char * x = CHAR(xp[i]);
-    Address ad = do_standard_address(x, n, M1);
+    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n));
     h0[i] = ad.hashStreetName;
     pp[i] = ad.postcode;
     street_codep[i] = ad.street_type;
@@ -4098,9 +4098,9 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP State, SEXP Postcode) {
       number_suffixp[i] = 0;
       continue;
     }
-
-
-
+    const char * x1pi = CHAR(x1p[i]);
+    const char * x2pi = CHAR(x2p[i]);
+    int postcodei = postcode[i];
 
   }
   return R_NilValue;
