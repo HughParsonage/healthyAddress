@@ -5,7 +5,7 @@
 #'
 #' @return
 #' \describe{
-#'  \item{\code{nany_lowercase}}{\code{FALSE} is any char in \code{x} is a lowercase letter.}
+#'  \item{\code{nany_lowercase}}{\code{FALSE} if any char in \code{x} is a lowercase letter.}
 #' }
 #'
 #' @examples
