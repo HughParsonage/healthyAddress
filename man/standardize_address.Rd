@@ -16,7 +16,7 @@ standardize_address(
 
 standard_address2(Address)
 
-standard_address3(Line1, Line2, State, Postcode)
+standard_address3(Line1, Line2, Postcode = NULL)
 }
 \arguments{
 \item{Address}{A character vector, either a full address or (if \code{AddressLine2}

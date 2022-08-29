@@ -371,6 +371,7 @@ const static int oZTC[NZ] =
    243, 226, 107, 163, 47, 117, 249, 202, 203, 251, 124, 252, 265, 59, 61, 18, 63, 65, 129, 209, 136,
    75, 138, 81, 82, 220, 191, 96, 223, 268, 158, 160, 246, 109};
 
+
 const static Saint St2044 = { 2044, 1, "PETERS", 6 };
 const static Saint St2064 = { 2064, 1, "LEONARDS", 8 };
 const static Saint St2065 = { 2065, 1, "LEONARDS", 8 };
@@ -473,6 +474,8 @@ typedef struct {
   const char * x;
   int n;
 } WordData;
+
+
 
 
 
@@ -664,6 +667,8 @@ int has_LEVEL(WordData wd) {
   }
   return 0;
 }
+
+
 
 unsigned int xLEVEL(WordData wd) {
   int j = has_LEVEL(wd);
@@ -1248,19 +1253,7 @@ SEXP C_NumberFirstLast(SEXP xx) {
 
   UNPROTECT(np);
   return ans;
-
 }
-
-
-
-
-
-
-
-
-
-
-
 
 bool jchar_is_number(const char * x, int j) {
   return isdigit(x[j]);
@@ -1390,11 +1383,6 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
   UNPROTECT(np);
   return ans;
 }
-
-
-
-
-
 
 bool noLC(SEXP x) {
   R_xlen_t N = xlength(x);
@@ -3619,6 +3607,169 @@ int has_flat(const char * x, int n) {
   return 0;
 }
 
+
+// LEVEL 123
+// 012345678  returns 9
+int where_LEVEL_exact_number_ends(const char * x, int n) {
+  if (x[0] == 'L' && x[1] == 'E' && x[2] == 'V' && x[3] == 'E' && x[4] == 'L' && (isdigit(x[5]) || isspace(x[5]))) {
+    int k = 5;
+    while (isspace(x[k])) {
+      ++k;
+    }
+    while (isdigit(x[k])) {
+      ++k;
+    }
+    return k;
+  }
+  for (int j = 1; j < n - 5; ++j) {
+    if (x[j - 1] != ' ') {
+      continue;
+    }
+    if (x[j] == 'L' &&
+        x[j + 1] == 'E' && x[j + 2] == 'V' &&
+        x[j + 3] == 'E' && x[j + 4] == 'L' && (isdigit(x[j + 5]) || isspace(x[j + 5]))) {
+      int k = j + 5;
+      while (isspace(x[k])) {
+        ++k;
+      }
+      while (isdigit(x[k])) {
+        ++k;
+      }
+      return k;
+    }
+  }
+  return 0;
+}
+
+int where_LEVEL_abbrev_number_ends(const char * x, int n) {
+  if (x[0] == 'L') {
+    int k = 1;
+    while (isspace(x[k])) {
+      ++k;
+    }
+    while (isdigit(x[k])) {
+      ++k;
+    }
+    return k;
+  }
+  for (int j = 1; j < n - 5; ++j) {
+    if (x[j - 1] != ' ') {
+      continue;
+    }
+    if (x[j] == 'L' &&
+        x[j + 1] == 'E' && x[j + 2] == 'V' &&
+        x[j + 3] == 'E' && x[j + 4] == 'L') {
+      int k = j + 5;
+      while (isspace(x[k])) {
+        ++k;
+      }
+      while (isdigit(x[k])) {
+        ++k;
+      }
+      return k;
+    }
+  }
+  return 0;
+}
+
+
+
+int flat_of(const char * x, int n, int J[1]) {
+  int k = 0; // position of digit starting flat
+  bool has_flat = false;
+  // WordData wd = word_data(x, n, 0);
+
+  // test for level:
+  // int has_level = has_LEVEL(wd);
+  // int j = j_post_LEVEL(x, n);
+
+  int j = 0;
+  for (; j < n; ++j) {
+    unsigned char xj = x[j];
+    if (isdigit(x[j])) {
+      // if a digit but no 'flat' synonym encountered, we check for
+      // a slash to signify unit
+      k = j;
+      ++j;
+      while (isdigit(x[j])) {
+        ++j;
+      }
+      while (isspace(x[j])) {
+        ++j;
+      }
+      if (x[j] == '/') {
+        has_flat = true;
+        break;
+      }
+      return 0;
+    }
+    if (j == 0 || x[j - 1] == ' ') {
+      if (x[j] == 'U') {
+        if (substring_within(x, j, n, "UNIT", 4)) {
+          k = j + 4;
+          while (isspace(x[k])) {
+            ++k;
+          }
+          if (isdigit(x[k])) {
+            has_flat = true;
+            break;
+          }
+          return 0; // Unusual, implies 'UNIT' followed by non digit
+        }
+        if ((x[j + 1] == ' ' && isdigit(x[j + 2]))) {
+          k = j + 2;
+          has_flat = true;
+          break;
+        } else if (isdigit(x[j + 1])) {
+          k = j + 1;
+          has_flat = true;
+          break;
+        } else {
+          return 0;
+        }
+      }
+      if (substring_within(x, j, n, "APARTMENT ", 10)) {
+        has_flat = true;
+        k = j + 10;
+        break;
+      }
+      if (substring_within(x, j, n, "FLAT ", 5)) {
+        has_flat = true;
+        k = j + 5;
+        break;
+      }
+      if (substring_within(x, j, n, "ROOM ", 5)) {
+        has_flat = true;
+        k = j + 5;
+        break;
+      }
+      // e.g. G05
+      if (x[j] == 'G') {
+        if (isdigit(x[j + 1])) {
+          has_flat = true;
+          k = j + 1;
+          break;
+        }
+        if (isspace(x[j + 1]) && isdigit(x[j + 2])) {
+          has_flat = true;
+          k = j + 2;
+          break;
+        }
+      }
+    }
+  }
+  int o = 0;
+  if (has_flat) {
+    while (isdigit(x[k])) {
+      o *= 10;
+      o += x[k] - '0';
+      ++k;
+    }
+  }
+  J[0] = k;
+  return o;
+}
+
 int next_word(int j, WordData wd) {
   int n_words = wd.n_words;
   for (int w = 1; w < n_words - 1; ++w) {
@@ -3628,6 +3779,8 @@ int next_word(int j, WordData wd) {
   }
   return wd.lhs[n_words - 1];
 }
+
+
 
 void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
   int i = 0; // index of number
@@ -3836,6 +3989,18 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   return ad;
 }
 
+static void prepare_M1(unsigned char * M1) {
+  // purpose of this function is to memoize the
+  // function (postcode => saint data)
+  memset(M1, 0, SUP_POSTCODES);
+  for (int p = 0; p < NSAINT; ++p) {
+    const Saint * Stp = Sts[p];
+    int postcode_p = Stp->postcode;
+    int n_saintsp = Stp->n_saints;
+    M1[postcode_p] = 128 * (n_saintsp == 2) + p;
+  }
+}
+
 
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
@@ -3845,13 +4010,7 @@ SEXP C_do_standard_address(SEXP xx) {
   if (M1 == NULL) {
     error("Internal error(C_do_standard_address): unable to allocate M1");
   }
-  memset(M1, 0, SUP_POSTCODES);
-  for (int p = 0; p < NSAINT; ++p) {
-    const Saint * Stp = Sts[p];
-    int postcode_p = Stp->postcode;
-    int n_saintsp = Stp->n_saints;
-    M1[postcode_p] = 128 * (n_saintsp == 2) + p;
-  }
+  prepare_M1(M1);
 
 
   int np = 0;
@@ -3982,7 +4141,7 @@ SEXP C_StaticAssert(SEXP x) {
 SEXP Cs2u(SEXP ss, SEXP uu) {
   signed int s = asInteger(ss);
   unsigned int u = asInteger(uu);
-  Rprintf("%d %u\n", s, u);
+
   return R_NilValue;
 }
 
@@ -4054,22 +4213,115 @@ SEXP C_has_word(SEXP xx, SEXP ww) {
 
 }
 
+static int get_street_type_line1(const char * x, int n) {
+  int j = n - 1;
+  while (j > 0 && x[j] != ' ') {
+    --j;
+  }
+  ++j;
+  int len = n - j;
+  char x0 = x[j];
+  if (len >= NZ0POS) {
+    return 0;
+  }
+  int lhs = z0pos_by_len[len];
+  int rhs = ((len + 1) >= NZ0POS) ? NZ : z0pos_by_len[len + 1];
+  for (int z = lhs; z < rhs; ++z) {
+    const char * zi = ZTZ[z]->x;
+    if (x0 != zi[0]) {
+      continue;
+    }
+    bool matched = true;
+    for (int k = 1; k < len; ++k) {
+      if (x[j + k] != zi[k]) {
+        matched = false;
+        break;
+      }
+    }
+    if (!matched) {
+      continue;
+    }
+    int zcd = ZTZ[z]->cd;
+    return zcd;
+  }
+  return 0;
+}
+
+static void xnumber2(unsigned int ans[2], int J[1], const char * x, int n) {
+  int j = J[0];
+  for (int i = j, k = 0; i < n; ++i) {
+    if (isdigit(x[i])) {
+      if (i >= 2 && (i == 2 || x[i - 3] == ' ') && x[i - 2] == 'L' && x[i - 1] == ' ') {
+        continue; // is LEVEL
+      }
+      if (i >= 6 && (i == 6 || x[i - 7] == ' ') &&
+          x[i - 6] == 'L' &&
+          x[i - 5] == 'E' &&
+          x[i - 4] == 'V' &&
+          x[i - 3] == 'E' &&
+          x[i - 2] == 'L' &&
+          x[i - 1] == ' ') {
+        continue;
+      }
+      do {
+        ans[k] *= 10;
+        ans[k] += x[i] - '0';
+        ++i;
+      } while (isdigit(x[i]));
+      J[0] = i; // move the pointer to the char after digit
+      ++k;
+      if (k == 2) {
+        return;
+      }
+    }
+  }
+}
+
+
+Address get_address_line1(const char * x, int n, bool check_uc) {
+  if (check_uc) {
+    for (int j = 0; j < n; ++j) {
+      if (islower(x[j])) {
+        char Z[n + 1];
+        for (int k = 0; k < n; ++k) {
+          Z[k] = (k < j) ? x[k] : toupper(x[k]);
+        }
+        Z[n] = 0;
+        return get_address_line1((const char *)Z, n, false);
+      }
+    }
+  }
+  Address A;
+  A.street_type = get_street_type_line1(x, n);
+  int J[1] = {0};
+  int flat = flat_of(x, n, J);
+  if (flat) {
+    A.flat_number = flat;
+  }
+  unsigned int nos[2] = {0};
+  xnumber2(nos, J, x, n);
+  A.number_first = nos[0];
+  A.number_last = nos[1];
+  while (isspace(J[0])) {
+    ++J[0];
+  }
+  A.hashStreetName = djb2_hash(x, n, J[0]);
+  return A;
+}
+
 
 //' When the address input is in multiple vectors.
-SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP State, SEXP Postcode) {
-  error("Not yet implemented.");
+SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
+  // error("Not yet implemented.");
   R_xlen_t N = xlength(Postcode);
   verifyEquiStr2(Line1, "Line1", Line2, "Line2");
   if (!isInteger(Postcode)) {
     error("`Postcode` was type '%s' but must be type integer.", type2char(TYPEOF(Postcode)));
   }
-  if (!isInteger(State)) {
-    error("`State` was type '%s' but must be type integer.", type2char(TYPEOF(State)));
-  }
   errIfNotLen(Line1, "Line1", N);
   const int * postcode = INTEGER(Postcode);
   const SEXP * x1p = STRING_PTR(Line1);
-  const SEXP * x2p = STRING_PTR(Line2);
+  // const SEXP * x2p = STRING_PTR(Line2);
 
   int np = 0;
   // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
@@ -4087,7 +4339,18 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP State, SEXP Postcode) {
   int * restrict street_codep = INTEGER(StreetCode);
   unsigned char * restrict number_suffixp = RAW(NumberSuffix);
 
+  unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
+  if (M1 == NULL) {
+    error("Internal error(C_do_standard_address3): unable to allocate M1");
+  }
+  prepare_M1(M1);
+
   for (R_xlen_t i = 0; i < N; ++i) {
+
+    int postcodei = postcode[i];
+    if (postcodei <= 0) {
+      continue;
+    }
     int n1 = length(x1p[i]);
     if (n1 <= 4) {
       number_firstp[i] = NA_INTEGER;
@@ -4098,13 +4361,77 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP State, SEXP Postcode) {
       number_suffixp[i] = 0;
       continue;
     }
+
     const char * x1pi = CHAR(x1p[i]);
-    const char * x2pi = CHAR(x2p[i]);
-    int postcodei = postcode[i];
+    // const char * x2pi = CHAR(x2p[i]);
+
+    // Address ad = do_standard_address(x1pi, n1, M1, postcodei);
+    Address ad = get_address_line1(x1pi, n1, false);
+    h0[i] = ad.hashStreetName;
+    street_codep[i] = ad.street_type;
+    flat_numberp[i] = ad.flat_number;
+    number_firstp[i] = ad.number_first;
+    number_lastp[i] = ad.number_last;
+    number_suffixp[i] = ad.suffix;
 
   }
-  return R_NilValue;
+  SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
+  int li = 0;
+  SET_VECTOR_ELT(ans, li, FlatNumber);   ++li;
+  SET_VECTOR_ELT(ans, li, NumberFirst);  ++li;
+  SET_VECTOR_ELT(ans, li, NumberLast) ;  ++li;
+  SET_VECTOR_ELT(ans, li, NumberSuffix); ++li;
+  SET_VECTOR_ELT(ans, li, H0);           ++li;
+  SET_VECTOR_ELT(ans, li, StreetCode);   ++li;
+  UNPROTECT(np);
+  free(M1);
+  return ans;
 }
+
+
+unsigned char get_suff(const char * x, int n) {
+  int n_digits = 0;
+  unsigned char suf[3] = {0};
+  for (int j = 1, k = 0; j < n - 1; ++j) {
+    if (isdigit(x[j - 1])) {
+      ++n_digits;
+      while (x[j] <= '9') {
+        ++j;
+      }
+      suf[k] = x[j];
+      ++k;
+      if (k >= 3) {
+        break;
+      }
+    }
+  }
+  return suf3suf(suf);
+}
+
+SEXP Cget_suffix(SEXP x) {
+  if (!isString(x)) {
+    return R_NilValue;
+  }
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  SEXP ans = PROTECT(allocVector(RAWSXP, N));
+  unsigned char * ansp = RAW(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int n = length(xp[i]);
+    if (n <= 4) {
+      ansp[i] = 0;
+      continue;
+    }
+    const char * x1pi = CHAR(xp[i]);
+    ansp[i] = get_suff(x1pi, n);
+
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+
+
 
 
 
