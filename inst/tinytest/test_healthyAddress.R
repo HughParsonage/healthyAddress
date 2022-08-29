@@ -113,4 +113,9 @@ ans <- standard_address2("U 711 L 7 108 FLINDERS ST MELBOURNE VIC 3004")
 expect_equal(ans$FLAT_NUMBER, 711)
 expect_equal(ans$NUMBER_FIRST, 108)
 
+ans <- standard_address3("U 711 L 7 108 FLINDERS ST", "MELBOURNE VIC 3004")
+expect_equal(ans$FLAT_NUMBER, 711)
+expect_equal(ans$NUMBER_FIRST, 108)
+expect_equal(ans$POSTCODE, 3004)
+
 

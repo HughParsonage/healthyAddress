@@ -99,11 +99,24 @@ standard_address2 <- function(Address) {
 
 #' @rdname standardize_address
 #' @export
-standard_address3 <- function(Line1, Line2, State, Postcode) {
+standard_address3 <- function(Line1, Line2, Postcode = NULL) {
   stopifnot(is.character(Line1),
             is.character(Line2))
-  Ans <- .Call("C_do_standard_address3", Line1, Line2, State, Postcode)
+  Line1 <- ensure_uppercase(Line1)
+  if (is.null(Postcode)) {
+    Postcode <- extract_postcode(Line2)
+  }
+  Ans <- .Call("C_do_standard_address3", Line1, Line2, Postcode, PACKAGE = packageName())
+  setDT(Ans)
+  setnames(Ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST",
+                  "NUMBER_SUFFIX",
+                  "H0",
+                  "STREET_TYPE_CODE"))
+  set(Ans, j = "POSTCODE", value = Postcode)
+  Ans[]
 }
+
+
 
 
 

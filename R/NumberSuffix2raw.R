@@ -16,3 +16,7 @@ NumberSuffixFromRaw <- function(x) {
   all_suffixer <- NumberSuffix2Raw(all_suffixes)
   all_suffixes[match(as.integer(x), as.integer(all_suffixer))]
 }
+
+get_suffix <- function(Address) {
+  .Call("Cget_suffix", Address, PACKAGE = packageName())
+}

@@ -14,3 +14,6 @@ extract_flatNumberFirstLast <- function(address) {
   ans[]
 }
 
+xnumbers <- function(x) {
+  ans <- .Call("Cxnumber", x)
+}

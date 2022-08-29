@@ -19,3 +19,12 @@
 nany_lowercase <- function(x) {
   .Call("C_noLC", x, PACKAGE = packageName())
 }
+
+ensure_uppercase <- function(x) {
+  if (nany_lowercase(x)) {
+    return(x)
+  }
+  toupper_basic(x)
+}
+
+
