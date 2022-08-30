@@ -4278,19 +4278,7 @@ static void xnumber2(unsigned int ans[2], int J[1], const char * x, int n) {
 }
 
 
-Address get_address_line1(const char * x, int n, bool check_uc) {
-  if (check_uc) {
-    for (int j = 0; j < n; ++j) {
-      if (islower(x[j])) {
-        char Z[n + 1];
-        for (int k = 0; k < n; ++k) {
-          Z[k] = (k < j) ? x[k] : toupper(x[k]);
-        }
-        Z[n] = 0;
-        return get_address_line1((const char *)Z, n, false);
-      }
-    }
-  }
+Address get_address_line1(const char * x, int n) {
   Address A;
   A.street_type = get_street_type_line1(x, n);
   int J[1] = {0};
@@ -4366,7 +4354,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
     // const char * x2pi = CHAR(x2p[i]);
 
     // Address ad = do_standard_address(x1pi, n1, M1, postcodei);
-    Address ad = get_address_line1(x1pi, n1, false);
+    Address ad = get_address_line1(x1pi, n1);
     h0[i] = ad.hashStreetName;
     street_codep[i] = ad.street_type;
     flat_numberp[i] = ad.flat_number;
