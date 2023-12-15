@@ -118,4 +118,16 @@ expect_equal(ans$FLAT_NUMBER, 711)
 expect_equal(ans$NUMBER_FIRST, 108)
 expect_equal(ans$POSTCODE, 3004)
 
+ans <- standard_address3("2/6 THE ESPLANADE", "PERTH WA 6000")
+expect_equal(ans$FLAT_NUMBER, 2)
+expect_equal(ans$NUMBER_FIRST, 6)
+expect_equal(ans$H0, HashStreetName("THE ESPLANADE"))
+
+ans <- standard_address3("1A THE ESPLANADE", "BOTANY NSW 2019")
+expect_equal(ans$FLAT_NUMBER, 0)
+expect_equal(ans$NUMBER_FIRST, 1)
+expect_equal(ans$NUMBER_SUFFIX, healthyAddress:::NumberSuffix2Raw("A"))
+expect_equal(ans$H0, HashStreetName("THE ESPLANADE"))
+expect_equal(ans$POSTCODE, 2019)
+
 

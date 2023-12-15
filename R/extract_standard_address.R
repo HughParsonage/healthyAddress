@@ -39,7 +39,4 @@ zMatchStreetName <- function(x) {
   .Call("ZMatchStreetName", x)
 }
 
-s2u <- function(s, u) {
-  .Call("Cs2u", s, u, PACKAGE = packageName())
-}
 

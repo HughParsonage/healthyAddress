@@ -5,7 +5,9 @@
 #' @param AddressLine2 Either \code{NULL} (the default) or a character vector,
 #' the same length as \code{Address} giving the second line of the Address.
 #'
-#' @param Line1,Line2,State,Postcode (Not yet used.)
+#' @param Line1,Line2,Postcode For addresses split by line. \code{Line1} is
+#' assumed to end with the street type. The second line is only used to determine
+#' \code{Postcode}, and then only if it is \code{NULL}, the default.
 #'
 #' @param return.type Either \code{"data.table"} or \code{"integer"}.
 #' \code{"data.table"} implies a table of columns separating the address components.
@@ -16,6 +18,8 @@
 #' vector?
 #'
 #' @param StreetHash Should \code{STREET_NAME} be returned as an integer hash.
+#' @param KeepStreetName Should an additional character vector be included in
+#' the result of the street name?
 #'
 #' @return A \code{data.table} containing columns indicating the components of the standard address,
 #' including \code{H0} which is the \code{\link{HashStreetName}} of the street name.
@@ -99,19 +103,22 @@ standard_address2 <- function(Address) {
 
 #' @rdname standardize_address
 #' @export
-standard_address3 <- function(Line1, Line2, Postcode = NULL) {
+standard_address3 <- function(Line1, Line2, Postcode = NULL, KeepStreetName = FALSE) {
   stopifnot(is.character(Line1),
             is.character(Line2))
   Line1 <- ensure_uppercase(Line1)
   if (is.null(Postcode)) {
     Postcode <- extract_postcode(Line2)
   }
-  Ans <- .Call("C_do_standard_address3", Line1, Line2, Postcode, PACKAGE = packageName())
+  Ans <- .Call("C_do_standard_address3", Line1, Line2, Postcode, KeepStreetName, PACKAGE = packageName())
   setDT(Ans)
-  setnames(Ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST",
+  setnames(Ans, c("FLAT_NUMBER",
+                  "NUMBER_FIRST",
+                  "NUMBER_LAST",
                   "NUMBER_SUFFIX",
                   "H0",
-                  "STREET_TYPE_CODE"))
+                  "STREET_TYPE_CODE",
+                  if (isTRUE(KeepStreetName)) "STREET_NAME"))
   set(Ans, j = "POSTCODE", value = Postcode)
   Ans[]
 }

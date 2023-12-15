@@ -16,7 +16,7 @@ standardize_address(
 
 standard_address2(Address)
 
-standard_address3(Line1, Line2, Postcode = NULL)
+standard_address3(Line1, Line2, Postcode = NULL, KeepStreetName = FALSE)
 }
 \arguments{
 \item{Address}{A character vector, either a full address or (if \code{AddressLine2}
@@ -35,7 +35,12 @@ vector?}
 
 \item{StreetHash}{Should \code{STREET_NAME} be returned as an integer hash.}
 
-\item{Line1, Line2, State, Postcode}{(Not yet used.)}
+\item{Line1, Line2, Postcode}{For addresses split by line. \code{Line1} is
+assumed to end with the street type. The second line is only used to determine
+\code{Postcode}, and then only if it is \code{NULL}, the default.}
+
+\item{KeepStreetName}{Should an additional character vector be included in
+the result of the street name?}
 }
 \value{
 A \code{data.table} containing columns indicating the components of the standard address,

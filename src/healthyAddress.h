@@ -65,7 +65,7 @@ void verifyEquiStr4(SEXP x, const char * xx,
                     SEXP y, const char * yy,
                     SEXP z, const char * zz,
                     SEXP w, const char * ww);
-
+void errifNotTF(SEXP x, const char * v);
 
 
 #endif
