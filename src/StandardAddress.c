@@ -3,20 +3,6 @@
 #include "streetcodes.h"
 
 
-static void do_print(R_xlen_t i) {
-  if (i == 0)
-    Rprintf("i = %d", i);
-  switch(i % 4) {
-  case 1:
-  case 0:
-  case 2:
-    Rprintf("%d,", i);
-    break;
-  case 3:
-    Rprintf("%d,\n", i);
-  }
-}
-
 typedef struct {
   int flat_number;
   int number_first;
@@ -3685,7 +3671,6 @@ int flat_of(const char * x, int n, int J[1]) {
 
   int j = 0;
   for (; j < n; ++j) {
-    unsigned char xj = x[j];
     if (isdigit(x[j])) {
       // if a digit but no 'flat' synonym encountered, we check for
       // a slash to signify unit
@@ -4138,12 +4123,7 @@ SEXP C_StaticAssert(SEXP x) {
   return R_NilValue;
 }
 
-SEXP Cs2u(SEXP ss, SEXP uu) {
-  signed int s = asInteger(ss);
-  unsigned int u = asInteger(uu);
 
-  return R_NilValue;
-}
 
 SEXP C_areST(SEXP x) {
   if (!isString(x)) {
@@ -4277,11 +4257,24 @@ static void xnumber2(unsigned int ans[2], int J[1], const char * x, int n) {
   }
 }
 
+unsigned char get_suff(const char * x, int n) {
+  unsigned char suf[3] = {0};
+  for (int j = 1, k = 0; j < n - 1; ++j) {
+    if (isdigit(x[j - 1]) && isupper(x[j])) {
+      suf[k] = x[j];
+      ++k;
+      if (k >= 3) {
+        break;
+      }
+    }
+  }
+  return suf3suf(suf);
+}
 
-Address get_address_line1(const char * x, int n) {
+
+Address get_address_line1(const char * x, int n, int J[1]) {
   Address A;
   A.street_type = get_street_type_line1(x, n);
-  int J[1] = {0};
   int flat = flat_of(x, n, J);
   if (flat) {
     A.flat_number = flat;
@@ -4293,13 +4286,19 @@ Address get_address_line1(const char * x, int n) {
   while (isspace(J[0])) {
     ++J[0];
   }
+
+  A.suffix = get_suff(x, n);
+  if (A.suffix != 0) {
+    J[0] += 1;
+    J[0] += isspace(J[0]);
+  }
   A.hashStreetName = djb2_hash(x, n, J[0]);
   return A;
 }
 
 
 //' When the address input is in multiple vectors.
-SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
+SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStreetName) {
   // error("Not yet implemented.");
   R_xlen_t N = xlength(Postcode);
   verifyEquiStr2(Line1, "Line1", Line2, "Line2");
@@ -4307,6 +4306,9 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
     error("`Postcode` was type '%s' but must be type integer.", type2char(TYPEOF(Postcode)));
   }
   errIfNotLen(Line1, "Line1", N);
+  errifNotTF(KeepStreetName, "KeepStreetName");
+  const bool keepStreetName = asLogical(KeepStreetName);
+
   const int * postcode = INTEGER(Postcode);
   const SEXP * x1p = STRING_PTR(Line1);
   // const SEXP * x2p = STRING_PTR(Line2);
@@ -4319,6 +4321,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
   SEXP H0 = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP StreetCode = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberSuffix = PROTECT(allocVector(RAWSXP, N)); np++;
+  SEXP StreetName = PROTECT(allocVector(STRSXP, keepStreetName ? N : 0)); np++;
 
   int * restrict flat_numberp = INTEGER(FlatNumber);
   int * restrict number_firstp = INTEGER(NumberFirst);
@@ -4334,7 +4337,6 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
   prepare_M1(M1);
 
   for (R_xlen_t i = 0; i < N; ++i) {
-
     int postcodei = postcode[i];
     if (postcodei <= 0) {
       continue;
@@ -4354,16 +4356,26 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
     // const char * x2pi = CHAR(x2p[i]);
 
     // Address ad = do_standard_address(x1pi, n1, M1, postcodei);
-    Address ad = get_address_line1(x1pi, n1);
+    int J[1] = {0};
+    Address ad = get_address_line1(x1pi, n1, J);
     h0[i] = ad.hashStreetName;
     street_codep[i] = ad.street_type;
     flat_numberp[i] = ad.flat_number;
     number_firstp[i] = ad.number_first;
     number_lastp[i] = ad.number_last;
     number_suffixp[i] = ad.suffix;
+    if (keepStreetName) {
+      int n_char_street_name = n1 - J[0] + 1;
+      char SN[n_char_street_name];
+      for (int snj = 0; snj < n_char_street_name; ++snj) {
+        SN[snj] = x1pi[snj + J[0]];
+      }
+      SN[n_char_street_name] = '\0';
+      SET_STRING_ELT(StreetName, i, mkCharCE((const char *)SN, CE_UTF8));
+    }
 
   }
-  SEXP ans = PROTECT(allocVector(VECSXP, np)); ++np;
+  SEXP ans = PROTECT(allocVector(VECSXP, keepStreetName ? np : (np - 1))); ++np;
   int li = 0;
   SET_VECTOR_ELT(ans, li, FlatNumber);   ++li;
   SET_VECTOR_ELT(ans, li, NumberFirst);  ++li;
@@ -4371,30 +4383,16 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode) {
   SET_VECTOR_ELT(ans, li, NumberSuffix); ++li;
   SET_VECTOR_ELT(ans, li, H0);           ++li;
   SET_VECTOR_ELT(ans, li, StreetCode);   ++li;
+  if (keepStreetName) {
+    SET_VECTOR_ELT(ans, li, StreetName);
+  }
   UNPROTECT(np);
   free(M1);
   return ans;
 }
 
 
-unsigned char get_suff(const char * x, int n) {
-  int n_digits = 0;
-  unsigned char suf[3] = {0};
-  for (int j = 1, k = 0; j < n - 1; ++j) {
-    if (isdigit(x[j - 1])) {
-      ++n_digits;
-      while (x[j] <= '9') {
-        ++j;
-      }
-      suf[k] = x[j];
-      ++k;
-      if (k >= 3) {
-        break;
-      }
-    }
-  }
-  return suf3suf(suf);
-}
+
 
 SEXP Cget_suffix(SEXP x) {
   if (!isString(x)) {
@@ -4404,6 +4402,7 @@ SEXP Cget_suffix(SEXP x) {
   const SEXP * xp = STRING_PTR(x);
   SEXP ans = PROTECT(allocVector(RAWSXP, N));
   unsigned char * ansp = RAW(ans);
+
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
     if (n <= 4) {
