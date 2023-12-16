@@ -130,4 +130,8 @@ expect_equal(ans$NUMBER_SUFFIX, healthyAddress:::NumberSuffix2Raw("A"))
 expect_equal(ans$H0, HashStreetName("THE ESPLANADE"))
 expect_equal(ans$POSTCODE, 2019)
 
-
+ans <- standard_address2("1/59 THE RIGHI, SOUTH YARRA, VIC, 3141")
+expect_equal(ans$FLAT_NUMBER, 1L)
+expect_equal(ans$NUMBER_FIRST, 59L)
+expect_equal(ans$H0, HashStreetName("THE RIGHI"))
+expect_equal(ans$STREET_TYPE_CODE, 0L)
