@@ -489,6 +489,7 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 #define DJB2_ESPLANADE_EAST 1418946723
 #define DJB2_ESPLANADE_WEST 1419448821
 #define DJB2_THE_STRAND -1123822046
+#define DJB2_THE_RIGHI 1526029921
 
 
 unsigned int djb2_hash_w1w2_only_letters(const char * str, WordData * wd, int w1, int w2) {
@@ -803,6 +804,9 @@ int THE_xxx(WordData wd) {
     }
     if (substring_within(x, lhs, n, "STRAND", 6)) {
       return DJB2_THE_STRAND;
+    }
+    if (substring_within(x, lhs, n, "RIGHI", 5)) {
+      return DJB2_THE_RIGHI;
     }
 
   }
@@ -3348,6 +3352,27 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
         first_word_post_number = w;
         break;
       }
+    }
+  }
+  if (Postcode == 3024 || Postcode == 3084 || Postcode == 3141 || Postcode == 3936) {
+    // possible THE RIGHI
+    for (int w = first_word_post_number; w < n_words - 2; ++w) {
+      int lhs_w0 = wd->lhs[w];
+      char w10 = x[lhs_w0];
+      if (w10 != 'T') {
+        continue;
+      }
+      int lhs_w1 = wd->lhs[w + 1];
+      if (lhs_w1 != lhs_w0 + 4) {
+        continue;
+      }
+      char w20 = x[lhs_w1];
+      if (w20 != 'R') {
+        continue;
+      }
+      ans[0] = 0;
+      ans[1] = 0;
+      ans[2] = DJB2_THE_RIGHI;
     }
   }
   // Rprintf("; j = %d\n", wd->lhs[first_word_post_number]);
