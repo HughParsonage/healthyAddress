@@ -493,6 +493,7 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 #define DJB2_THE_STRAND -1123822046
 #define DJB2_THE_RIGHI 1526029921
 #define DJB2_THE_PARKS 1519372231
+#define DJB2_THE_PARKWAY 1033948411
 
 
 unsigned int djb2_hash_w1w2_only_letters(const char * str, WordData * wd, int w1, int w2) {
@@ -811,8 +812,16 @@ int THE_xxx(WordData wd) {
     if (substring_within(x, lhs, n, "RIGHI", 5)) {
       return DJB2_THE_RIGHI;
     }
-    if (substring_within(x, lhs, n, "PARKS", 5)) {
-      return DJB2_THE_PARKS;
+    if (substring_within(x, lhs, n, "PKWY", 4)) {
+      return DJB2_THE_PARKWAY;
+    }
+    if (substring_within(x, lhs, n, "PARK", 4)) {
+      if (substring_within(x, lhs, n, "PARKS", 5)) {
+        return DJB2_THE_PARKS;
+      }
+      if (substring_within(x, lhs, n, "PARKW", 5)) {
+        return DJB2_THE_PARKWAY;
+      }
     }
 
   }
