@@ -1093,12 +1093,12 @@ void do_flat_number(const char * x, int n, int ans[2], int jj) {
     j += substring_within(x, j, n, "APT", 3) ? 3 : (substring_within(x, j, n, "APARTMENT", 9) ? 9 : 0);
     break;
   case 'U':
-    j += (x[1] == 'N' && x[2] == 'I' && x[3] == 'T') ? 4 : 1;
+    j += (x[1] == 'N' && x[2] == 'I' && x[3] == 'T' && x[4] != 'S') ? 4 : 1;
     // e.g. UNIT G
 
     break;
   case 'F':
-    if (x[1] == 'L' && x[2] == 'A' && x[3] == 'T') {
+    if (x[1] == 'L' && x[2] == 'A' && x[3] == 'T' && x[4] != 'S') {
       j += 4;
     } else {
       ans[0] = 1;
@@ -3598,7 +3598,9 @@ int has_flat(const char * x, int n) {
           return 1;
         }
       }
-      if (substring_within(x, j, n, "UNIT", 4)) {
+      // Not sure why I previously put "UNIT" rather than "UNIT " here; however
+      // UNITS sometimes appears in addresses that do not a FLAT_NUMBER field.
+      if (substring_within(x, j, n, "UNIT", 4) && (x[j + 4] == ' ' || isdigit(x[j + 4]))) {
         return 1;
       }
       if (substring_within(x, j, n, "APARTMENT ", 10)) {
