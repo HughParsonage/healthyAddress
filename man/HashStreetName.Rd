@@ -2,17 +2,29 @@
 % Please edit documentation in R/HashStreetName.R
 \name{HashStreetName}
 \alias{HashStreetName}
+\alias{unHashStreetName}
 \title{Hash a street name quickly and accurately}
 \usage{
 HashStreetName(x)
+
+unHashStreetName(x)
 }
 \arguments{
 \item{x}{A character vector of uppercase street names (without the street type).}
+}
+\value{
+For \code{HashStreetName}, an integer vector the same length as \code{x},
+a hash of the input; for \code{unHashStreetName} the inverse operation.
+
+If the original \code{x} does not contain a recognized street name, the
+result of \code{unHashStreetName} will be \code{NA}.
 }
 \description{
 Hash a street name quickly and accurately
 }
 \examples{
 HashStreetName("FLINDERS")
+HashStreetName("FLINDERS") |> unHashStreetName()
+
 
 }
