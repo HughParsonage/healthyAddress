@@ -135,3 +135,13 @@ expect_equal(ans$FLAT_NUMBER, 1L)
 expect_equal(ans$NUMBER_FIRST, 59L)
 expect_equal(ans$H0, HashStreetName("THE RIGHI"))
 expect_equal(ans$STREET_TYPE_CODE, 0L)
+
+ans <- standard_address2("19 THE PARKS, HILLSIDE, VIC, 3037")
+expect_equal(ans$FLAT_NUMBER, 0L)
+expect_equal(ans$NUMBER_FIRST, 19L)
+expect_equal(ans$H0, HashStreetName("THE PARKS"))
+expect_equal(ans$STREET_TYPE_CODE, 0L)
+
+ans <- standard_address2("14 DAINTREE RISE, ST HELENA, VIC, 3088")
+expect_equal(ans$H0, HashStreetName("DAINTREE"))
+expect_equal(ans$STREET_TYPE_CODE, 22L)
