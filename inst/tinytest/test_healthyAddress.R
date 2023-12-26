@@ -145,3 +145,7 @@ expect_equal(ans$STREET_TYPE_CODE, 0L)
 ans <- standard_address2("14 DAINTREE RISE, ST HELENA, VIC, 3088")
 expect_equal(ans$H0, HashStreetName("DAINTREE"))
 expect_equal(ans$STREET_TYPE_CODE, 22L)
+
+ans <- standard_address2("51 BASS MEADOWS BOULEVARD, ST ANDREWS BEACH, VIC, 3941")
+expect_equal(ans$H0, HashStreetName("BASS MEADOWS"))
+expect_equal(ans$STREET_TYPE_CODE, 20L)
