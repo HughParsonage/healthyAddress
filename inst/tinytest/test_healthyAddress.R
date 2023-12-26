@@ -149,3 +149,9 @@ expect_equal(ans$STREET_TYPE_CODE, 22L)
 ans <- standard_address2("51 BASS MEADOWS BOULEVARD, ST ANDREWS BEACH, VIC, 3941")
 expect_equal(ans$H0, HashStreetName("BASS MEADOWS"))
 expect_equal(ans$STREET_TYPE_CODE, 20L)
+
+# UNITS should not trigger
+ans <- standard_address2("NANGATTA UNITS KALKEE 206 HIGH STREET BELMONT VIC 3216")
+expect_equal(ans$FLAT_NUMBER, 0L)
+expect_equal(ans$NUMBER_FIRST, 206L)
+
