@@ -2,6 +2,7 @@
 #' @useDynLib healthyAddress, .registration = TRUE
 #' @import data.table
 #' @importFrom fastmatch %fin%
+#' @importFrom fastmatch fmatch
 #' @importFrom hutilscpp isntConstant
 #' @importFrom hutilscpp fmatchp
 #' @importFrom hutils coalesce
