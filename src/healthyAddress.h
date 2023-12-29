@@ -29,6 +29,18 @@
 // // Number of words per string to be considered
 #define WORD_DATUMS 16
 
+
+typedef struct {
+  int n_words;
+  int lhs[WORD_DATUMS];
+  int rhs[WORD_DATUMS];
+  int no1st;
+  const char * x;
+  int n;
+} WordData;
+
+WordData word_data(const char * x, int n, int j0);
+
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
 
@@ -56,6 +68,7 @@ int postcode2intrnl(unsigned int poa);
 int intrnl2postcode(unsigned int ipoa);
 
 // verifyEquiStr.c
+void errIfNotStr(SEXP x, const char * xx);
 void errIfNotLen(SEXP x, const char * xx, R_xlen_t N);
 void verifyEquiStr2(SEXP x, const char * xx,
                     SEXP y, const char * yy);
