@@ -916,34 +916,6 @@ int ste_as_int(const char * x, int ii) {
   return 0;
 }
 
-int extract_last_four_digits(const char* str, int n) {
-  int value = 0;
-  int digit_count = 0;
-
-  for (int i = n - 4; i <= n - 1; ++i) {
-    register char stri = str[i];
-    value = (value * 10 + (stri - '0'));
-    digit_count += isdigit(stri);
-  }
-  if (digit_count == 4) {
-    return value;
-  }
-  digit_count = 0;
-  value = 0;
-
-  for (int i = 0; i < n - 4; ++i) {
-    if (isdigit(str[i])) {
-      value = (value * 10 + (str[i] - '0')) % 10000;
-      digit_count++;
-    } else {
-      digit_count = 0;
-      value = 0;
-    }
-  }
-
-  return digit_count >= 4 ? value : 0;
-}
-
 int construct_postcode(const char * x, const int n4) {
   int o = 0;
   const int ten4s[4] = {1000, 100, 10, 1};
@@ -961,21 +933,27 @@ int xpostcode_unsafe(const char * x, int n) {
 }
 
 bool find_four_digits(const char * x, int n, int jj[1]) {
-  const int k = jj[0];
-  for (int i = k; i >= 0; --i) {
+  int i = jj[0];
+  for (; i > 0; --i) {
     if (!isdigit(x[i]) || !isdigit(x[i + 3])) {
       continue;
     }
-    if ((i == 0 || !isdigit(x[i - 1])) &&
+    if (!isdigit(x[i - 1]) &&
         // isdigit(x[i]) &&
         isdigit(x[i + 1]) &&
         isdigit(x[i + 2]) &&
         // isdigit(x[i + 3]) &&
-        (!isdigit(x[i + 4]))) {
+        !isdigit(x[i + 4])) {
       jj[0] = i;
       return true;
     }
   }
+  // i == 0
+  if (isdigit(x[0]) && isdigit(x[1]) && isdigit(x[2]) && isdigit(x[3]) && !isdigit(x[4])) {
+    jj[0] = 0;
+    return true;
+  }
+
   return false;
 }
 
