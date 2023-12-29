@@ -454,14 +454,6 @@ const unsigned int hash_street_types[32] =
 const unsigned int hash_street_typecd[32] =
   {1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 10, 10, 11, 11, 12, 12, 13, 13};
 
-typedef struct {
-  int n_words;
-  int lhs[WORD_DATUMS];
-  int rhs[WORD_DATUMS];
-  int no1st;
-  const char * x;
-  int n;
-} WordData;
 
 
 

@@ -17,3 +17,9 @@
 extract_postcode <- function(x) {
   .Call("CExtractPostcode", x, PACKAGE = packageName())
 }
+
+the__ <- function(x) {
+  .Call("C_do_the_xxx", x, PACKAGE = packageName())
+}
+
+
