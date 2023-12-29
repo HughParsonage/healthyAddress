@@ -916,22 +916,79 @@ int ste_as_int(const char * x, int ii) {
   return 0;
 }
 
+int extract_last_four_digits(const char* str, int n) {
+  int value = 0;
+  int digit_count = 0;
 
-int xpostcode_unsafe(const char * x, int n) {
-  // unsafe = don't check that length is sufficient
+  for (int i = n - 4; i <= n - 1; ++i) {
+    register char stri = str[i];
+    value = (value * 10 + (stri - '0'));
+    digit_count += isdigit(stri);
+  }
+  if (digit_count == 4) {
+    return value;
+  }
+  digit_count = 0;
+  value = 0;
+
+  for (int i = 0; i < n - 4; ++i) {
+    if (isdigit(str[i])) {
+      value = (value * 10 + (str[i] - '0')) % 10000;
+      digit_count++;
+    } else {
+      digit_count = 0;
+      value = 0;
+    }
+  }
+
+  return digit_count >= 4 ? value : 0;
+}
+
+int construct_postcode(const char * x, const int n4) {
   int o = 0;
   const int ten4s[4] = {1000, 100, 10, 1};
-  const int n4 = n - 4;
   for (int d = 0; d < 4; ++d) {
     char xj = x[n4 + d];
-    if (isdigit(xj)) {
-      o += ten4s[d] * (xj - '0');
-    }
+    o += ten4s[d] * (xj - '0');
   }
   return o;
 }
 
+int xpostcode_unsafe(const char * x, int n) {
+  // unsafe = don't check that length is sufficient
+  const int n4 = n - 4;
+  return construct_postcode(x, n4);
+}
 
+bool find_four_digits(const char * x, int n, int jj[1]) {
+  const int k = jj[0];
+  for (int i = k; i >= 0; --i) {
+    if (!isdigit(x[i]) || !isdigit(x[i + 3])) {
+      continue;
+    }
+    if ((i == 0 || !isdigit(x[i - 1])) &&
+        // isdigit(x[i]) &&
+        isdigit(x[i + 1]) &&
+        isdigit(x[i + 2]) &&
+        // isdigit(x[i + 3]) &&
+        (!isdigit(x[i + 4]))) {
+      jj[0] = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+int xpostcode_unsafe2(const char * x, int n) {
+  if (isdigit(x[n - 4]) && isdigit(x[n - 3]) && isdigit(x[n - 2]) && isdigit(x[n - 1])) {
+    return xpostcode_unsafe(x, n);
+  }
+  int jj[1] = {n - 5};
+  if (find_four_digits(x, n, jj)) {
+    return construct_postcode(x, (const int)jj[0]);
+  }
+  return 0;
+}
 
 
 // Convert number_suffix to raw for compression
@@ -1067,7 +1124,7 @@ SEXP CExtractPostcode(SEXP x) {
   const SEXP * xpp = STRING_PTR(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
-// #pragma omp parallel for
+// pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xpp[i]);
     if (n < 4) {
@@ -1075,7 +1132,7 @@ SEXP CExtractPostcode(SEXP x) {
       continue;
     }
     const char * xp = CHAR(xpp[i]);
-    ansp[i] = xpostcode_unsafe(xp, n);
+    ansp[i] = xpostcode_unsafe2(xp, n);
   }
   UNPROTECT(1);
   return ans;
