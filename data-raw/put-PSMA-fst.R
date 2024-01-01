@@ -15,7 +15,7 @@ find_psma_cols <- function(cols, state = "VIC") {
   state_psv <- all_psv[grep(state, basename(all_psv))]
   all_names <-
     lapply(state_psv, function(file.psv) {
-      names(fread(file = file.psv, sep = "|", nrows = 0))
+      names(fread(file = file.psv, sep = "|", nrows = 1)) # temp.bug in data.table for nrows = 0
     })
   files_with_cols <- state_psv[vapply(all_names, function(noms) all(cols %in% noms), NA)]
   if (!length(files_with_cols)) {
@@ -31,8 +31,11 @@ fread_psma <- function(type_pattern = ".",
                        multiple_ok = FALSE,
                        nrows = 1L) {
   all_psv <- dir(path = "~/Data/PSMA-Geocoded-Address-202105/G-NAF/", pattern = "\\.psv$", full.names = TRUE, recursive = TRUE)
-
-  files2read <- all_psv[grepl(state, basename(all_psv)) & grepl(type_pattern, basename(all_psv), perl = TRUE)]
+  # files2read <- all_psv[grepl(state, basename(all_psv)) & grepl(type_pattern, basename(all_psv), perl = TRUE)]
+  files2read <- all_psv[grepl(type_pattern, basename(all_psv), perl = TRUE)]
+  if (!is.null(state)) {
+    files2read <- files2read[grepl(state, basename(all_psv))]
+  }
   if (length(files2read) == 0) {
     warning("len = ", length(files2read))
     return(data.table())
@@ -48,6 +51,8 @@ fread_psma <- function(type_pattern = ".",
   }
   fread(file = files2read, sep = "|", nrows = nrows, showProgress = FALSE)
 }
+
+
 
 files_psv <- dir("~/Data/PSMA-Geocoded-Address-202105/G-NAF/G-NAF MAY 2021/Standard",
                  full.names = TRUE,
