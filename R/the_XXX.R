@@ -24,5 +24,12 @@ get_difficult_postcodes <- function() {
     .[]
 }
 
+# These postcodes are easy -- if they are present, we can simply skip testing
+# THE because no street name exists
+get_easy_postcodes <- function() {
+  problems <- get_difficult_postcodes()
+  read_locality_by_postcode()[startsWith(NAME, "THE ")][POSTCODE %notin% problems$POSTCODE]
+}
+
 
 

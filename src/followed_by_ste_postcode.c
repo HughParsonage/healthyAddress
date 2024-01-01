@@ -26,7 +26,9 @@ bool followed_by_STE_POSTCODE(int w_i, WordData wd) {
   case 'T':
     return x[j + 1] == 'A' && x[j + 2] == 'S' && !isupper(x[j + 3]);
   case 'W':
-    return x[j + 1] == 'A' && !isupper(x[j + 3]);
+    return x[j + 1] == 'A' && !isupper(x[j + 2]);
+  case 'V':
+    return x[j + 1] == 'I' && x[j + 2] == 'C' && !isupper(x[j + 3]);
   }
   return false;
 }
