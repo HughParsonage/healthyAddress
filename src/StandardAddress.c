@@ -565,7 +565,7 @@ WordData word_data(const char * x, int n, int j0) {
       lhs[w] = j + 1;
     }
   }
-  rhs[w] = n - 1;
+  rhs[w] = n;
   ++w;
   if (!isdigit(x[0])) {
     for (int j = n - 1; j >= 1; --j) {
