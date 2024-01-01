@@ -67,6 +67,9 @@ bool poa_has_street_type(int poa, int type);
 int postcode2intrnl(unsigned int poa);
 int intrnl2postcode(unsigned int ipoa);
 
+// followed_by_STE_POSTCODE
+bool followed_by_STE_POSTCODE(int w_i, WordData wd);
+
 // verifyEquiStr.c
 void errIfNotStr(SEXP x, const char * xx);
 void errIfNotLen(SEXP x, const char * xx, R_xlen_t N);

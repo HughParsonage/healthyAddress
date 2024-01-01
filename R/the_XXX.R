@@ -9,3 +9,20 @@ get_the_XXX <- function(o = TRUE) {
   # are returned.
   .Call("C_getTHEXXX", o, PACKAGE = packageName())
 }
+
+get_difficult_postcodes <- function() {
+  US <- read_ste_fst()
+  merge(read_locality_by_postcode(),
+        US[startsWith(STREET_NAME, "THE "),
+           .(POSTCODE, STREET_NAME)] |>
+          unique(),
+        by = "POSTCODE",
+        allow.cartesian = TRUE) %>%
+    .[startsWith(NAME, "THE ")] %>%
+    .[, m_LOCALITY := match(NAME, paste("THE", get_the_XXX()), nomatch = 0L)] %>%
+    .[, m_STREET := match(STREET_NAME, paste("THE", get_the_XXX()), nomatch = 0L)] %>%
+    .[]
+}
+
+
+

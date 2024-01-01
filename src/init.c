@@ -12,7 +12,7 @@ extern SEXP C_anyComma(SEXP, SEXP);
 extern SEXP C_areST(SEXP);
 extern SEXP C_do_standard_address(SEXP);
 extern SEXP C_do_standard_address3(SEXP, SEXP, SEXP, SEXP);
-extern SEXP C_do_the_xxx(SEXP);
+extern SEXP C_do_the_xxx(SEXP, SEXP);
 extern SEXP C_getTHEXXX(SEXP);
 extern SEXP C_has_saint_name(SEXP, SEXP);
 extern SEXP C_has_word(SEXP, SEXP);
@@ -42,7 +42,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_areST",                 (DL_FUNC) &C_areST,                 1},
     {"C_do_standard_address",   (DL_FUNC) &C_do_standard_address,   1},
     {"C_do_standard_address3",  (DL_FUNC) &C_do_standard_address3,  4},
-    {"C_do_the_xxx",            (DL_FUNC) &C_do_the_xxx,            1},
+    {"C_do_the_xxx",            (DL_FUNC) &C_do_the_xxx,            2},
     {"C_getTHEXXX",             (DL_FUNC) &C_getTHEXXX,             1},
     {"C_has_saint_name",        (DL_FUNC) &C_has_saint_name,        2},
     {"C_has_word",              (DL_FUNC) &C_has_word,              2},
