@@ -536,10 +536,6 @@ WordData word_data(const char * x, int n, int j0) {
   int no1st = 0;
   int lhs[WORD_DATUMS] = {0};
   int rhs[WORD_DATUMS] = {0};
-  for (int w_j = 0; w_j < WORD_DATUMS; ++w_j) {
-    lhs[w_j] = 0;
-    rhs[w_j] = 0;
-  }
 
   // ensure we're at the start of a word
   while (j0 < n && x[j0] == ' ') {
