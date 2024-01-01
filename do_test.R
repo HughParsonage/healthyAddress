@@ -4,6 +4,7 @@ library(healthyAddress)
   for (file.R in dir("inst/tinytest",
                      pattern = paste0("^test.*", filter),
                      full.names = TRUE)) {
+    if (grepl("Hash", file.R)) next # unHashname requires download
     tinytest::run_test_file(file.R)
   }
 }
