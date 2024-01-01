@@ -429,7 +429,11 @@ int search(TrieNode *root, const char *key) {
   TrieNode *pCrawl = root;
 
   for (int i = 0; key[i] != '\0'; i++) {
-    int index = key[i] - 'A';
+    unsigned int index = key[i] - 'A';
+    if (index >= ALPHABET_SIZE) {
+      index = ALPHABET_SIZE - 1;
+    }
+
     if (!pCrawl->children[index]) {
       return -1;  // Word not found
     }
@@ -527,6 +531,7 @@ int THE_xxx3(TrieNode *root, WordData wd, uint16_t p_postcode /* problem postcod
 
           // Use trie to check if this is a known street name
           int trie_code = search(root, streetName);
+
           if (trie_code != -1) {
             if (p_postcode) {
               // need to investigate whether the 'THE' has occurred because of
