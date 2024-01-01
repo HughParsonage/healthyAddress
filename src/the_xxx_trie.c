@@ -240,6 +240,26 @@ const int THE_LOCALITIES[N_THE_LOCALITIES] =
    334, 353, 426, 448, 463, 502, 550, 560, 584, 599,
    620, 629};
 
+SEXP C_getTHEXXX(SEXP x) {
+  errifNotTF(x, "x");
+  const bool x_ = asLogical(x);
+  if (x_) {
+    SEXP ans = PROTECT(allocVector(STRSXP, N_THE_XXXS));
+    for (int i = 0; i < N_THE_XXXS; ++i) {
+      SET_STRING_ELT(ans, i, mkCharCE(THE_XXXs[i], CE_UTF8));
+    }
+    UNPROTECT(1);
+    return ans;
+  }
+  SEXP ans = PROTECT(allocVector(INTSXP, N_THE_LOCALITIES));
+  for (int i = 0; i < N_THE_LOCALITIES; ++i) {
+    INTEGER(ans)[i] = THE_LOCALITIES[i] + 1;
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+
 #define ALPHABET_SIZE 27  // Assuming only uppercase letters plus space
 
 typedef struct TrieNode {
@@ -385,7 +405,7 @@ SEXP C_do_the_xxx(SEXP x) {
   return ans;
 }
 
-int THE_xxx3(TrieNode *root, WordData wd) {
+int THE_xxx3(TrieNode *root, WordData wd, int postcode) {
   const char *x = wd.x;
   int n_words = wd.n_words;
 
