@@ -3,14 +3,14 @@ requireNamespace <- function(package) {
 }
 
 if (!requireNamespace("data.table")) {
-  install.packages(c("hutils", "data.table"))
+  install.packages(c("hutils", "data.table"), quiet=TRUE)
 }
 if (!requireNamespace("tinytest")) {
-  install.packages("tinytest")
+  install.packages("tinytest", quiet=TRUE)
 }
-pkgs <- c("magrittr", "fst", "hutils", "hutilscpp", "fastmatch")
+pkgs <- c("magrittr", "fst", "qs", "hutils", "hutilscpp", "fastmatch")
 if (any(!sapply(pkgs, requireNamespace))) {
-  install.packages(pkgs)
+  install.packages(pkgs, quiet = TRUE)
 }
 print(Sys.getenv())
 
