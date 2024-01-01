@@ -1,3 +1,4 @@
+library(healthyAddress)
 expect_true(TRUE)
 ans <- healthyAddress:::standard_address2("UNIT 47 LEVEL 1 174-175 ESPLANADE WEST PORT MELBOURNE 3207")
 expect_equal(ans$NUMBER_FIRST, 174L)  # not 1
