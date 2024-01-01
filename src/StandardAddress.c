@@ -1304,11 +1304,63 @@ unsigned int pos_preceding_word(const char * x, int i) {
 
 
 int has_comma(const char * x, int n) {
-  int i = n - 1;
-  while (i >= 0 && x[i] != ',') {
-    --i;
+  for (int j = 0; j < n; ++j) {
+    if (x[j] == ',') {
+      return j + 1;
+    }
   }
-  return i;
+  return 0;
+}
+
+void comma_locations(int commas[8], const char * x, int n) {
+  unsigned int j = 0;
+  for (int i = 0; i < n; ++i) {
+    commas[j & 7] = i;
+    j += (*(x + i) == ',');
+  }
+  // ensure remaining are filled with negatives
+  for (; j < 8; ++j) {
+    commas[j] = -1;
+  }
+}
+
+void detect_char(unsigned char ans[256], const char * x, int n) {
+  for (int j = 0; j < n; ++j) {
+    unsigned int xj = (unsigned char)x[j];
+    ans[xj] = 1;
+  }
+}
+
+SEXP C_anyComma(SEXP x, SEXP oo) {
+  if (!isString(x)) {
+    warning("Not a string, so returning 0.");
+    return ScalarInteger(0);
+  }
+  const int o = asInteger(oo);
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  if (o == 1) {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      // if (has_comma(CHAR(xp[i]), length(xp[i]))) {
+      //   return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
+      // }
+      int xx[8] = {0};
+      comma_locations(xx, CHAR(xp[i]), length(xp[i]));
+      if (xx[0] >= 0) {
+        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
+      }
+    }
+  } else if (o == 0) {
+    unsigned char all_chars[256] = {0};
+    for (R_xlen_t i = 0; i < N; ++i) {
+      detect_char(all_chars, CHAR(xp[i]), length(xp[i]));
+      if (all_chars[44]) {
+        return ScalarInteger(i + 1);
+      }
+    }
+
+  }
+  return ScalarInteger(0);
 }
 
 
