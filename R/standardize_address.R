@@ -24,6 +24,11 @@
 #' @return A \code{data.table} containing columns indicating the components of the standard address,
 #' including \code{H0} which is the \code{\link{HashStreetName}} of the street name.
 #'
+#' @details
+#' By convention observed in the PSMA, street names such as 'THE ESPLANADE' have
+#' a street name of 'THE ESPLANADE' and an absent street type code.
+#'
+#'
 #' @export
 
 standardize_address <- function(Address,
