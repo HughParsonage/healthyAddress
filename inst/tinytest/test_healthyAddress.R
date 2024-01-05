@@ -164,3 +164,6 @@ expect_equal(ans$H0, HashStreetName("THE PARKWAY"))
 ans <- standard_address2("63 THE PKWY, PAKENHAM VIC 3810")
 expect_equal(ans$H0, HashStreetName("THE PARKWAY"))
 
+# THE SPRINGS != THE SPRINGS CLOSE
+ans <- standard_address2("1 THE SPRINGS CLOSE, NARRE WARREN SOUTH, VIC, 3805")
+expect_equal(ans$H0, HashStreetName("THE SPRINGS CLOSE"))
