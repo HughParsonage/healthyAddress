@@ -25,11 +25,24 @@
 #define N_UNIQUE_STREET_CODES 201
 #define MAX_STREET_CODE 224
 
+typedef struct {
+  unsigned int THE_code : 2;
+  unsigned int n_saints : 2;
+} Postcode;
+
+extern Postcode M_POSTCODE[SUP_POSTCODES];
+
+// the_xxx_trie
+#define ALPHABET_SIZE 27  // Assuming only uppercase letters plus space
+typedef struct TrieNode {
+  struct TrieNode *children[ALPHABET_SIZE];
+  bool isEndOfWord;
+  int code;
+} TrieNode;
+
 // Parameters or assumptions (often about stacks)
 // // Number of words per string to be considered
 #define WORD_DATUMS 16
-
-
 typedef struct {
   int n_words;
   int lhs[WORD_DATUMS];
@@ -69,6 +82,13 @@ int intrnl2postcode(unsigned int ipoa);
 
 // followed_by_STE_POSTCODE
 bool followed_by_STE_POSTCODE(int w_i, WordData wd);
+
+// trie
+TrieNode *getNode(void);
+void freeTrie(TrieNode *root);
+void insert_all(TrieNode *root);
+void memoize_trie_postcodes(void);
+int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode);
 
 // verifyEquiStr.c
 void errIfNotStr(SEXP x, const char * xx);

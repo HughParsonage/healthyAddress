@@ -453,15 +453,6 @@ SEXP C_getTHEXXX(SEXP x) {
 }
 
 
-#define ALPHABET_SIZE 27  // Assuming only uppercase letters plus space
-
-typedef struct TrieNode {
-  struct TrieNode *children[ALPHABET_SIZE];
-  bool isEndOfWord;
-  int code;  // New field to store the code
-} TrieNode;
-
-
 TrieNode *getNode(void) {
   TrieNode *pNode = (TrieNode *)malloc(sizeof(TrieNode));
 
@@ -637,6 +628,18 @@ int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode /* problem po
   }
 
   return 0; // No match found
+}
+
+void memoize_trie_postcodes(void) {
+  for (int p = 0; p < SUP_POSTCODES; ++p) {
+    M_POSTCODE[p].THE_code = 0;
+  }
+  for (int p = 0; p < N_POSTCODES_WITH_THE_STREET_NAME; ++p) {
+    M_POSTCODE[THE_POSTCODES_W_STREET_NAME[p]].THE_code = 1;
+  }
+  for (int p = 0; p < N_XXXPOSTCODE; ++p) {
+    M_POSTCODE[THE_XXX_COMPLX[p].postcode].THE_code = 2;
+  }
 }
 
 SEXP C_do_the_xxx(SEXP x, SEXP Postcode) {

@@ -3986,7 +3986,7 @@ unsigned char suf3suf(unsigned char x[3]) {
 }
 
 
-Address do_standard_address(const char * x, int n, unsigned char * m1, int postcode) {
+Address do_standard_address(const char * x, int n, unsigned char * m1, int postcode, TrieNode * root) {
   int numberFirstLast[3] = {0};
   int Street[2] = {0};
   Address ad;
@@ -4044,17 +4044,20 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
       j = next_word(three_nos[3], wd) ; // position after final digit
     }
   }
-  int the_street = THE_xxx(wd);
-  if (the_street) {
-    ad.postcode = postcode;
-    ad.flat_number = numberFirstLast[0];
-    ad.number_first = numberFirstLast[1];
-    ad.number_last = numberFirstLast[2];
-    // assume such a street may not be hashed
-    ad.hashStreetName = the_street;
-    ad.street_type = 0;
-    ad.suffix = suf3suf(suf);
-    return ad;
+  if (postcode > 0 && postcode <= MAX_POSTCODE) {
+    int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
+    // int the_street = 0;
+    if (the_street) {
+      ad.postcode = postcode;
+      ad.flat_number = numberFirstLast[0];
+      ad.number_first = numberFirstLast[1];
+      ad.number_last = numberFirstLast[2];
+      // assume such a street may not be hashed
+      ad.hashStreetName = the_street;
+      ad.street_type = 0;
+      ad.suffix = suf3suf(suf);
+      return ad;
+    }
   }
   int street_type[3] = {0};
   do_street_type(street_type, x, n, j, &wd, postcode, m1);
@@ -4100,7 +4103,10 @@ static void prepare_M1(unsigned char * M1) {
     int postcode_p = Stp->postcode;
     int n_saintsp = Stp->n_saints;
     M1[postcode_p] = 128 * (n_saintsp == 2) + p;
+    M_POSTCODE[postcode_p].n_saints = n_saintsp;
   }
+
+
 }
 
 
@@ -4113,10 +4119,17 @@ SEXP C_do_standard_address(SEXP xx) {
     error("Internal error(C_do_standard_address): unable to allocate M1");
   }
   prepare_M1(M1);
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    free(M1);
+    free(root);
+    error("Unable to allocate TrieNode*root.");
+  }
+  memoize_trie_postcodes(); // inserts the THE codes appropriately
 
 
   int np = 0;
-  // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
+
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
@@ -4146,7 +4159,7 @@ SEXP C_do_standard_address(SEXP xx) {
       continue;
     }
     const char * x = CHAR(xp[i]);
-    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n));
+    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n), root);
     h0[i] = ad.hashStreetName;
     pp[i] = ad.postcode;
     street_codep[i] = ad.street_type;
@@ -4167,6 +4180,7 @@ SEXP C_do_standard_address(SEXP xx) {
   SET_VECTOR_ELT(ans, li, Postcode);     ++li;
   UNPROTECT(np);
   free(M1);
+  freeTrie(root);
   return ans;
 
 }
@@ -4470,9 +4484,8 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     }
 
     const char * x1pi = CHAR(x1p[i]);
-    // const char * x2pi = CHAR(x2p[i]);
 
-    // Address ad = do_standard_address(x1pi, n1, M1, postcodei);
+
     int J[1] = {0};
     Address ad = get_address_line1(x1pi, n1, J);
     h0[i] = ad.hashStreetName;
