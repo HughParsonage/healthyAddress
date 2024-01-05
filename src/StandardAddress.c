@@ -4125,6 +4125,7 @@ SEXP C_do_standard_address(SEXP xx) {
     free(root);
     error("Unable to allocate TrieNode*root.");
   }
+  insert_all(root);
   memoize_trie_postcodes(); // inserts the THE codes appropriately
 
 
