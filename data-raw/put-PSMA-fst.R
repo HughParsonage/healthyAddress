@@ -15,7 +15,7 @@ find_psma_cols <- function(cols, state = "VIC") {
   state_psv <- all_psv[grep(state, basename(all_psv))]
   all_names <-
     lapply(state_psv, function(file.psv) {
-      names(fread(file = file.psv, sep = "|", nrows = 1)) # temp.bug in data.table for nrows = 0
+      names(fread(file = file.psv, sep = "|", nrows = 0)) # temp.bug in data.table for nrows = 0
     })
   files_with_cols <- state_psv[vapply(all_names, function(noms) all(cols %in% noms), NA)]
   if (!length(files_with_cols)) {
