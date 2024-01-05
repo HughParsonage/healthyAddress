@@ -582,51 +582,61 @@ int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode /* problem po
     int rhs = wd.rhs[w];
 
     // Check if the current word is 'THE'
-    if (rhs - lhs == 3 && strncmp(x + lhs, "THE", 3) == 0) {
-      char streetName[MAX_STREET_NAME_LEN] = {0}; // Buffer for street name
-      int currentLength = 0; // Current length of streetName
+    if (rhs - lhs != 3 || strncmp(x + lhs, "THE", 3) != 0) {
+      continue;
+    }
+    char streetName[MAX_STREET_NAME_LEN] = {0}; // Buffer for street name
+    int currentLength = 0; // Current length of streetName
 
-      // Iterate over the following words to construct potential street names
-      for (int i = w + 1; i < n_words; ++i) {
-        int wordStart = wd.lhs[i];
-        int wordEnd = wd.rhs[i];
-        int wordLength = wordEnd - wordStart;
+    // Iterate over the following words to construct potential street names
+    // Want the longest match. By observation, only those with 3 words or
+    // fewer are among the THE_XXXs whose prefixes are also THE_XXXs
+    int trie_codes[3] = {0};
+    int j_t = 0;
+    for (int i = w + 1; i < n_words; ++i) {
+      int wordStart = wd.lhs[i];
+      int wordEnd = wd.rhs[i];
+      int wordLength = wordEnd - wordStart;
 
-        // Check if adding the next word exceeds the buffer size
-        if (currentLength + wordLength < MAX_STREET_NAME_LEN - 1) {
-          // Append a space before the word if it's not the first word
-          if (currentLength > 0) {
-            // ++ accounts for the space in current length
-            streetName[currentLength++] = ' ';
+      // Check if adding the next word exceeds the buffer size
+      if (currentLength + wordLength >= MAX_STREET_NAME_LEN - 1) {
+        break; // Buffer would overflow, stop appending
+      }
+      // Append a space before the word if it's not the first word
+      if (currentLength > 0) {
+        // ++ accounts for the space in current length
+        streetName[currentLength++] = ' ';
+      }
+
+      // Append the word to streetName
+      strncat(streetName, x + wordStart, wordLength);
+      currentLength += wordLength;
+
+      // Use trie to check if this is a known street name
+      int trie_code = search(root, streetName);
+      if (trie_code != -1) {
+        if (j_t < 3) {
+          trie_codes[j_t++] = trie_code;
+        }
+        if (p_postcode == 2) {
+          // need to investigate whether the 'THE' has occurred because of
+          // the street name or the locality. Note that 'THE' won't be triggered
+          // on locality names that are not also street names.
+          if (followed_by_STE_POSTCODE(i, wd)) {
+            // likely not a correct code, but the locality we've picked up
+            return trie_codes[j_t - 1];
           }
-
-          // Append the word to streetName
-          strncat(streetName, x + wordStart, wordLength);
-          currentLength += wordLength;
-
-          // Use trie to check if this is a known street name
-          int trie_code = search(root, streetName);
-
-          if (trie_code != -1) {
-            if (p_postcode == 2) {
-              // need to investigate whether the 'THE' has occurred because of
-              // the street name or the locality. Note that 'THE' won't be triggered
-              // on locality names that are not also street names.
-              if (followed_by_STE_POSTCODE(i, wd)) {
-                // likely not a correct code, but the locality we've picked up
-                return 0;
-              }
-              // we rely on the forward movement of the address. That is, our
-              // algorithm will pick up street names before localities if
-              // both appear, because streets appear to the left in Australian
-              // addresses
-            }
-            return trie_code;
-          }
-        } else {
-          break; // Buffer would overflow, stop appending
+          // we rely on the forward movement of the address. That is, our
+          // algorithm will pick up street names before localities if
+          // both appear, because streets appear to the left in Australian
+          // addresses
         }
       }
+    }
+    if (j_t) {
+      return trie_codes[j_t - 1];
+    } else {
+      return 0;
     }
   }
 
