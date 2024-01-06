@@ -3623,18 +3623,22 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     }
   }
 
-  const int W_ORD[WORD_DATUMS] = {  2, 3,  4,   5,  6, 0, 1, 7,
-                                    11, 12, 13, 10, 14, 8, 9, 15};
+  // const int W_ORD[WORD_DATUMS] = {  2, 3,  4,   5,  6, 0, 1, 7,
+  //                                   11, 12, 13, 10, 14, 8, 9, 15};
+  const int W_ORD[WORD_DATUMS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0};
 
   // one with first 16
   for (int w_ = 0; w_ < 4; ++w_) {
     int w = W_ORD[w_];
+    if (w > n_words) {
+      continue;
+    }
     if (w <= first_word_post_number) {
       continue;
     }
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
-    if (w > n_words || rhs_w == 0) {
+    if (rhs_w == 0) {
       continue;
     }
     unsigned int width_w = rhs_w - lhs_w;
