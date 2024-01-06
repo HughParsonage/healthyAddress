@@ -167,3 +167,15 @@ expect_equal(ans$H0, HashStreetName("THE PARKWAY"))
 # THE SPRINGS != THE SPRINGS CLOSE
 ans <- standard_address2("1 THE SPRINGS CLOSE, NARRE WARREN SOUTH, VIC, 3805")
 expect_equal(ans$H0, HashStreetName("THE SPRINGS CLOSE"))
+
+ans <- standard_address2("3 LOWER TERRACE CRESCENT, NOBLE PARK NORTH, VIC 3174")
+expect_equal(ans$H0, HashStreetName("LOWER TERRACE"))
+
+ans <- standard_address2("1D/66-68 ALLARA STREET CANBERRA CITY ACT 2601")
+expect_equal(ans$NUMBER_FIRST, 66L)
+
+ans <- standard_address2("1d 66/68 ALLARA STREET CANBERRA CITY ACT 2601")
+expect_equal(ans$NUMBER_FIRST, 66L)
+
+ans <- standard_address2("1a/18 Abbott St, Abbotsford Vic 3067")
+expect_equal(ans$NUMBER_SUFFIX, NumberSuffix2Raw("A"))

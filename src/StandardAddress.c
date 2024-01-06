@@ -377,6 +377,7 @@ const static Saint St2565 = { 2565, 1, "ANDREWS", 7 };
 const static Saint St2760 = { 2760, 2, "MARYS", 5, "NORTH MARYS", 11 };
 const static Saint St2770 = { 2770, 1, "MARYS", 5 };
 const static Saint St3020 = { 3020, 1, "ALBANS", 6 };
+const static Saint St3021 = { 3021, 1, "ALBANS", 6 };
 const static Saint St3037 = { 3037, 1, "ALBANS", 6 };
 const static Saint St3088 = { 3088, 1, "HELENA", 6 };
 const static Saint St3184 = { 3184, 1, "KILDA", 5 };
@@ -426,9 +427,9 @@ const static Saint St7214 = { 7214, 1, "MARYS", 5 };
 const static Saint St7216 = { 7216, 1, "HELENS", 6 };
 const static Saint St7250 = { 7250, 1, "LEONARDS", 8 };
 
-#define NSAINT 67
+#define NSAINT 68
 const Saint * Sts[NSAINT] = {&St2044, &St2064, &St2065, &St2066, &St2072, &St2073, &St2075, &St2176, &St2177, &St2204, &St2350,
-                             &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3020, &St3037, &St3088, &St3184, &St3223,
+                             &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3020, &St3021, &St3037, &St3088, &St3184, &St3223,
                              &St3384, &St3726, &St3727, &St3760, &St3941, &St3992, &St3995, &St4066, &St4364, &St4405, &St4486, &St4488,
                              &St4650, &St4671, &St4706, &St4798, &St4800, &St4814, &St4818, &St5011, &St5014, &St5042, &St5064,
                              &St5068, &St5069, &St5081, &St5097, &St5110, &St5254, &St5356, &St6010, &St6021, &St6052, &St6055,
@@ -480,6 +481,7 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 
 #define DJB2_HIGH_STREET 1467366250
 #define DJB2_ST_GEORGES 685862476
+#define DJB2_ESPLANADE 1588178048
 #define DJB2_ESPLANADE_EAST 1418946723
 #define DJB2_ESPLANADE_WEST 1419448821
 #define DJB2_THE_STRAND -1123822046
@@ -3524,6 +3526,27 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       return;
     }
   }
+  if (Postcode == 3174) {
+    // LOWER TERRACE
+    for (int w = first_word_post_number; w < n_words - 2; ++w) {
+      int lhs_w0 = wd->lhs[w];
+      char w10 = x[lhs_w0];
+      if (w10 != 'L') {
+        continue;
+      }
+      int lhs_w1 = wd->lhs[w + 1];
+      int lhs_w2 = wd->lhs[w + 2];
+
+      if (lhs_w1 != lhs_w0 + 6 ||
+          lhs_w2 != lhs_w0 + 14) {
+        continue;
+      }
+      ans[0] = ST_CODE_CRESCENT;
+      ans[1] = lhs_w2;
+      ans[2] = 1301557904;
+      return;
+    }
+  }
   if (Postcode == 3207) {
     // ESPLANADE EAST
     for (int w = first_word_post_number; w < n_words - 2; ++w) {
@@ -3795,6 +3818,11 @@ int flat_of(const char * x, int n, int J[1]) {
       ++j;
       while (isdigit(x[j])) {
         ++j;
+      }
+      // possibly a suffix
+      if (isupper(x[j]) && x[j + 1] == '/') {
+        has_flat = true;
+        break;
       }
       while (isspace(x[j])) {
         ++j;
@@ -4089,6 +4117,11 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   ad.number_first = numberFirstLast[1];
   ad.number_last = numberFirstLast[2];
   ad.street_type = Street[1];
+  if (ad.hashStreetName == 5381 && ad.street_type == ST_CODE_ESPLANADE) {
+    // Strange quirk where 'ESPLANADE' is the street name
+    ad.hashStreetName = DJB2_ESPLANADE;
+    ad.street_type = 0;
+  }
   ad.suffix = suf3suf(suf);
 
   return ad;
