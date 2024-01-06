@@ -15,6 +15,7 @@ static_assert <- function() {
 }
 
 do_oZTC <- function() {
+  a <- m <- NULL
   DT <- data.table(a = get_StreetType(0:273),
                    m = get_StreetCode(0:273))
   DT[, cat(strwrap(toString(order(m) - 1)), sep = "\n")]
