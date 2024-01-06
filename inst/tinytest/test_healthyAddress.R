@@ -179,3 +179,11 @@ expect_equal(ans$NUMBER_FIRST, 66L)
 
 ans <- standard_address2("1a/18 Abbott St, Abbotsford Vic 3067")
 expect_equal(ans$NUMBER_SUFFIX, NumberSuffix2Raw("A"))
+
+ans <- standard_address2("1 KINGS DOM, CAROLINE SPRINGS VIC 3023")
+expect_equal(ans$H0, HashStreetName("KINGS"))
+expect_equal(ans$STREET_TYPE_CODE, match("DOMAIN", .permitted_street_type_ord()))
+
+ans <- standard_address2("1 Dom Ct, Narangba QLD 4504")
+expect_equal(ans$H0, HashStreetName("DOM"))
+
