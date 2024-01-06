@@ -3330,7 +3330,6 @@ int wd2st(const char * x, int n, WordData * wd, int w) {
 
 bool iz_saint(int w, const char * x, int n, WordData * wd, unsigned char * m1, unsigned int Postcode) {
   unsigned char m1_postcode = m1[Postcode];
-
   if (!m1_postcode) {
     return false;
   }
@@ -3511,7 +3510,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       ans[2] = DJB2_THE_RIGHI;
     }
   }
-  // Rprintf("; j = %d\n", wd->lhs[first_word_post_number]);
+
   if (Postcode >= 3147 && Postcode <= 3152) {
     // possibly high street road
     for (int w = first_word_post_number; w < n_words - 3; ++w) {
@@ -3650,7 +3649,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       }
       const char * xz = Z->x;
       int nz = Z->lenx;
-      // bool substring_within(const char * x, int i, int n, const char * y, int m)
+
       if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
         if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
           continue;
@@ -4103,8 +4102,6 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
       if (three_nos[2] == 0) {
         // i.e. only two numbers identified (excl postcode)
         // could be flat then number or number then number
-
-
         if (has_flat(x, n_less_poa - 1)) {
           numberFirstLast[0] = three_nos[0];
           numberFirstLast[1] = three_nos[1];
@@ -4321,7 +4318,6 @@ SEXP C_StaticAssert(SEXP x) {
   // Check ZTZ concordance with z0pos_by_len
   for (int i = 1; i < NZ0POS; ++i) {
     int zi = z0pos_by_len[i];
-    // Rprintf("i = %d, zi = %d\n", i, zi);
     if (zi && zi < 271) {
       int len0 = ZTZ[zi - 1]->lenx;
       int len1 = ZTZ[zi]->lenx;
