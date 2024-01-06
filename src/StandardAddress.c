@@ -363,6 +363,29 @@ const static int oZTC[NZ] =
    254, 267, 61, 63, 19, 65, 67, 131, 211, 138, 77, 140, 83, 84, 222, 193, 98, 225, 270,
    160, 162, 248, 111};
 
+SEXP C_get_oZTC(SEXP x) {
+  SEXP ans = PROTECT(allocVector(INTSXP, NZ));
+  for (int i = 0; i < NZ; ++i) {
+    INTEGER(ans)[i] = oZTC[i];
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP C_get_StreetType(SEXP x) {
+  const int * xp = INTEGER(x);
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(STRSXP, N));
+  for (R_xlen_t i = 0; i < N; ++i) {
+    unsigned int xpi = xp[i];
+    if (xpi < NZ) {
+      SET_STRING_ELT(ans, i, mkCharCE(ZTZ[xpi]->x, CE_UTF8));
+    }
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 
 const static Saint St2044 = { 2044, 1, "PETERS", 6 };
 const static Saint St2064 = { 2064, 1, "LEONARDS", 8 };
@@ -4291,6 +4314,20 @@ SEXP C_StaticAssert(SEXP x) {
       }
     }
   }
+  for (int i = 1; i < 271; ++i) {
+    int o_ztz_i1 = oZTC[i];
+    int o_ztz_i0 = oZTC[i - 1];
+    int cd_i0 = ZTZ[o_ztz_i0]->cd;
+    int cd_i1 = ZTZ[o_ztz_i1]->cd;
+    if (cd_i0 != cd_i1 && (cd_i0 != cd_i1 - 1)) {
+      Rprintf("ZTZ[oztz_i - 1].x = %s\n", ZTZ[o_ztz_i0]->x);
+      Rprintf("ZTZ[oztz_i].x = %s\n", ZTZ[o_ztz_i1]->x);
+
+      warning("(StaticAssert FAIL)cd_i0 = %d, yet cd_i1 = %d, at %d ", cd_i0, cd_i1, i);
+      break;
+    }
+  }
+
   return R_NilValue;
 }
 
