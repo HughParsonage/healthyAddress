@@ -30,11 +30,12 @@ typedef struct {
 
 } Saint;
 
-#define NZ 272
-#define ST_ST_ST 11
+#define NZ 273
+#define ST_ST_ST 12
 // ST_ST_ST position in the StreetType array for ST as 'Street'
 
 const StreetType ZT_AV = {ST_CODE_AVENUE, "AV", 2};
+const StreetType ZT_BR = {ST_CODE_BRANCH, "BR", 2};
 const StreetType ZT_CH = {ST_CODE_CHASE, "CH", 2};
 const StreetType ZT_CL = {ST_CODE_CLOSE, "CL", 2};
 const StreetType ZT_CR = {ST_CODE_CRESCENT, "CR", 2};
@@ -307,7 +308,7 @@ const StreetType ZT_THROUGHWAY = {ST_CODE_THROUGHWAY, "THROUGHWAY", 10};
 const StreetType ZT_DISTRIBUTOR = {ST_CODE_DISTRIBUTOR, "DISTRIBUTOR", 11};
 const StreetType ZT_INTERCHANGE = {ST_CODE_INTERCHANGE, "INTERCHANGE", 11};
 const StreetType * ZTZ[NZ] = {
-  &ZT_AV, &ZT_CH, &ZT_CL, &ZT_CR, &ZT_CT, &ZT_DR, &ZT_GR, &ZT_LN, &ZT_PL, &ZT_RD,
+  &ZT_AV, &ZT_BR, &ZT_CH, &ZT_CL, &ZT_CR, &ZT_CT, &ZT_DR, &ZT_GR, &ZT_LN, &ZT_PL, &ZT_RD,
   &ZT_SQ, &ZT_ST, &ZT_AVE, &ZT_BAY, &ZT_BVD, &ZT_CCT, &ZT_CIR, &ZT_CNR, &ZT_DIP, &ZT_DOM, &ZT_DPS,
   &ZT_DVE, &ZT_END, &ZT_ESP, &ZT_EST, &ZT_GAP, &ZT_GDN, &ZT_GLD, &ZT_GRA, &ZT_GRN, &ZT_GTE,
   &ZT_HUB, &ZT_HWY, &ZT_KEY, &ZT_PDE, &ZT_PNT, &ZT_ROW, &ZT_RTE, &ZT_RTT, &ZT_RUN, &ZT_RVR,
@@ -340,25 +341,27 @@ const StreetType * ZTZ[NZ] = {
 // of i length
 #define NZ0POS 16
 #define NZ0POR 15
-const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 12, 47, 111, 165, 201, 229, 248, 264, 270, 0};
+const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 13, 48, 112, 166, 202, 230, 249, 265, 271, 0};
 
-// unique(.Permitted_street_type_ord_nchar_AZ())[, cat(strwrap(toString(order(ordering) - 1)), sep = "\n")]
+// Originally
+//   unique(.Permitted_street_type_ord_nchar_AZ())[, cat(strwrap(toString(order(ordering) - 1)), sep = "\n")]
+// Now has to be manually done (some street types omitted)
 const static int oZTC[NZ] =
-  {9, 20, 101, 11, 196, 4, 123, 0, 12, 167, 8, 142, 7, 77, 5, 21, 128, 2, 120, 44, 157, 3,
-   57, 233, 46, 45, 158, 32, 212, 41, 225, 34, 188, 6, 133, 47, 165, 15, 201, 95, 14, 51,
-   55, 115, 249, 107, 100, 259, 117, 80, 85, 79, 72, 208, 16, 173, 92, 218, 207, 106, 38,
-   223, 56, 23, 255, 10, 194, 89, 241, 91, 220, 162, 104, 50, 1, 119, 29, 132, 237, 211, 73,
-   262, 36, 96, 148, 257, 27, 131, 229, 90, 39, 171, 111, 166, 129, 116, 17, 176, 37, 152,
-   190, 238, 234, 30, 71, 28, 183, 206, 215, 35, 144, 75, 58, 124, 214, 267, 78, 81, 216,
-   217, 13, 126, 228, 258, 169, 88, 143, 87, 109, 105, 127, 102, 170, 174, 189, 248, 251,
-   40, 149, 145, 222, 59, 185, 98, 265, 22, 94, 160, 33, 245, 264, 261, 187, 65, 235, 213,
-   67, 243, 199, 200, 232, 114, 268, 172, 236, 219, 156, 103, 53, 254, 240, 155, 163, 52,
-   177, 25, 134, 198, 205, 24, 180, 256, 260, 209, 135, 193, 175, 121, 270, 181, 239, 43,
-   230, 49, 140, 150, 263, 54, 136, 186, 242, 146, 154, 246, 112, 113, 168, 122, 178, 63,
-   69, 70, 26, 182, 74, 184, 271, 141, 99, 151, 153, 195, 197, 42, 226, 231, 202, 61, 179,
-   68, 31, 138, 84, 86, 93, 147, 191, 244, 227, 108, 164, 48, 118, 250, 203, 204, 252, 125,
-   253, 266, 60, 62, 18, 64, 66, 130, 210, 137, 76, 139, 82, 83, 221, 192, 97, 224, 269,
-   159, 161, 247, 110};
+  {10, 21, 102, 12, 197, 5, 124, 0, 13, 168, 9, 143, 8, 78, 6, 22, 129, 3, 121, 45, 158, 4,
+   58, 234, 47, 46, 159, 33, 213, 42, 226, 35, 189, 7, 134, 48, 166, 16, 202, 96, 15, 52,
+   56, 116, 250, 108, 101, 260, 118, 81, 86, 80, 73, 209, 17, 174, 93, 219, 208, 107, 39,
+   224, 57, 24, 256, 11, 195, 90, 242, 92, 221, 163, 105, 51, 2, 120, 30, 133, 238, 212, 74,
+   263, 37, 97, 149, 258, 28, 132, 230, 91, 40, 172, 112, 167, 130, 117, 18, 177, 38, 153,
+   191, 239, 235, 31, 72, 29, 184, 207, 216, 36, 145, 76, 59, 125, 215, 268, 79, 82, 217,
+   218, 14, 127, 229, 259, 170, 89, 144, 88, 110, 106, 128, 103, 171, 175, 190, 249, 252,
+   41, 150, 146, 223, 60, 186, 99, 266, 23, 95, 161, 34, 246, 265, 262, 188, 66, 236, 214,
+   68, 244, 200, 201, 233, 115, 269, 173, 237, 220, 157, 104, 54, 255, 241, 156, 164, 53,
+   178, 26, 135, 199, 206, 25, 181, 257, 261, 210, 136, 194, 176, 122, 271, 182, 240, 44,
+   231, 50, 141, 151, 264, 55, 137, 187, 243, 147, 155, 247, 113, 114, 169, 123, 179, 64,
+   70, 71, 27, 183, 75, 185, 272, 142, 100, 152, 154, 196, 198, 43, 227, 232, 203, 62, 180,
+   69, 32, 139, 85, 87, 94, 148, 192, 245, 228, 109, 165, 49, 119, 251, 204, 205, 253, 126,
+   254, 267, 61, 63, 19, 65, 67, 131, 211, 138, 77, 140, 83, 84, 222, 193, 98, 225, 270,
+   160, 162, 248, 111};
 
 
 const static Saint St2044 = { 2044, 1, "PETERS", 6 };
@@ -4281,7 +4284,7 @@ SEXP C_StaticAssert(SEXP x) {
       int len0 = ZTZ[zi - 1]->lenx;
       int len1 = ZTZ[zi]->lenx;
       if (len0 == len1) {
-        warning("(StaticAssert FAIL)len0 == len1 [%d == %d] at i = %d", len0, len1, i);
+        warning("(StaticAssert FAIL)len0 == len1 [%d == %d] at i = %d with %s", len0, len1, i, ZTZ[zi]->x);
       }
       if (len1 != i) {
         warning("(StaticAssert FAIL)len1 != i + 2 [%d != %d + 2]", len1, i);
