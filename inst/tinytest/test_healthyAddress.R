@@ -199,3 +199,6 @@ expect_equal(ans$STREET_TYPE_CODE, match("PROMENADE", .permitted_street_type_ord
 # UNIT trips ST KILDA ROAD logic
 ans <- standard_address2("UNIT 3053 368 ST KILDA ROAD MELBOURNE VIC 3004")
 expect_equal(ans$H0, HashStreetName("ST KILDA"))
+
+ans <- standard_address2("45 EVERGREEN CCT, OCEAN GROVE, VIC, 3226")
+expect_equal(ans$H0, HashStreetName("EVERGREEN"))
