@@ -420,6 +420,8 @@ const static Saint St2560 = { 2560, 1, "HELENS", 6 };
 const static Saint St2565 = { 2565, 1, "ANDREWS", 7 };
 const static Saint St2760 = { 2760, 2, "MARYS", 5, "NORTH MARYS", 11 };
 const static Saint St2770 = { 2770, 1, "MARYS", 5 };
+const static Saint St3004 = { 3004, 1, "KILDA", 5 };
+const static Saint St3006 = { 3006, 1, "KILDA", 5 };
 const static Saint St3020 = { 3020, 1, "ALBANS", 6 };
 const static Saint St3021 = { 3021, 1, "ALBANS", 6 };
 const static Saint St3037 = { 3037, 1, "ALBANS", 6 };
@@ -471,9 +473,9 @@ const static Saint St7214 = { 7214, 1, "MARYS", 5 };
 const static Saint St7216 = { 7216, 1, "HELENS", 6 };
 const static Saint St7250 = { 7250, 1, "LEONARDS", 8 };
 
-#define NSAINT 68
+#define NSAINT 70
 const Saint * Sts[NSAINT] = {&St2044, &St2064, &St2065, &St2066, &St2072, &St2073, &St2075, &St2176, &St2177, &St2204, &St2350,
-                             &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3020, &St3021, &St3037, &St3088, &St3184, &St3223,
+                             &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3004, &St3006, &St3020, &St3021, &St3037, &St3088, &St3184, &St3223,
                              &St3384, &St3726, &St3727, &St3760, &St3941, &St3992, &St3995, &St4066, &St4364, &St4405, &St4486, &St4488,
                              &St4650, &St4671, &St4706, &St4798, &St4800, &St4814, &St4818, &St5011, &St5014, &St5042, &St5064,
                              &St5068, &St5069, &St5081, &St5097, &St5110, &St5254, &St5356, &St6010, &St6021, &St6052, &St6055,
