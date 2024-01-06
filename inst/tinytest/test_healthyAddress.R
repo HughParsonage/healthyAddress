@@ -202,3 +202,6 @@ expect_equal(ans$H0, HashStreetName("ST KILDA"))
 
 ans <- standard_address2("45 EVERGREEN CCT, OCEAN GROVE, VIC, 3226")
 expect_equal(ans$H0, HashStreetName("EVERGREEN"))
+
+ans <- standard_address2("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
+expect_equal(ans$H0, HashStreetName("PASCOE VALE"))

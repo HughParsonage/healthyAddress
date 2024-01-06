@@ -31,6 +31,7 @@ typedef struct {
 } Postcode;
 
 extern Postcode M_POSTCODE[SUP_POSTCODES];
+bool isnt_vale_postcode(uint16_t poa);
 
 // the_xxx_trie
 #define ALPHABET_SIZE 27  // Assuming only uppercase letters plus space
