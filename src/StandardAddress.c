@@ -3461,12 +3461,6 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
   if (Postcode > SUP_POSTCODE_) {
     return;
   }
-  int the_CRT = has_CRT(x, n, wd);
-  if (the_CRT) {
-    ans[0] = ST_CODE_COURT;
-    ans[1] = wd->lhs[the_CRT - 1];
-    return;
-  }
   if (j__ == 0) {
     do_street_type_no_number(ans, x, n, wd, Postcode, m1);
     return;
@@ -3631,13 +3625,11 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
 
   // one with first 20
   for (int w_ = 0; w_ < 4; ++w_) {
-    int w = W_ORD[w_];
+    int w = W_ORD[w_] + first_word_post_number;
     if (w > n_words) {
       continue;
     }
-    if (w <= first_word_post_number) {
-      continue;
-    }
+
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
     if (rhs_w == 0) {
@@ -3692,11 +3684,15 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       const StreetType * Z = ZTZ[z];
       const char * xz = Z->x;
       int nz = Z->lenx;
+      if (Z->cd == ST_CODE_VALE && isnt_vale_postcode(Postcode)) {
+        continue;
+      }
       // bool substring_within(const char * x, int i, int n, const char * y, int m)
       if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
         if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
           continue;
         }
+
         ans[0] = Z->cd;
         ans[1] = lhs_w;
         return;
