@@ -3629,7 +3629,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
   //                                   11, 12, 13, 10, 14, 8, 9, 15};
   const int W_ORD[WORD_DATUMS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0};
 
-  // one with first 16
+  // one with first 20
   for (int w_ = 0; w_ < 4; ++w_) {
     int w = W_ORD[w_];
     if (w > n_words) {
@@ -3649,43 +3649,16 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     int z1pos = z0pos_by_len[width_w1 & NZ0POR];
     for (int z = z0pos; z < z1pos; ++z) {
       const StreetType * Z = ZTZ[z];
-      if (Z->cd > 16) {
+      if (Z->cd > 20) {
         // Don't check if code is outside top 16 common
         continue;
       }
-      const char * xz = Z->x;
+
       int nz = Z->lenx;
+      if (nz != width_w) {
+        continue;
+      }
 
-      if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
-        if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
-          continue;
-        }
-        ans[0] = Z->cd;
-        ans[1] = lhs_w;
-        return;
-      }
-    }
-  }
-
-  for (int z_ = 0; z_ < NZ; ++z_) {
-    // go in order of 'ordering'
-    int z = oZTC[z_];
-    const StreetType * Z = ZTZ[z];
-    int nz = Z->lenx;
-    for (int w_ = 0; w_ < WORD_DATUMS; ++w_) {
-      int w = W_ORD[w_];
-      if (w <= first_word_post_number) {
-        continue;
-      }
-      int lhs_w = wd->lhs[w];
-      int rhs_w = wd->rhs[w];
-      if (w > n_words || rhs_w == 0) {
-        continue;
-      }
-      unsigned int width_w = rhs_w - lhs_w;
-      if (width_w != nz) {
-        continue;
-      }
       const char * xz = Z->x;
       if (substring_within(x, lhs_w, n, xz, nz)) {
         if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
@@ -3698,14 +3671,17 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     }
   }
 
-  for (int w_ = 0; w_ < 16; ++w_) {
+  for (int w_ = 0; w_ < WORD_DATUMS; ++w_) {
     int w = W_ORD[w_];
+    if (w > n_words) {
+      continue;
+    }
     if (w < first_word_post_number) {
       continue;
     }
     int lhs_w = wd->lhs[w];
     int rhs_w = wd->rhs[w];
-    if (w > n_words || rhs_w == 0) {
+    if (rhs_w == 0) {
       continue;
     }
     unsigned int width_w = rhs_w - lhs_w;
