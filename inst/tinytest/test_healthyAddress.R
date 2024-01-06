@@ -190,3 +190,8 @@ expect_equal(ans$H0, HashStreetName("DOM"))
 ans <- standard_address2("1 ATLANTIC BR, WANDINA, WA, 6530")
 expect_equal(ans$STREET_TYPE_CODE, match("BRANCH", .permitted_street_type_ord()))
 
+ans <- standard_address2("108A/441 LONSDALE STREET, MELBOURNE, VIC 3000")
+expect_equal(ans$FLAT_NUMBER, 108L)
+
+ans <- standard_address2("6 CORYMBIA PROM, PAKENHAM VIC 3810")
+expect_equal(ans$STREET_TYPE_CODE, match("PROMENADE", .permitted_street_type_ord()))
