@@ -30,7 +30,7 @@ typedef struct {
 
 } Saint;
 
-#define NZ 273
+#define NZ 274
 #define ST_ST_ST 12
 // ST_ST_ST position in the StreetType array for ST as 'Street'
 
@@ -129,6 +129,7 @@ const StreetType ZT_PATH = {ST_CODE_PATH, "PATH", 4};
 const StreetType ZT_PHWY = {ST_CODE_PATHWAY, "PHWY", 4};
 const StreetType ZT_PKWY = {ST_CODE_PARKWAY, "PKWY", 4};
 const StreetType ZT_PORT = {ST_CODE_PORT, "PORT", 4};
+const StreetType ZT_PROM = {ST_CODE_PROMENADE, "PROM", 4};
 const StreetType ZT_QUAY = {ST_CODE_QUAY, "QUAY", 4};
 const StreetType ZT_RAMP = {ST_CODE_RAMP, "RAMP", 4};
 const StreetType ZT_RDGE = {ST_CODE_RIDGE, "RDGE", 4};
@@ -317,7 +318,7 @@ const StreetType * ZTZ[NZ] = {
   &ZT_DASH, &ZT_DELL, &ZT_DENE, &ZT_DOCK, &ZT_DOWN, &ZT_DRWY, &ZT_EAST, &ZT_EDGE, &ZT_FLAT, &ZT_FORD,
   &ZT_FORK, &ZT_GATE, &ZT_GDNS, &ZT_GLEN, &ZT_HIKE, &ZT_HILL, &ZT_KEYS, &ZT_LANE, &ZT_LINE, &ZT_LINK,
   &ZT_LOOP, &ZT_MALL, &ZT_MART, &ZT_MAZE, &ZT_MEAD, &ZT_MEWS, &ZT_MILE, &ZT_NOOK, &ZT_PARK, &ZT_PASS,
-  &ZT_PATH, &ZT_PHWY, &ZT_PKWY, &ZT_PORT, &ZT_QUAY, &ZT_RAMP, &ZT_RDGE, &ZT_RDWY, &ZT_REST, &ZT_RIDE,
+  &ZT_PATH, &ZT_PHWY, &ZT_PKWY, &ZT_PORT, &ZT_PROM, &ZT_QUAY, &ZT_RAMP, &ZT_RDGE, &ZT_RDWY, &ZT_REST, &ZT_RIDE,
   &ZT_RISE, &ZT_ROAD, &ZT_SPUR, &ZT_TARN, &ZT_TURN, &ZT_VALE, &ZT_VIEW, &ZT_WALK, &ZT_WEST, &ZT_WYND,
   &ZT_YARD, &ZT_ALLEY, &ZT_AMBLE, &ZT_BANAN, &ZT_BEACH, &ZT_BLVDE, &ZT_BRACE, &ZT_BREAK, &ZT_BYWAY, &ZT_CHASE,
   &ZT_CLOSE, &ZT_COPSE, &ZT_CORSO, &ZT_COURT, &ZT_CREST, &ZT_CRIEF, &ZT_CROSS, &ZT_DOWNS, &ZT_DRIVE, &ZT_ELBOW,
@@ -341,27 +342,27 @@ const StreetType * ZTZ[NZ] = {
 // of i length
 #define NZ0POS 16
 #define NZ0POR 15
-const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 13, 48, 112, 166, 202, 230, 249, 265, 271, 0};
+const static int z0pos_by_len[NZ0POS] = {0, 0, 0, 13, 48, 113, 167, 203, 231, 250, 266, 272, 0};
 
 // Originally
 //   unique(.Permitted_street_type_ord_nchar_AZ())[, cat(strwrap(toString(order(ordering) - 1)), sep = "\n")]
 // Now has to be manually done (some street types omitted)
 const static int oZTC[NZ] =
-  {10, 21, 102, 12, 197, 5, 124, 0, 13, 168, 9, 143, 8, 78, 6, 22, 129, 3, 121, 45, 158, 4,
-   58, 234, 47, 46, 159, 33, 213, 42, 226, 35, 189, 7, 134, 48, 166, 16, 202, 96, 15, 52,
-   56, 116, 250, 108, 101, 260, 118, 81, 86, 80, 73, 209, 17, 174, 93, 219, 208, 107, 39,
-   224, 57, 24, 256, 11, 195, 90, 242, 92, 221, 163, 105, 51, 2, 120, 30, 133, 238, 212, 74,
-   263, 37, 97, 149, 258, 28, 132, 230, 91, 40, 172, 112, 167, 130, 117, 18, 177, 38, 153,
-   191, 239, 235, 31, 72, 29, 184, 207, 216, 36, 145, 76, 59, 125, 215, 268, 79, 82, 217,
-   218, 14, 127, 229, 259, 170, 89, 144, 88, 110, 106, 128, 103, 171, 175, 190, 249, 252,
-   41, 150, 146, 223, 60, 186, 99, 266, 23, 95, 161, 34, 246, 265, 262, 188, 66, 236, 214,
-   68, 244, 200, 201, 233, 115, 269, 173, 237, 220, 157, 104, 54, 255, 241, 156, 164, 53,
-   178, 26, 135, 199, 206, 25, 181, 257, 261, 210, 136, 194, 176, 122, 271, 182, 240, 44,
-   231, 50, 141, 151, 264, 55, 137, 187, 243, 147, 155, 247, 113, 114, 169, 123, 179, 64,
-   70, 71, 27, 183, 75, 185, 272, 142, 100, 152, 154, 196, 198, 43, 227, 232, 203, 62, 180,
-   69, 32, 139, 85, 87, 94, 148, 192, 245, 228, 109, 165, 49, 119, 251, 204, 205, 253, 126,
-   254, 267, 61, 63, 19, 65, 67, 131, 211, 138, 77, 140, 83, 84, 222, 193, 98, 225, 270,
-   160, 162, 248, 111};
+  {10, 21, 103, 12, 198, 5, 125, 0, 13, 169, 9, 144, 8, 78, 6, 22, 130, 3, 122, 45, 159, 4,
+   58, 235, 47, 46, 160, 33, 214, 42, 227, 35, 190, 7, 135, 48, 167, 16, 203, 97, 15, 52,
+   56, 117, 251, 109, 102, 261, 119, 81, 86, 80, 73, 210, 17, 175, 93, 220, 209, 108, 39,
+   225, 57, 24, 257, 11, 196, 90, 243, 92, 222, 164, 106, 51, 2, 121, 30, 134, 239, 213, 74,
+   95, 264, 37, 98, 150, 259, 28, 133, 231, 91, 40, 173, 113, 168, 131, 118, 18, 178, 38,
+   154, 192, 240, 236, 31, 72, 29, 185, 208, 217, 36, 146, 76, 59, 126, 216, 269, 79, 82,
+   218, 219, 14, 128, 230, 260, 171, 89, 145, 88, 111, 107, 129, 104, 172, 176, 191, 250,
+   253, 41, 151, 147, 224, 60, 187, 100, 267, 23, 96, 162, 34, 247, 266, 263, 189, 66, 237,
+   215, 68, 245, 201, 202, 234, 116, 270, 174, 238, 221, 158, 105, 54, 256, 242, 157, 165,
+   53, 179, 26, 136, 200, 207, 25, 182, 258, 262, 211, 137, 195, 177, 123, 272, 183, 241,
+   44, 232, 50, 142, 152, 265, 55, 138, 188, 244, 148, 156, 248, 114, 115, 1, 170, 124, 180,
+   64, 70, 71, 27, 184, 75, 186, 273, 143, 101, 153, 155, 197, 199, 43, 228, 233, 204, 62,
+   20, 181, 69, 32, 140, 85, 87, 94, 149, 193, 246, 229, 110, 166, 49, 120, 252, 205, 206,
+   254, 127, 255, 268, 61, 63, 19, 65, 67, 132, 212, 139, 77, 141, 83, 84, 223, 194, 99,
+   226, 271, 161, 163, 249, 112};
 
 SEXP C_get_oZTC(SEXP x) {
   SEXP ans = PROTECT(allocVector(INTSXP, NZ));
@@ -380,6 +381,20 @@ SEXP C_get_StreetType(SEXP x) {
     unsigned int xpi = xp[i];
     if (xpi < NZ) {
       SET_STRING_ELT(ans, i, mkCharCE(ZTZ[xpi]->x, CE_UTF8));
+    }
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP C_get_StreetCode(SEXP x) {
+  const int * xp = INTEGER(x);
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  for (R_xlen_t i = 0; i < N; ++i) {
+    unsigned int xpi = xp[i];
+    if (xpi < NZ) {
+      INTEGER(ans)[i] = ZTZ[xpi]->cd;
     }
   }
   UNPROTECT(1);
@@ -3722,6 +3737,10 @@ int has_flat(const char * x, int n) {
       }
       while (isspace(x[j])) {
         ++j;
+      }
+      // Possibly 108A/144
+      if (isupper(x[j]) && x[j + 1] == '/') {
+        return 1;
       }
       if (x[j] == '/') {
         return 1;
