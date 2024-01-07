@@ -205,3 +205,7 @@ expect_equal(ans$H0, HashStreetName("EVERGREEN"))
 
 ans <- standard_address2("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
 expect_equal(ans$H0, HashStreetName("PASCOE VALE"))
+
+# FLOOR numbers must not form part of the address
+ans <- standard_address2("APARTMENT 3 FLOOR 99 31 ROSANNA ROAD HEIDELBERG VIC 3084")
+expect_equal(ans$NUMBER_FIRST, 31L)

@@ -527,6 +527,7 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 
 #define DJB2_HIGH_STREET 1467366250
 #define DJB2_ST_GEORGES 685862476
+#define DJB2_ST_VINCENT -899305073
 #define DJB2_ESPLANADE 1588178048
 #define DJB2_ESPLANADE_EAST 1418946723
 #define DJB2_ESPLANADE_WEST 1419448821
@@ -664,13 +665,16 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
   return R_NilValue;
 }
 
+// the words LEVEL and FLOOR are followed by numbers which do not
+// form part of the standard address
 int has_LEVEL(WordData wd) {
   const char * x = wd.x;
   int n_words = wd.n_words;
   const char LEVEL[5] = "LEVEL";
+  const char FLOOR[5] = "FLOOR";
   for (int w = 0; w < n_words - 1; ++w) {
     int j = wd.lhs[w];
-    if (x[j] != 'L') {
+    if (x[j] != 'L' && x[j] != 'F') {
       continue;
     }
     if (isdigit(x[j + 1])) {
@@ -683,7 +687,8 @@ int has_LEVEL(WordData wd) {
     }
     // LEVEL
     for (int k = 1; k < 5; ++k) {
-      if (x[j + k] != LEVEL[k]) {
+      const char xjk = x[j + k];
+      if (xjk != LEVEL[k] && xjk != FLOOR[k]) {
         has_level = false;
         break;
       }
@@ -3483,6 +3488,40 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
         first_word_post_number = w;
         break;
       }
+    }
+  }
+  if (Postcode == 3023) {
+    for (int w = first_word_post_number; w < n_words - 3; ++w) {
+      int lhs_w0 = wd->lhs[w];
+      char w10 = x[lhs_w0];
+      if (w10 != 'S') {
+        continue;
+      }
+      int lhs_w1 = wd->lhs[w + 1];
+      int lhs_w2 = wd->lhs[w + 2];
+      // ST VINCENT W
+      // 012345678901
+
+      if (lhs_w1 != lhs_w0 + 3 ||
+          lhs_w2 != lhs_w0 + 11) {
+        continue;
+      }
+
+      char w20 = x[lhs_w1];
+
+      if (w20 != 'V') {
+        continue;
+      }
+      char w30 = x[lhs_w2];
+      if (w30 != 'W') {
+        continue;
+      }
+      // int rhs_w1 = wd->rhs[w + 1];
+      // int rhs_w2 = wd->rhs[w + 2];
+      ans[0] = ST_CODE_WAY;
+      ans[1] = lhs_w2;
+      ans[2] = DJB2_ST_VINCENT;
+      return;
     }
   }
   if (Postcode == 3024 || Postcode == 3084 || Postcode == 3141 || Postcode == 3936) {
