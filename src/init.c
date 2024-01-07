@@ -26,6 +26,7 @@ extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
 extern SEXP C_StaticAssert(SEXP);
+extern SEXP C_trie_streetType(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
@@ -61,6 +62,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_NumberFirstLast",       (DL_FUNC) &C_NumberFirstLast,       1},
     {"C_NumberSuffix2Raw",      (DL_FUNC) &C_NumberSuffix2Raw,      1},
     {"C_StaticAssert",          (DL_FUNC) &C_StaticAssert,          1},
+    {"C_trie_streetType",       (DL_FUNC) &C_trie_streetType,       1},
     {"C_uniquePostcodes",       (DL_FUNC) &C_uniquePostcodes,       1},
     {"Cconcat_upper",           (DL_FUNC) &Cconcat_upper,           5},
     {"Cdigit256",               (DL_FUNC) &Cdigit256,               2},

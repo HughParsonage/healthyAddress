@@ -668,8 +668,8 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
 // the words LEVEL and FLOOR are followed by numbers which do not
 // form part of the standard address
 int has_LEVEL(WordData wd) {
-  const char * x = wd.x;
   int n_words = wd.n_words;
+  const char * x = wd.x;
   const char LEVEL[5] = "LEVEL";
   const char FLOOR[5] = "FLOOR";
   for (int w = 0; w < n_words - 1; ++w) {
@@ -1521,6 +1521,7 @@ bool noLC(SEXP x) {
   R_xlen_t N = xlength(x);
   bool char_array[256] = {0};
   const SEXP * xp = STRING_PTR(x);
+#pragma omp parallel for reduction(|| : char_array[:256])
   for (R_xlen_t i = 0; i < N; ++i) {
     if (xp[i] == NA_STRING) {
       continue;
@@ -4098,7 +4099,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
         numberFirstLast[0] = four_nos[0];
         numberFirstLast[1] = four_nos[2];
       } else {
-        numberFirstLast[1] = four_nos[0];
+        numberFirstLast[1] = four_nos[1];
         numberFirstLast[2] = four_nos[2];
       }
     } else {
@@ -4657,6 +4658,64 @@ SEXP Cget_suffix(SEXP x) {
 }
 
 
+static bool isUPPER(char x) {
+  unsigned char AAA = 'A';
+  unsigned char uac = x;
+  unsigned int y = (unsigned int)uac - AAA;
+  return y < 26u;
+}
+
+SEXP C_trie_streetType(SEXP x) {
+  errIfNotStr(x, "x");
+  R_xlen_t N = xlength(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    UNPROTECT(1);
+    return R_NilValue;
+  }
+  for (int i = 0; i < NZ; ++i) {
+    insert(root, ZTZ[i]->x, ZTZ[i]->cd);
+  }
+  const SEXP * xp = STRING_PTR(x);
+#pragma omp parallel for
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = 0;
+    const char * xi = CHAR(xp[i]);
+    int ni = length(xp[i]);
+    uint32_t o = 0;
+    int trie_search = search(root, xi);
+    if (trie_search != -1) {
+      ansp[i] = trie_search;
+      continue;
+    }
+    for (int j = 1; j < ni; ++j) {
+      if (xi[j - 1] == ' ') {
+        char buffer[12];
+        int k = j + 1;
+        while (isUPPER(xi[k]) && k < ni) {
+          ++k;
+        }
+        if (k - j < 12) {
+          strncpy(buffer, xi + j, k - j);
+          buffer[k - j] = '\0';
+          trie_search = search(root, buffer);
+          if (trie_search != -1) {
+            o <<= 8;
+            o += trie_search;
+          }
+        }
+      }
+    }
+    ansp[i] = o;
+  }
+
+
+  freeTrie(root);
+  UNPROTECT(1);
+  return ans;
+}
 
 
 
