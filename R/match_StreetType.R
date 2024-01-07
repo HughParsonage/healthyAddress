@@ -40,7 +40,9 @@ match_StreetType_Line1 <- function(address, m = 2L) {
   ans
 }
 
-
+match_StreetType_trie <- function(x) {
+  .Call("C_trie_streetType", x, PACKAGE = packageName())
+}
 
 
 

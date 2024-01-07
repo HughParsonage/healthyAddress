@@ -87,6 +87,8 @@ bool followed_by_STE_POSTCODE(int w_i, WordData wd);
 // trie
 TrieNode *getNode(void);
 void freeTrie(TrieNode *root);
+void insert(TrieNode *root, const char *key, int code);
+int search(TrieNode *root, const char *key);
 void insert_all(TrieNode *root);
 void memoize_trie_postcodes(void);
 int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode);
