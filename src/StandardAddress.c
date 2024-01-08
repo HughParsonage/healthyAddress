@@ -485,6 +485,15 @@ static const char LETTERS[26] =
   {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
+// isUPPER is faster than isupper
+// 20 s to 7 s for 30 M strings
+static bool isUPPER(char x) {
+  unsigned char AAA = 'A';
+  unsigned char uac = x;
+  unsigned int y = (unsigned int)uac - AAA;
+  return y < 26u;
+}
+
 static char toupper1(char x) {
   unsigned int xi = x - 'a';
   return (xi < 26) ? LETTERS[xi] : x;
@@ -3741,8 +3750,29 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
   }
 }
 
-int has_flat(const char * x, int n) {
+#define N_FLATS 9
+const char * FLATS[N_FLATS] =
+  {"U", "G",
+   "APT",
+   "CARS", "FLAT", "ROOM", "SHOP", "UNIT",
+   "APARTMENT"};
 
+// Approximate frequency
+#define FLAT_CODE_UNIT 1
+#define FLAT_CODE_FLAT 2
+#define FLAT_CODE_CARS 3
+#define FLAT_CODE_SHOP 4
+#define FLAT_CODE_APT_ 5
+#define FLAT_CODE_ROOM 9
+// corresponding codes
+const uint8_t FLATC[N_FLATS] =
+  {FLAT_CODE_UNIT, FLAT_CODE_UNIT,
+   FLAT_CODE_APT_,
+   FLAT_CODE_CARS, FLAT_CODE_FLAT, FLAT_CODE_ROOM, FLAT_CODE_SHOP, FLAT_CODE_UNIT,
+   FLAT_CODE_APT_};
+
+
+int has_flat(const char * x, int n) {
   for (int j = 0; j < n; ++j) {
     unsigned char xj = x[j];
     if (isdigit(x[j])) {
@@ -3756,7 +3786,7 @@ int has_flat(const char * x, int n) {
         ++j;
       }
       // Possibly 108A/144
-      if (isupper(x[j]) && x[j + 1] == '/') {
+      if (isUPPER(x[j]) && x[j + 1] == '/') {
         return 1;
       }
       if (x[j] == '/') {
@@ -3767,33 +3797,41 @@ int has_flat(const char * x, int n) {
     if (j == 0 || x[j - 1] == ' ') {
       if (x[j] == 'U') {
         if ((x[j + 1] == ' ' && isdigit(x[j + 2])) || isdigit(x[j + 1])) {
-          return 1;
+          return FLAT_CODE_UNIT;
         }
       }
       // Not sure why I previously put "UNIT" rather than "UNIT " here; however
       // UNITS sometimes appears in addresses that do not a FLAT_NUMBER field.
       if (substring_within(x, j, n, "UNIT", 4) && (x[j + 4] == ' ' || isdigit(x[j + 4]))) {
-        return 1;
+        return FLAT_CODE_UNIT;
       }
       if (substring_within(x, j, n, "APARTMENT ", 10)) {
-        return 2;
+        return FLAT_CODE_APT_;
       }
       if (substring_within(x, j, n, "FLAT ", 5)) {
-        return 1;
+        return FLAT_CODE_FLAT;
       }
       if (substring_within(x, j, n, "ROOM ", 5)) {
-        return 1;
+        return FLAT_CODE_ROOM;
+      }
+      if (substring_within(x, j, n, "SHOP ", 5)) {
+        return FLAT_CODE_SHOP;
+      }
+      if (substring_within(x, j, n, "CAR", 3)) {
+        if (substring_within(x, j, n, "CARSPACE ", 9) ||
+            substring_within(x, j, n, "CARPARK ", 8)) {
+          return FLAT_CODE_CARS;
+        }
       }
 
       unsigned char xk = x[j + 1];
       if (isdigit(xk)) {
         // e.g. G05
-        int out_digit = 6;
         switch(xj) {
         case 'G':
-          return out_digit;
+          return FLAT_CODE_UNIT;
         case 'U':
-          return out_digit;
+          return FLAT_CODE_UNIT;
         }
       }
     }
@@ -4658,16 +4696,6 @@ SEXP Cget_suffix(SEXP x) {
   }
   UNPROTECT(1);
   return ans;
-}
-
-
-// isUPPER is faster than isupper
-// 20 s to 7 s for 30 M strings
-static bool isUPPER(char x) {
-  unsigned char AAA = 'A';
-  unsigned char uac = x;
-  unsigned int y = (unsigned int)uac - AAA;
-  return y < 26u;
 }
 
 SEXP C_trie_streetType(SEXP x) {
