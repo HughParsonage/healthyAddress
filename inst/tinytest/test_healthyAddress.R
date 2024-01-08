@@ -220,3 +220,10 @@ expect_equal(ans$NUMBER_FIRST, 197L)
 ans <- standard_address2("FLOWERY GARDENS UNIT 1 23 KING STREET MELBOURNE VIC 3000")
 expect_equal(ans$FLAT_NUMBER, 1L)
 
+# SHOP is a valid FLAT NUMBER designation
+ans <- standard_address2("SHOP 101 850 WHITEHORSE ROAD BOX HILL VIC 3128")
+expect_equal(ans$FLAT_NUMBER, 101L)
+
+ans <- standard_address2("CARSPACE 3 4 GRANT STREET OAKLEIGH VIC 3166")
+expect_equal(ans$FLAT_NUMBER, 3L)
+expect_equal(ans$NUMBER_FIRST, 4L)
