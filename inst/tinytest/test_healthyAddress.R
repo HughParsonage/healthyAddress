@@ -3,6 +3,7 @@ library(tinytest)
 expect_equal(1 + 1, 2)
 
 library(healthyAddress)
+NumberSuffix2Raw <- healthyAddress:::NumberSuffix2Raw
 
 ans <- standardize_address("4/110-120 Rupert St, Victoria 3012")
 names(ans) <- toupper(names(ans))
@@ -212,4 +213,10 @@ expect_equal(ans$NUMBER_FIRST, 31L)
 
 ans <- standard_address2("LEVEL 1 197-199 KING STREET MELBOURNE VIC 3000")
 expect_equal(ans$NUMBER_FIRST, 197L)
+
+# If G or U are found before a digit, previously it was determined not to be
+# a flat if the next character was not a digit, whereas the correct logic is
+# that if G or U are followed by a digit then it is a flat.
+ans <- standard_address2("FLOWERY GARDENS UNIT 1 23 KING STREET MELBOURNE VIC 3000")
+expect_equal(ans$FLAT_NUMBER, 1L)
 
