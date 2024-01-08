@@ -3784,14 +3784,17 @@ int has_flat(const char * x, int n) {
       if (substring_within(x, j, n, "ROOM ", 5)) {
         return 1;
       }
-      // e.g. G05
+
       unsigned char xk = x[j + 1];
-      int out_digit = isdigit(xk) ? 6 : 0;
-      switch(xj) {
-      case 'G':
-        return out_digit;
-      case 'U':
-        return out_digit;
+      if (isdigit(xk)) {
+        // e.g. G05
+        int out_digit = 6;
+        switch(xj) {
+        case 'G':
+          return out_digit;
+        case 'U':
+          return out_digit;
+        }
       }
     }
   }
@@ -4658,6 +4661,8 @@ SEXP Cget_suffix(SEXP x) {
 }
 
 
+// isUPPER is faster than isupper
+// 20 s to 7 s for 30 M strings
 static bool isUPPER(char x) {
   unsigned char AAA = 'A';
   unsigned char uac = x;
@@ -4691,10 +4696,10 @@ SEXP C_trie_streetType(SEXP x) {
       continue;
     }
     for (int j = 1; j < ni; ++j) {
-      if (xi[j - 1] == ' ') {
-        char buffer[12];
+      if (xi[j - 1] == ' ' && isUPPER(xi[j])) {
+        char buffer[12]; // max nchar of street types
         int k = j + 1;
-        while (isUPPER(xi[k]) && k < ni) {
+        while (k < ni && isUPPER(xi[k])) {
           ++k;
         }
         if (k - j < 12) {
@@ -4706,6 +4711,8 @@ SEXP C_trie_streetType(SEXP x) {
             o += trie_search;
           }
         }
+        // move to end of word just found
+        j = k - 1;
       }
     }
     ansp[i] = o;
