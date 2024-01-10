@@ -9,6 +9,7 @@ typedef struct {
   int number_last;
   unsigned char suffix;
   int hashStreetName;
+  int where_street_type;
   int street_type;
   int postcode;
 } Address;
@@ -4224,6 +4225,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   int numberFirstLast[3] = {0}; // Flat, First, Last
   int Street[2] = {0};
   Address ad;
+  ad.where_street_type = -1;
   WordData wd = word_data(x, n, 0);
   int level = xLEVEL(wd);
   unsigned char suf[3] = {0};
@@ -4682,7 +4684,8 @@ Address get_address_line1(const char * x, int n, int J[1]) {
     J[0] += 1;
     J[0] += isspace(J[0]);
   }
-  A.hashStreetName = djb2_hash(x, n, J[0]);
+  int len_street_name = ZTZ[A.street_type]->lenx;
+  A.hashStreetName = djb2_hash(x, n - len_street_name - 1, J[0]);
   return A;
 }
 
@@ -4725,6 +4728,14 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     error("Internal error(C_do_standard_address3): unable to allocate M1");
   }
   prepare_M1(M1);
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    free(M1);
+    free(root);
+    error("Unable to allocate TrieNode*root.");
+  }
+  insert_all(root);
+  memoize_trie_postcodes(); // inserts the THE codes appropriately
 
   for (R_xlen_t i = 0; i < N; ++i) {
     int postcodei = postcode[i];
@@ -4743,10 +4754,9 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     }
 
     const char * x1pi = CHAR(x1p[i]);
-
-
     int J[1] = {0};
-    Address ad = get_address_line1(x1pi, n1, J);
+    // Address ad = get_address_line1(x1pi, n1, J);
+    Address ad = do_standard_address(x1pi, n1, M1, 0, root);
     h0[i] = ad.hashStreetName;
     street_codep[i] = ad.street_type;
     flat_numberp[i] = ad.flat_number;
@@ -4777,6 +4787,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
   }
   UNPROTECT(np);
   free(M1);
+  freeTrie(root);
   return ans;
 }
 
