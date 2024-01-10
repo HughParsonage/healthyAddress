@@ -426,6 +426,7 @@ const static Saint St3020 = { 3020, 1, "ALBANS", 6 };
 const static Saint St3021 = { 3021, 1, "ALBANS", 6 };
 const static Saint St3037 = { 3037, 1, "ALBANS", 6 };
 const static Saint St3088 = { 3088, 1, "HELENA", 6 };
+const static Saint St3550 = { 3550, 2, "VINCENTS", 8, "AIDANS", 6 };
 const static Saint St3184 = { 3184, 1, "KILDA", 5 };
 const static Saint St3223 = { 3223, 1, "LEONARDS", 8 };
 const static Saint St3384 = { 3384, 1, "ARNAUD", 6 };
@@ -473,10 +474,10 @@ const static Saint St7214 = { 7214, 1, "MARYS", 5 };
 const static Saint St7216 = { 7216, 1, "HELENS", 6 };
 const static Saint St7250 = { 7250, 1, "LEONARDS", 8 };
 
-#define NSAINT 70
+#define NSAINT 71
 const Saint * Sts[NSAINT] = {&St2044, &St2064, &St2065, &St2066, &St2072, &St2073, &St2075, &St2176, &St2177, &St2204, &St2350,
                              &St2354, &St2500, &St2540, &St2560, &St2565, &St2760, &St2770, &St3004, &St3006, &St3020, &St3021, &St3037, &St3088, &St3184, &St3223,
-                             &St3384, &St3726, &St3727, &St3760, &St3941, &St3992, &St3995, &St4066, &St4364, &St4405, &St4486, &St4488,
+                             &St3384, &St3550, &St3726, &St3727, &St3760, &St3941, &St3992, &St3995, &St4066, &St4364, &St4405, &St4486, &St4488,
                              &St4650, &St4671, &St4706, &St4798, &St4800, &St4814, &St4818, &St5011, &St5014, &St5042, &St5064,
                              &St5068, &St5069, &St5081, &St5097, &St5110, &St5254, &St5356, &St6010, &St6021, &St6052, &St6055,
                              &St6101, &St6102, &St6122, &St6152, &St6172, &St6285, &St6765, &St7214, &St7216, &St7250};
@@ -3372,7 +3373,7 @@ bool iz_saint(int w, const char * x, int n, WordData * wd, unsigned char * m1, u
         return true;
       }
     }
-    if (nsuf == width_w1) {
+    if (nsuf2 == width_w1) {
       const char * suf2 = Stp->suf2;
       if (substring_within(x, lhs_w1, n, suf2, nsuf2)) {
         return true;
@@ -4016,18 +4017,71 @@ int next_word(int j, WordData wd) {
   return wd.lhs[n_words - 1];
 }
 
+// Popular resort seems to muck up disproprtionately the address numbers
+static int containsBIG4(const char * x, int n) {
+  // very unlikely to occur in final 10 chars
+  for (int j = 0; j < n - 10; ++j) {
+    if (j > 0 && x[j - 1] != ' ') {
+      continue;
+    }
+    if (x[j] == 'B' && x[j + 1] == 'I' && x[j + 2] == 'G' && x[j + 3] == '4') {
+      return j + 1;
+    }
+  }
+  return 0;
+}
+
+typedef union {
+  char chars[4];
+  uint32_t uint;
+} CharUInt32Union;
+
+static int dontainsBIG4(const char * x, int n, CharUInt32Union big4Union) {
+  if (n < 4) return false;
+
+  for (int j = 0; j <= n - 4; ++j) {
+    CharUInt32Union currentUnion;
+    currentUnion.chars[0] = x[j];
+    currentUnion.chars[1] = x[j + 1];
+    currentUnion.chars[2] = x[j + 2];
+    currentUnion.chars[3] = x[j + 3];
+
+    if (currentUnion.uint == big4Union.uint) {
+      return true;
+    }
+  }
+  return false;
+}
+
+SEXP C_contains_BIG4(SEXP x) {
+  errIfNotStr(x, "x");
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  SEXP ans = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans);
+
+  CharUInt32Union big4Union;
+  big4Union.chars[0] = 'B';
+  big4Union.chars[1] = 'I';
+  big4Union.chars[2] = 'G';
+  big4Union.chars[3] = '4';
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    ansp[i] = dontainsBIG4(CHAR(xp[i]),length(xp[i]), big4Union);
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
 
 
 void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
   int i = 0; // index of number
   int k = 0;
   int j = 0;
+
   unsigned char x0 = x[0];
   if (!isdigit(x0)) {
-    // BIG4
-    if (x[j] == 'B' && x[j + 1] == 'I' && x[j + 2] == 'G') {
-      j += 4;
-    }
 
   } else {
     ans[0] = x0 - '0';
@@ -4057,6 +4111,9 @@ void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n
 
   }
   ans[3] = k;
+  if (ans[0] == 4 && containsBIG4(x, n)) {
+    ans[0] = 0;
+  }
 }
 
 void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n) {
@@ -4065,10 +4122,6 @@ void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n)
   int j = 0;
   unsigned char x0 = x[0];
   if (!isdigit(x0)) {
-    // BIG4
-    if (x[j] == 'B' && x[j + 1] == 'I' && x[j + 2] == 'G') {
-      j += 4;
-    }
 
   } else {
     ans[0] = x0 - '0';
@@ -4104,6 +4157,9 @@ void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n)
 
   }
   ans[4] = k;
+  if (ans[0] == 4 && containsBIG4(x, n)) {
+    ans[0] = 0;
+  }
 }
 
 unsigned char suf3suf(unsigned char x[3]) {
@@ -4152,7 +4208,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   } else {
     int three_nos[4] = {0};
     first_three_numbers(three_nos, suf, x, n_less_poa);
-    if (three_nos[0] == 0) {
+    if (three_nos[0] == 0 && three_nos[1] == 0) {
       // no numbers (exclude postcode)
       j = 0;
       wd.no1st = 0;
@@ -4165,8 +4221,12 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
           numberFirstLast[0] = three_nos[0];
           numberFirstLast[1] = three_nos[1];
         } else {
-          numberFirstLast[1] = three_nos[0];
-          numberFirstLast[2] = three_nos[1];
+          if (three_nos[0]) {
+            numberFirstLast[1] = three_nos[0];
+            numberFirstLast[2] = three_nos[1];
+          } else {
+            numberFirstLast[1] = three_nos[1];
+          }
         }
       } else {
         numberFirstLast[0] = three_nos[0];
@@ -4178,7 +4238,10 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   }
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
     int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
-    // int the_street = 0;
+    // THE STRAND is a hotel in Melbourne and not a street name
+    if (postcode >= 3000 && postcode <= 3004 && the_street == DJB2_THE_STRAND) {
+      the_street = 0;
+    }
     if (the_street) {
       ad.postcode = postcode;
       ad.flat_number = numberFirstLast[0];

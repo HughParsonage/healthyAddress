@@ -10,6 +10,7 @@
 /* .Call calls */
 extern SEXP C_anyComma(SEXP, SEXP);
 extern SEXP C_areST(SEXP);
+extern SEXP C_contains_BIG4(SEXP);
 extern SEXP C_do_standard_address(SEXP);
 extern SEXP C_do_standard_address3(SEXP, SEXP, SEXP, SEXP);
 extern SEXP C_do_the_xxx(SEXP, SEXP);
@@ -46,6 +47,7 @@ extern SEXP ZMatchStreetName(SEXP);
 static const R_CallMethodDef CallEntries[] = {
     {"C_anyComma",              (DL_FUNC) &C_anyComma,              2},
     {"C_areST",                 (DL_FUNC) &C_areST,                 1},
+    {"C_contains_BIG4",         (DL_FUNC) &C_contains_BIG4,         1},
     {"C_do_standard_address",   (DL_FUNC) &C_do_standard_address,   1},
     {"C_do_standard_address3",  (DL_FUNC) &C_do_standard_address3,  4},
     {"C_do_the_xxx",            (DL_FUNC) &C_do_the_xxx,            2},
