@@ -4650,7 +4650,7 @@ static void xnumber2(unsigned int ans[2], int J[1], const char * x, int n) {
 unsigned char get_suff(const char * x, int n) {
   unsigned char suf[3] = {0};
   for (int j = 1, k = 0; j < n - 1; ++j) {
-    if (isdigit(x[j - 1]) && isupper(x[j])) {
+    if (isdigit(x[j - 1]) && isUPPER(x[j])) {
       suf[k] = x[j];
       ++k;
       if (k >= 3) {
