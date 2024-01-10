@@ -227,3 +227,11 @@ expect_equal(ans$FLAT_NUMBER, 101L)
 ans <- standard_address2("CARSPACE 3 4 GRANT STREET OAKLEIGH VIC 3166")
 expect_equal(ans$FLAT_NUMBER, 3L)
 expect_equal(ans$NUMBER_FIRST, 4L)
+
+# Saints with multiple nchar
+ans <- standard_address2("ST VINCENTS VILLAGE UNIT 1 250 ST AIDANS ROAD KENNINGTON VIC 3550")
+expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
+
+# Not The Strand
+ans <- standard_address2("THE STRAND MELBOURNE 222-260 ELIZABETH STREET MELBOURNE VIC 3000")
+expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord()))
