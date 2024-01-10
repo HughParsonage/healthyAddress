@@ -3501,6 +3501,25 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       }
     }
   }
+  if (Postcode == 2289 && strcmp(x, "GARDEN GROVE ")) {
+    ans[0] = ST_CODE_PARADE;
+    ans[1] = wd->lhs[first_word_post_number] + 13;
+    ans[2] = -1084163913; // DJB2 GARDEN GROVE
+    return;
+  }
+  if (Postcode == 3082 && strcmp(x, "GARDEN GROVE ")) {
+    ans[0] = ST_CODE_DRIVE;
+    ans[1] = wd->lhs[first_word_post_number] + 13;
+    ans[2] = -1084163913;
+    return;
+  }
+  if (Postcode == 4817 && strcmp(x, "GARDEN GROVE ")) {
+    ans[0] = ST_CODE_CRESCENT;
+    ans[1] = wd->lhs[first_word_post_number] + 13;
+    ans[2] = -1084163913;
+    return;
+  }
+
   if (Postcode == 3023) {
     for (int w = first_word_post_number; w < n_words - 3; ++w) {
       int lhs_w0 = wd->lhs[w];
@@ -3535,6 +3554,29 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       return;
     }
   }
+  if (Postcode == 3083 || Postcode == 4553) {
+    // possible OUTLOOK RISE
+    for (int w = first_word_post_number; w < n_words - 2; ++w) {
+      int lhs_w0 = wd->lhs[w];
+      char w10 = x[lhs_w0];
+      if (w10 != 'O') {
+        continue;
+      }
+      int lhs_w1 = wd->lhs[w + 1];
+      if (lhs_w1 != lhs_w0 + 8) {
+        continue;
+      }
+      char w20 = x[lhs_w1];
+      // There is a ROAD in these postcodes but they all have two-word street names
+      if (w20 != 'R') {
+        continue;
+      }
+      ans[0] = ST_CODE_RISE;
+      ans[1] = lhs_w1;
+      ans[2] = -2090585428;
+      return;
+    }
+  }
   if (Postcode == 3024 || Postcode == 3084 || Postcode == 3141 || Postcode == 3936) {
     // possible THE RIGHI
     for (int w = first_word_post_number; w < n_words - 2; ++w) {
@@ -3554,6 +3596,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       ans[0] = 0;
       ans[1] = 0;
       ans[2] = DJB2_THE_RIGHI;
+      return;
     }
   }
 
@@ -3927,7 +3970,7 @@ int flat_of(const char * x, int n, int J[1]) {
         ++j;
       }
       // possibly a suffix
-      if (isupper(x[j]) && x[j + 1] == '/') {
+      if (isUPPER(x[j]) && x[j + 1] == '/') {
         has_flat = true;
         break;
       }
@@ -4075,7 +4118,7 @@ SEXP C_contains_BIG4(SEXP x) {
 
 
 
-void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
+int first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
   int i = 0; // index of number
   int k = 0;
   int j = 0;
@@ -4114,6 +4157,7 @@ void first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n
   if (ans[0] == 4 && containsBIG4(x, n)) {
     ans[0] = 0;
   }
+  return i;
 }
 
 void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n) {
@@ -4177,7 +4221,7 @@ unsigned char suf3suf(unsigned char x[3]) {
 
 
 Address do_standard_address(const char * x, int n, unsigned char * m1, int postcode, TrieNode * root) {
-  int numberFirstLast[3] = {0};
+  int numberFirstLast[3] = {0}; // Flat, First, Last
   int Street[2] = {0};
   Address ad;
   WordData wd = word_data(x, n, 0);
@@ -4207,14 +4251,15 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
     j = next_word(four_nos[4], wd) ; // position after final digit
   } else {
     int three_nos[4] = {0};
-    first_three_numbers(three_nos, suf, x, n_less_poa);
-    if (three_nos[0] == 0 && three_nos[1] == 0) {
+    int n_numbers = first_three_numbers(three_nos, suf, x, n_less_poa);
+    if (!n_numbers) {
       // no numbers (exclude postcode)
       j = 0;
       wd.no1st = 0;
     } else {
-
-      if (three_nos[2] == 0) {
+      if (n_numbers == 1) {
+        numberFirstLast[1] = three_nos[0];
+      } else if (three_nos[2] == 0) {
         // i.e. only two numbers identified (excl postcode)
         // could be flat then number or number then number
         if (has_flat(x, n_less_poa - 1)) {
