@@ -235,3 +235,6 @@ expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
 # Not The Strand
 ans <- standard_address2("THE STRAND MELBOURNE 222-260 ELIZABETH STREET MELBOURNE VIC 3000")
 expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord()))
+
+ans <- standard_address2('9 GARDEN GROVE DRIVE MILL PARK VIC 3082')
+expect_equal(ans$STREET_TYPE_CODE, match("DRIVE", .permitted_street_type_ord()))
