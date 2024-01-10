@@ -1414,7 +1414,7 @@ SEXP C_anyComma(SEXP x, SEXP oo) {
     for (R_xlen_t i = 0; i < N; ++i) {
       detect_char(all_chars, CHAR(xp[i]), length(xp[i]));
       if (all_chars[44]) {
-        return ScalarInteger(i + 1);
+        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
       }
     }
 
