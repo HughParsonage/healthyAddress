@@ -703,7 +703,7 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode) {
       continue;
     }
 
-    WordData wd = word_data(xi, ni, 0); // 9M/s
+    WordData wd = word_data(xi, ni); // 9M/s
     // ansp[i] = THE_xxx2(root, wd); // 60M/s
     if (postcode_was_null) {
       ansp[i] = THE_xxx3(root, wd, 2); // pessimistic postcode
