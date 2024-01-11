@@ -53,7 +53,7 @@ typedef struct {
   int n;
 } WordData;
 
-WordData word_data(const char * x, int n, int j0);
+WordData word_data(const char * x, int n);
 
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);

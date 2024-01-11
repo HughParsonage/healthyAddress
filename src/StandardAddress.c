@@ -28,7 +28,6 @@ typedef struct {
   int nsuf;
   const char * suf2;
   int nsuf2;
-
 } Saint;
 
 #define NZ 274
@@ -592,10 +591,11 @@ unsigned int djb2_hash_w1w2_only_letters(const char * str, WordData * wd, int w1
 //'   x consists of uppercase char and breakers only.
 //'
 //'
-WordData word_data(const char * x, int n, int j0) {
+WordData word_data(const char * x, int n) {
   int no1st = 0;
   int lhs[WORD_DATUMS] = {0};
   int rhs[WORD_DATUMS] = {0};
+  int j0 = 0;
 
   // ensure we're at the start of a word
   while (j0 < n && x[j0] == ' ') {
@@ -650,7 +650,7 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
   const int r = asInteger(rr); // r = 0 n_words, r = 1 lhs, r = 2 rhs
   int n = length(STRING_ELT(xx, 0));
   const char * x = CHAR(STRING_ELT(xx, 0));
-  WordData wd = word_data(x, n, 0);
+  WordData wd = word_data(x, n);
 
   switch(r) {
   case 0:
@@ -671,6 +671,20 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
     UNPROTECT(1);
     return ans;
   }
+  case 3: {
+    // Performance
+    int m = 0;
+    R_xlen_t N = xlength(xx);
+    const SEXP * xp = STRING_PTR(xx);
+    for (R_xlen_t i = 0; i < N; ++i) {
+      WordData wdi = word_data(CHAR(xp[i]), length(xp[i]));
+      if (wdi.n > m) {
+        m = wdi.n;
+      }
+    }
+    return ScalarInteger(m);
+  }
+
 
   }
   return R_NilValue;
@@ -4226,7 +4240,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   int Street[2] = {0};
   Address ad;
   ad.where_street_type = -1;
-  WordData wd = word_data(x, n, 0);
+  WordData wd = word_data(x, n);
   int level = xLEVEL(wd);
   unsigned char suf[3] = {0};
   int poa_digits = (postcode == 0 ? 0 : (postcode < 1000 ? 3 : 4));
@@ -4450,7 +4464,7 @@ SEXP ZMatchStreetName(SEXP x) {
       continue;
     }
     const char * xi = CHAR(xp[i]);
-    WordData wdi = word_data(xi, n, 0);
+    WordData wdi = word_data(xi, n);
     bool matched = false;
     for (int z = 0; z < 271; ++z) {
       const char * zi = ZTZ[z]->x;
@@ -4571,7 +4585,7 @@ SEXP C_has_word(SEXP xx, SEXP ww) {
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
     const char * x = CHAR(xp[i]);
-    WordData wd = word_data(x, n, 0);
+    WordData wd = word_data(x, n);
     switch(w) {
     case 0:
       ansp[i] = wd.n_words;
@@ -4870,6 +4884,9 @@ SEXP C_trie_streetType(SEXP x) {
   UNPROTECT(1);
   return ans;
 }
+
+
+
 
 
 
