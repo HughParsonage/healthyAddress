@@ -4235,7 +4235,10 @@ unsigned char suf3suf(unsigned char x[3]) {
 }
 
 
-Address do_standard_address(const char * x, int n, unsigned char * m1, int postcode, TrieNode * root) {
+Address do_standard_address(const char * x, int n, unsigned char * m1,
+                            int postcode,
+                            TrieNode * root,
+                            bool is_single_line) {
   int numberFirstLast[3] = {0}; // Flat, First, Last
   int Street[2] = {0};
   Address ad;
@@ -4244,7 +4247,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1, int postc
   int level = xLEVEL(wd);
   unsigned char suf[3] = {0};
   int poa_digits = (postcode == 0 ? 0 : (postcode < 1000 ? 3 : 4));
-  int n_less_poa = n - poa_digits;
+  int n_less_poa = is_single_line ? n : (n - poa_digits);
   int j = 0;
   if (level) {
     int four_nos[5] = {0};
@@ -4421,7 +4424,7 @@ SEXP C_do_standard_address(SEXP xx) {
       continue;
     }
     const char * x = CHAR(xp[i]);
-    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n), root);
+    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n), root, false);
     h0[i] = ad.hashStreetName;
     pp[i] = ad.postcode;
     street_codep[i] = ad.street_type;
@@ -4700,6 +4703,12 @@ Address get_address_line1(const char * x, int n, int J[1]) {
   }
   int len_street_name = ZTZ[A.street_type]->lenx;
   A.hashStreetName = djb2_hash(x, n - len_street_name - 1, J[0]);
+  Rprintf("> %d < ", A.hashStreetName);
+  if (A.hashStreetName == 193462076) {
+    Rprintf(".->");
+    // street name is 'THE', so street name is the street type
+    A.hashStreetName = djb2_hash(x, n, J[0]);
+  }
   return A;
 }
 
@@ -4721,7 +4730,6 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
   // const SEXP * x2p = STRING_PTR(Line2);
 
   int np = 0;
-  // void do_standard_address(const char * x, int n, int numberFirstLast[3], int Street[2], int Postcode[2], int StreetHashes[4])
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
@@ -4770,7 +4778,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     const char * x1pi = CHAR(x1p[i]);
     int J[1] = {0};
     // Address ad = get_address_line1(x1pi, n1, J);
-    Address ad = do_standard_address(x1pi, n1, M1, 0, root);
+    Address ad = do_standard_address(x1pi, n1, M1, postcodei, root, true);
     h0[i] = ad.hashStreetName;
     street_codep[i] = ad.street_type;
     flat_numberp[i] = ad.flat_number;
