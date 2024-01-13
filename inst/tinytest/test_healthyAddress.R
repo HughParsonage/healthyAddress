@@ -119,6 +119,12 @@ expect_equal(ans$FLAT_NUMBER, 711)
 expect_equal(ans$NUMBER_FIRST, 108)
 expect_equal(ans$POSTCODE, 3004)
 
+# additional coverage
+ans <- standard_address3("U 7011 L 70 108 FLINDERS ST", "MELBOURNE VIC 3004")
+expect_equal(ans$FLAT_NUMBER, 7011)
+expect_equal(ans$NUMBER_FIRST, 108)
+expect_equal(ans$POSTCODE, 3004)
+
 ans <- standard_address3("2/6 THE ESPLANADE", "PERTH WA 6000")
 expect_equal(ans$FLAT_NUMBER, 2)
 expect_equal(ans$NUMBER_FIRST, 6)
