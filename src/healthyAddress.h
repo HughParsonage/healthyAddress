@@ -55,6 +55,10 @@ typedef struct {
 
 WordData word_data(const char * x, int n);
 
+// C_max_nchar.c
+int max_nchar(SEXP x);
+void err_if_nchar_geq(SEXP x, int max_nchar, const char * vx);
+
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
 
@@ -78,11 +82,14 @@ bool has_GROVE(const char * x, int n);
 bool poa_has_ROAD(int poa);
 
 bool poa_has_street_type(int poa, int type);
-int postcode2intrnl(unsigned int poa);
-int intrnl2postcode(unsigned int ipoa);
+unsigned int postcode2intrnl(unsigned int poa);
+unsigned int intrnl2postcode(unsigned int ipoa);
+bool is_postcode(unsigned int poa);
 
 // followed_by_STE_POSTCODE
 bool followed_by_STE_POSTCODE(int w_i, WordData wd);
+
+int isnt_sorted_asc(SEXP x);
 
 // trie
 TrieNode *getNode(void);

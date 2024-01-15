@@ -128,7 +128,9 @@ standard_address3 <- function(Line1, Line2, Postcode = NULL, KeepStreetName = FA
   Ans[]
 }
 
-
+standard_address_postcode_trie <- function(x) {
+  .Call("C_standard_address_postcode_trie", x, PACKAGE = packageName())
+}
 
 
 
