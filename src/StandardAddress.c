@@ -802,6 +802,31 @@ bool substring_within(const char * x, int i, int n, const char * y, int m) {
   return true;
 }
 
+// does str contain word (either at the beginning or preceded by a space)
+bool contains_word(const char * str, int n, const char * word, int wn) {
+  if (wn > n) {
+    return false; // Word is longer than the string
+  }
+
+  for (int j = 0; j <= n - wn; ++j) {
+    // Check if the word is at the start of the string or preceded by a space
+    if (j == 0 || str[j - 1] == ' ') {
+      bool match = true;
+      for (int k = 0; k < wn; ++k) {
+        if (str[j + k] != word[k]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return true; // Word found
+      }
+    }
+  }
+  return false; // Word not found
+}
+
+
 // For detecting things like 'THE ESPLANADE'
 // Is the first 'word' the substring 'THE'
 bool string_first_word_THE(const char * x, int n, int j) {
@@ -4842,8 +4867,15 @@ SEXP Cget_suffix(SEXP x) {
 SEXP C_trie_streetType(SEXP x) {
   errIfNotStr(x, "x");
   R_xlen_t N = xlength(x);
-  SEXP ans = PROTECT(allocVector(INTSXP, N));
-  int * restrict ansp = INTEGER(ans);
+
+  // The street types
+  SEXP ans0 = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp = INTEGER(ans0);
+
+  // The positions
+  SEXP ans1 = PROTECT(allocVector(INTSXP, N));
+  int * restrict ansp1 = INTEGER(ans1);
+
   TrieNode * root = getNode();
   if (root == NULL) {
     UNPROTECT(1);
@@ -4856,9 +4888,11 @@ SEXP C_trie_streetType(SEXP x) {
 #pragma omp parallel for
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = 0;
+    ansp1[i] = 0;
     const char * xi = CHAR(xp[i]);
     int ni = length(xp[i]);
     uint32_t o = 0;
+    uint32_t q = 0;
     int trie_search = search(root, xi);
     if (trie_search != -1) {
       ansp[i] = trie_search;
@@ -4878,6 +4912,8 @@ SEXP C_trie_streetType(SEXP x) {
           if (trie_search != -1) {
             o <<= 8;
             o += trie_search;
+            q <<= 8;
+            q += j;
           }
         }
         // move to end of word just found
@@ -4885,13 +4921,281 @@ SEXP C_trie_streetType(SEXP x) {
       }
     }
     ansp[i] = o;
+    ansp1[i] = q;
+  }
+  SEXP ans = PROTECT(allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(ans, 0, ans0);
+  SET_VECTOR_ELT(ans, 1, ans1);
+
+  freeTrie(root);
+  UNPROTECT(3);
+  return ans;
+}
+
+
+typedef struct {
+  char ** street_names;
+  uint8_t * strlens;
+  uint8_t * street_code;
+  uint16_t n_streets;
+} PostcodeStreets;
+
+PostcodeStreets * ALL_POSTCODE_STREETS = NULL;
+uint16_t PostcodeStreetsPostcodes[N_POSTCODES] = {0};
+
+
+void freeALL_POSTCODE_STREETS(void) {
+  if (ALL_POSTCODE_STREETS == NULL) {
+    return;
+  }
+  for (int i = 0; i < N_POSTCODES; ++i) {
+    PostcodeStreets *P = &ALL_POSTCODE_STREETS[i];
+    for (uint16_t j = 0; j < P->n_streets; ++j) {
+      free(P->street_names[j]); // Free each street name
+    }
+    free(P->street_names); // Free the array of pointers to street names
+    free(P->strlens); // Free the array of pointers to street lengths
+    free(P->street_code);  // Free the street code array if it's dynamically allocated
+  }
+
+  free(ALL_POSTCODE_STREETS); // Finally, free the array of structs
+  ALL_POSTCODE_STREETS = NULL;
+}
+
+void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
+  R_xlen_t N = xlength(Postcode);
+  const int test = asInteger(Test);
+  if (N > 500e3) {
+    return;
+  }
+  err_if_nchar_geq(STREET_NAME, (int)UINT8_MAX, "STREET_NAME");
+
+  int postcode_sorted_code = isnt_sorted_asc(Postcode);
+  if (postcode_sorted_code) {
+    error("Postcodes was not sorted at position %d.", postcode_sorted_code);
+  }
+  const int * Postcodes = INTEGER(Postcode);
+
+  errIfNotLen(STREET_NAME, "STREET_NAME", N);
+  errIfNotLen(STREET_TYPE_CODE, "STREET_TYPE_CODE", N);
+  const SEXP * xp = STRING_PTR(STREET_NAME);
+  const int * street_typep = INTEGER(STREET_TYPE_CODE);
+  if (ALL_POSTCODE_STREETS == NULL) {
+    ALL_POSTCODE_STREETS = malloc(sizeof(PostcodeStreets) * N_POSTCODES);
+    if (ALL_POSTCODE_STREETS == NULL) {
+      error("Could not allocate ALL_POSTCODE_STREETS");
+    }
   }
 
 
-  freeTrie(root);
-  UNPROTECT(1);
+  int k = 0;
+
+  for (R_xlen_t i = 0; i < N; ++i) {
+    int postcodei = Postcodes[i];
+    if (postcodei < 0 || postcodei >= UINT16_MAX) {
+      // likely NA_INTEGER
+      continue;
+    }
+    if (k > N_POSTCODES) {
+      warning("Internal error: k = %d > N_POSTCODES = %d.", k, N_POSTCODES);
+      break;
+    }
+    uint16_t n_in_postcode = 1;
+    while ((i + n_in_postcode) < N && Postcodes[i + n_in_postcode] == postcodei) {
+      ++n_in_postcode;
+    }
+    if (n_in_postcode == UINT16_MAX) {
+      warning("n_in_postcode = UINT16_MAX");
+      continue;
+    }
+
+    PostcodeStreets *P = &ALL_POSTCODE_STREETS[k];
+    P->n_streets = n_in_postcode;
+    P->street_names = (char **)calloc(n_in_postcode, sizeof(char *));
+    P->strlens = (uint8_t *)calloc(n_in_postcode, sizeof(uint8_t));
+    P->street_code = (uint8_t *)calloc(n_in_postcode, sizeof(uint8_t));
+
+    if (P->street_names == NULL || P->street_code == NULL) {
+      warning("Unable to allocate memory for street names/codes.");
+      break;
+    }
+
+    for (uint16_t j = 0; j < n_in_postcode; ++j) {
+      const char * street_name_i = CHAR(xp[i + j]);
+      int nchari = length(xp[i + j]);
+      char * buff = (char *)calloc(nchari + 1, sizeof(char));
+      if (buff == NULL) {
+        warning("Unable to allocate buffer for street name.");
+        break;
+      }
+      strcpy(buff, street_name_i);
+      P->street_names[j] = buff;
+      P->strlens[j] = nchari;
+      P->street_code[j] = (uint8_t)street_typep[i + j];
+    }
+
+    i += n_in_postcode - 1; // Move index to the end of the current postcode group
+    PostcodeStreetsPostcodes[k] = postcodei;
+    k++; // Move to the next PostcodeStreets structure
+  }
+
+  if (k >= 2639 && test == 1) {
+    Rprintf("> %s < \n", ALL_POSTCODE_STREETS[2639].street_names[60]);
+  }
+}
+
+SEXP C_fillPostcodeStreets(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
+
+  fillALL_POSTCODE_STREETS(Postcode, STREET_NAME, STREET_TYPE_CODE, Test);
+  return R_NilValue;
+}
+
+SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
+  freeALL_POSTCODE_STREETS();
+  return R_NilValue;
+}
+
+TrieNode* postcodeTries[SUP_POSTCODES] = {NULL};
+
+void populateTrieForPostcode(int postcode, const char *streetName, int streetCode) {
+  if (postcode >= 0 && postcode < SUP_POSTCODES) {
+    if (postcodeTries[postcode] == NULL) {
+      postcodeTries[postcode] = getNode();
+    }
+    insert(postcodeTries[postcode], streetName, streetCode);
+  }
+}
+
+SEXP C_standard_address_postcode_trie(SEXP x) {
+  // identify the street name and street type based on the
+  // universe of possibilities from ALL_...
+
+  errIfNotStr(x, "x");
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  if (ALL_POSTCODE_STREETS == NULL) {
+    error("(Internal error)ALL_POSTCODE_STREETS was NULL, aboring.");
+  }
+
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    error("Unable to allocate root in C_standard_address_postcode_trie.");
+  }
+  for (int p = 0; p < SUP_POSTCODES; ++p) {
+    if (!is_postcode(p)) {
+      continue;
+    }
+    bool postcode_ok = false;
+    int k = 0;
+    for (; k < N_POSTCODES; ++k) {
+      if (PostcodeStreetsPostcodes[k] == p) {
+        postcode_ok = true;
+        break;
+      }
+    }
+    if (!postcode_ok) {
+      continue;
+    }
+    uint16_t n_in_postcode = ALL_POSTCODE_STREETS[k].n_streets;
+    for (uint16_t i = 0; i < n_in_postcode; ++i) {
+      populateTrieForPostcode(p, ALL_POSTCODE_STREETS[k].street_names[i], i);
+    }
+
+  }
+  SEXP StreetTypeTrie = PROTECT(C_trie_streetType(x));
+  int * restrict stt = INTEGER(VECTOR_ELT(StreetTypeTrie, 0));
+  int * restrict stj = INTEGER(VECTOR_ELT(StreetTypeTrie, 1));
+  SEXP StreetType = PROTECT(allocVector(INTSXP, N));
+  int * restrict StreetTypep = INTEGER(StreetType);
+  SEXP StreetName = PROTECT(allocVector(STRSXP, N));
+  for (R_xlen_t i = 0; i < N; ++i) {
+    StreetTypep[i] = 0;
+    int ni = length(xp[i]);
+    if (ni <= 4) {
+      continue;
+    }
+    const char * xi = CHAR(xp[i]);
+    int postcodei = xpostcode_unsafe2(xi, ni);
+    if (!is_postcode(postcodei)) {
+      continue;
+    }
+    PostcodeStreets P = ALL_POSTCODE_STREETS[postcode2intrnl(postcodei)];
+
+    uint32_t stti = stt[i];
+    uint32_t sttj = stj[i];
+
+    uint8_t stti4[4] = {stti >> 24, (stti >> 16) & 255, (stti >> 8) & 255, stti & 255};
+    uint8_t sttj4[4] = {sttj >> 24, (sttj >> 16) & 255, (sttj >> 8) & 255, sttj & 255};
+    uint16_t n_streets_i = P.n_streets;
+    // stc = street candidate
+    // Loop through each of the streets in this postcode; see if
+    // it matches any of the streets found by trie_streetType
+
+    // following a space
+    int init_pos_LETTERS[26] = {0};
+    for (int j = 0; j < 26; ++j) {
+      init_pos_LETTERS[j] = -1;
+    }
+    if (isUPPER(xi[0])) {
+      init_pos_LETTERS[xi[0] - 'A'] = 0;
+    }
+    for (int j = 1; j < ni; ++j) {
+      if (xi[j - 1] == ' ' && isUPPER(xi[j]) && init_pos_LETTERS[xi[j] - 'A'] < 0) {
+        init_pos_LETTERS[xi[j] - 'A'] = j;
+      }
+    }
+
+
+    for (int stti_k = 0; stti_k < 4; ++stti_k) {
+      uint8_t stti4_k = stti4[stti_k];
+      if (stti_k != 3 && stti4_k == 0) {
+        continue;
+      }
+      uint8_t sttj4_k = sttj4[stti_k];
+
+      for (uint16_t stc = 0; stc < n_streets_i; ++stc) {
+        uint8_t stc_i = P.street_code[stc];
+        if (stc_i > stti4_k) {
+          break;
+        }
+        if (stc_i == stti4_k) {
+          const char * STN = P.street_names[stc];
+          char STN0 = STN[0];
+          if (!isUPPER(STN0)) {
+            continue;
+          }
+          int pos_STN0 = init_pos_LETTERS[STN0 - 'A'];
+
+          if (pos_STN0 < 0 || pos_STN0 > sttj4_k) {
+            continue;
+          }
+          int strlenSTN = P.strlens[stc];
+          // Rprintf("STN = %s\n", STN);
+          if (contains_word(xi + pos_STN0, sttj4_k, STN, strlenSTN)) {
+            // satisfied this is the correct one
+            StreetTypep[i] = stc_i;
+            SET_STRING_ELT(StreetName, i, mkCharCE(STN, CE_UTF8));
+            goto endofloop;
+          }
+        }
+      }
+
+    }
+    endofloop:
+      continue;
+  }
+  SEXP ans = PROTECT(allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(ans, 0, StreetType);
+  SET_VECTOR_ELT(ans, 1, StreetName);
+  UNPROTECT(4);
   return ans;
 }
+
+
+
+
+
+
 
 
 

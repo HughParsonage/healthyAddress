@@ -6,9 +6,11 @@
     .Call("C_StaticAssert", 0L, PACKAGE = packageName())
   }
   utils::globalVariables(".")
+  fillPostcodeStreets()
   return(invisible(NULL))
 }
 
 .onUnload <- function (libpath) {
+  freePostcodeStreets()
   library.dynam.unload(packageName(), libpath)
 }

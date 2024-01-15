@@ -222,5 +222,14 @@ for (i in 1:nrow(PAZ)) {
 }
 cat("}\n", file = "src/ZT.c", append = TRUE)
 
+AZ <-
+  read_ste_fst() %>%
+  .[, .(POSTCODE, STREET_TYPE_CODE, STREET_NAME)] %>%
+  unique %>%
+  setkey(POSTCODE, STREET_TYPE_CODE) %>%
+  .[]
+
+qs::qsave(AZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+
 
 
