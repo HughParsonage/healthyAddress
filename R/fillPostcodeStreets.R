@@ -1,9 +1,18 @@
 fillPostcodeStreets <- function(DT, test = 0L) {
   if (missing(DT)) {
-    DT <-
-      qs::qread(system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs", package = packageName()))
+    file.qs <-
+      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs", package = packageName())
+
+    if (!file.exists(file.qs) || file.access(file.qs, mode = 4L)) {
+      message("file.qs below not found or readable\n\t", file.qs)
+      return(invisible(NULL))
+    }
+
+    DT <- qs::qread(file.qs)
   }
-  setkeyv(DT, "POSTCODE")
+  if (!haskey(DT) || identical(key(DT)[1], "POSTCODE")) {
+    setkeyv(DT, "POSTCODE")
+  }
   .Call("C_fillPostcodeStreets",
         .subset2(DT, "POSTCODE"),
         .subset2(DT, "STREET_NAME"),
