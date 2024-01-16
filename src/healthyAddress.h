@@ -25,6 +25,10 @@
 #define N_UNIQUE_STREET_CODES 224
 #define MAX_STREET_CODE 224
 
+// This is true, but not necessarily the longest
+// word one might find in an address string
+#define MAX_STREET_NAME_LEN 41
+
 typedef struct {
   unsigned int THE_code : 2;
   unsigned int n_saints : 2;

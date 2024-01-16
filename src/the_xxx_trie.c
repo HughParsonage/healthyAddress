@@ -2,10 +2,6 @@
 
 #define N_THE_XXXS 703
 
-// This is true, but not necessarily the longest
-// word one might find in an address string
-#define MAX_STREET_NAME_LEN 41
-
 // US[, .N, keyby = .(STREET_NAME)][order(-N)]
 // There was one street (with a mere 9 addresses Australia-wide) that contained
 // anything other than A-Z or ' ', viz THE YACHTSMAN'S DRIVE
