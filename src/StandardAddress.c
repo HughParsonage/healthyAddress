@@ -5063,13 +5063,35 @@ SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
 
 TrieNode* postcodeTries[SUP_POSTCODES][N_STREET_TYPES] = {NULL};
 
-void populateTrieForPostcode(int postcode, const char *streetName, int streetCode) {
+void populateTrieForPostcode(int postcode, const char *streetName, int streetCode, int ii) {
   if (postcode >= 0 && postcode < SUP_POSTCODES) {
     if (postcodeTries[postcode][streetCode] == NULL) {
       postcodeTries[postcode][streetCode] = getNode();
     }
-    insert(postcodeTries[postcode][streetCode], streetName, 1);
+    insert(postcodeTries[postcode][streetCode], streetName, ii);
   }
+}
+
+int searchPostcodeTries(int postcode, int streetCode, const char * x, int n) {
+  if (postcodeTries[postcode][streetCode] == NULL) {
+    return 0;
+  }
+  TrieNode * root = postcodeTries[postcode][streetCode];
+  char streetName[MAX_STREET_NAME_LEN];
+  for (int k = 0; k < n; ++k) {
+    if ((n - k) >= MAX_STREET_NAME_LEN) {
+      continue;
+    }
+    if ((k == 0 || x[k - 1] == ' ') && isUPPER(x[k])) {
+      strncpy(streetName, x + k, (n - k));
+      streetName[n - k] = '\0';
+      int maybe_code = search(root, streetName);
+      if (maybe_code != -1) {
+        return maybe_code;
+      }
+    }
+  }
+  return 0;
 }
 
 SEXP C_standard_address_postcode_trie(SEXP x) {
@@ -5104,7 +5126,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     }
     uint16_t n_in_postcode = ALL_POSTCODE_STREETS[k].n_streets;
     for (uint16_t i = 0; i < n_in_postcode; ++i) {
-      populateTrieForPostcode(p, ALL_POSTCODE_STREETS[k].street_names[i], ALL_POSTCODE_STREETS[k].street_code[i]);
+      populateTrieForPostcode(p, ALL_POSTCODE_STREETS[k].street_names[i], ALL_POSTCODE_STREETS[k].street_code[i], i + 1);
     }
 
   }
@@ -5136,6 +5158,25 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     uint8_t sttj4[4] = {sttj >> 24, (sttj >> 16) & 255, (sttj >> 8) & 255, sttj & 255};
     uint16_t n_streets_i = P->n_streets;
 
+    for (int stti_k = 0; stti_k < 4; ++stti_k) {
+      uint8_t stti4_k = stti4[stti_k];
+      if (stti_k != 3 && stti4_k == 0) {
+        continue;
+      }
+      if (P->pos_street_codes[stti4_k] < 0) {
+        continue;
+      }
+      uint8_t sttj4_k = sttj4[stti_k];
+
+      int search_code = searchPostcodeTries(postcodei, stti4_k, xi, sttj4_k - 1);
+      if (search_code > 0) {
+        StreetTypep[i] = P->street_code[search_code - 1];
+        SET_STRING_ELT(StreetName, i, mkCharCE(P->street_names[search_code - 1], CE_UTF8));
+        goto endofloop;
+      }
+    }
+    goto endofloop;
+
     // stc = street candidate
     // Loop through each of the streets in this postcode; see if
     // it matches any of the streets found by trie_streetType
@@ -5155,39 +5196,43 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     }
 
 
-    for (int stti_k = 0; stti_k < 4; ++stti_k) {
-      uint8_t stti4_k = stti4[stti_k];
-      if (stti_k != 3 && stti4_k == 0) {
-        continue;
-      }
-      uint8_t sttj4_k = sttj4[stti_k];
-      if (P->pos_street_codes[stti4_k] < 0) {
-        continue;
-      }
 
-      for (uint16_t stc = P->pos_street_codes[stti4_k]; stc < n_streets_i; ++stc) {
-        uint8_t stc_i = P->street_code[stc];
-        if (stc_i > stti4_k) {
-          break;
+
+    if (false) {
+      for (int stti_k = 0; stti_k < 4; ++stti_k) {
+        uint8_t stti4_k = stti4[stti_k];
+        if (stti_k != 3 && stti4_k == 0) {
+          continue;
         }
-        if (stc_i == stti4_k) {
-          const char * STN = P->street_names[stc];
-          char STN0 = STN[0];
-          if (!isUPPER(STN0)) {
-            continue;
-          }
-          int pos_STN0 = init_pos_LETTERS[STN0 - 'A'];
+        uint8_t sttj4_k = sttj4[stti_k];
+        if (P->pos_street_codes[stti4_k] < 0) {
+          continue;
+        }
 
-          if (pos_STN0 < 0 || pos_STN0 > sttj4_k) {
-            continue;
+        for (uint16_t stc = P->pos_street_codes[stti4_k]; stc < n_streets_i; ++stc) {
+          uint8_t stc_i = P->street_code[stc];
+          if (stc_i > stti4_k) {
+            break;
           }
-          int strlenSTN = P->strlens[stc];
-          // Rprintf("STN = %s\n", STN);
-          if (contains_word(xi, sttj4_k, STN, strlenSTN)) {
-            // satisfied this is the correct one
-            StreetTypep[i] = stc_i;
-            SET_STRING_ELT(StreetName, i, mkCharCE(STN, CE_UTF8));
-            goto endofloop;
+          if (stc_i == stti4_k) {
+            const char * STN = P->street_names[stc];
+            char STN0 = STN[0];
+            if (!isUPPER(STN0)) {
+              continue;
+            }
+            int pos_STN0 = init_pos_LETTERS[STN0 - 'A'];
+
+            if (pos_STN0 < 0 || pos_STN0 > sttj4_k) {
+              continue;
+            }
+            int strlenSTN = P->strlens[stc];
+            // Rprintf("STN = %s\n", STN);
+            if (contains_word(xi, sttj4_k, STN, strlenSTN)) {
+              // satisfied this is the correct one
+              StreetTypep[i] = stc_i;
+              SET_STRING_ELT(StreetName, i, mkCharCE(STN, CE_UTF8));
+              goto endofloop;
+            }
           }
         }
       }
