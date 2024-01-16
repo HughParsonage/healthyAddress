@@ -35,7 +35,7 @@ typedef struct {
 // ST_ST_ST position in the StreetType array for ST as 'Street'
 
 const StreetType ZT_AV = {ST_CODE_AVENUE, "AV", 2};
-const StreetType ZT_BR = {ST_CODE_BRANCH, "BR", 2};
+const StreetType ZT_BR = {ST_CODE_BRACE, "BR", 2};
 const StreetType ZT_CH = {ST_CODE_CHASE, "CH", 2};
 const StreetType ZT_CL = {ST_CODE_CLOSE, "CL", 2};
 const StreetType ZT_CR = {ST_CODE_CRESCENT, "CR", 2};
@@ -352,13 +352,13 @@ const static int oZTC[NZ] =
    58, 235, 47, 46, 160, 33, 214, 42, 227, 35, 190, 7, 135, 48, 167, 16, 203, 97, 15, 52,
    56, 117, 251, 109, 102, 261, 119, 81, 86, 80, 73, 210, 17, 175, 93, 220, 209, 108, 39,
    225, 57, 24, 257, 11, 196, 90, 243, 92, 222, 164, 106, 51, 2, 121, 30, 134, 239, 213, 74,
-   95, 264, 37, 98, 150, 259, 28, 133, 231, 91, 40, 173, 113, 168, 131, 118, 18, 178, 38,
+   95, 264, 37, 98, 150, 259, 28, 133, 231, 91, 40, 173, 113, 168, 131, 1, 118, 18, 178, 38,
    154, 192, 240, 236, 31, 72, 29, 185, 208, 217, 36, 146, 76, 59, 126, 216, 269, 79, 82,
    218, 219, 14, 128, 230, 260, 171, 89, 145, 88, 111, 107, 129, 104, 172, 176, 191, 250,
    253, 41, 151, 147, 224, 60, 187, 100, 267, 23, 96, 162, 34, 247, 266, 263, 189, 66, 237,
    215, 68, 245, 201, 202, 234, 116, 270, 174, 238, 221, 158, 105, 54, 256, 242, 157, 165,
    53, 179, 26, 136, 200, 207, 25, 182, 258, 262, 211, 137, 195, 177, 123, 272, 183, 241,
-   44, 232, 50, 142, 152, 265, 55, 138, 188, 244, 148, 156, 248, 114, 115, 1, 170, 124, 180,
+   44, 232, 50, 142, 152, 265, 55, 138, 188, 244, 148, 156, 248, 114, 115, 170, 124, 180,
    64, 70, 71, 27, 184, 75, 186, 273, 143, 101, 153, 155, 197, 199, 43, 228, 233, 204, 62,
    20, 181, 69, 32, 140, 85, 87, 94, 149, 193, 246, 229, 110, 166, 49, 120, 252, 205, 206,
    254, 127, 255, 268, 61, 63, 19, 65, 67, 132, 212, 139, 77, 141, 83, 84, 223, 194, 99,
@@ -4937,12 +4937,12 @@ typedef struct {
   char ** street_names;
   uint8_t * strlens;
   uint8_t * street_code;
+  int16_t pos_street_codes[N_STREET_TYPES]; // position of street code j in [0, n_streets)]
   uint16_t n_streets;
 } PostcodeStreets;
 
 PostcodeStreets * ALL_POSTCODE_STREETS = NULL;
 uint16_t PostcodeStreetsPostcodes[N_POSTCODES] = {0};
-
 
 void freeALL_POSTCODE_STREETS(void) {
   if (ALL_POSTCODE_STREETS == NULL) {
@@ -4953,6 +4953,7 @@ void freeALL_POSTCODE_STREETS(void) {
     for (uint16_t j = 0; j < P->n_streets; ++j) {
       free(P->street_names[j]); // Free each street name
     }
+    // free(P->pos_street_codes); UB to free this
     free(P->street_names); // Free the array of pointers to street names
     free(P->strlens); // Free the array of pointers to street lengths
     free(P->street_code);  // Free the street code array if it's dynamically allocated
@@ -5015,12 +5016,13 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
     P->strlens = (uint8_t *)calloc(n_in_postcode, sizeof(uint8_t));
     P->street_code = (uint8_t *)calloc(n_in_postcode, sizeof(uint8_t));
 
-    if (P->street_names == NULL || P->street_code == NULL) {
+    if (P->street_names == NULL || P->street_code == NULL || P->strlens == NULL) {
       warning("Unable to allocate memory for street names/codes.");
       break;
     }
-
+    P->pos_street_codes[0] = -1;
     for (uint16_t j = 0; j < n_in_postcode; ++j) {
+
       const char * street_name_i = CHAR(xp[i + j]);
       int nchari = length(xp[i + j]);
       char * buff = (char *)calloc(nchari + 1, sizeof(char));
@@ -5031,7 +5033,11 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
       strcpy(buff, street_name_i);
       P->street_names[j] = buff;
       P->strlens[j] = nchari;
-      P->street_code[j] = (uint8_t)street_typep[i + j];
+      uint8_t street_type_ij = (uint8_t)street_typep[i + j];
+      P->street_code[j] = street_type_ij;
+      if (P->pos_street_codes[street_type_ij] == -1) {
+        P->pos_street_codes[street_type_ij] = j;
+      }
     }
 
     i += n_in_postcode - 1; // Move index to the end of the current postcode group
@@ -5055,14 +5061,14 @@ SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
   return R_NilValue;
 }
 
-TrieNode* postcodeTries[SUP_POSTCODES] = {NULL};
+TrieNode* postcodeTries[SUP_POSTCODES][N_STREET_TYPES] = {NULL};
 
 void populateTrieForPostcode(int postcode, const char *streetName, int streetCode) {
   if (postcode >= 0 && postcode < SUP_POSTCODES) {
-    if (postcodeTries[postcode] == NULL) {
-      postcodeTries[postcode] = getNode();
+    if (postcodeTries[postcode][streetCode] == NULL) {
+      postcodeTries[postcode][streetCode] = getNode();
     }
-    insert(postcodeTries[postcode], streetName, streetCode);
+    insert(postcodeTries[postcode][streetCode], streetName, 1);
   }
 }
 
@@ -5074,7 +5080,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   R_xlen_t N = xlength(x);
   const SEXP * xp = STRING_PTR(x);
   if (ALL_POSTCODE_STREETS == NULL) {
-    error("(Internal error)ALL_POSTCODE_STREETS was NULL, aboring.");
+    error("(Internal error)ALL_POSTCODE_STREETS was NULL, aborting.");
   }
 
   TrieNode * root = getNode();
@@ -5098,7 +5104,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     }
     uint16_t n_in_postcode = ALL_POSTCODE_STREETS[k].n_streets;
     for (uint16_t i = 0; i < n_in_postcode; ++i) {
-      populateTrieForPostcode(p, ALL_POSTCODE_STREETS[k].street_names[i], i);
+      populateTrieForPostcode(p, ALL_POSTCODE_STREETS[k].street_names[i], ALL_POSTCODE_STREETS[k].street_code[i]);
     }
 
   }
@@ -5108,25 +5114,28 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   SEXP StreetType = PROTECT(allocVector(INTSXP, N));
   int * restrict StreetTypep = INTEGER(StreetType);
   SEXP StreetName = PROTECT(allocVector(STRSXP, N));
+  prep_postcode2tinrnl();
   for (R_xlen_t i = 0; i < N; ++i) {
     StreetTypep[i] = 0;
     int ni = length(xp[i]);
     if (ni <= 4) {
       continue;
     }
+
     const char * xi = CHAR(xp[i]);
     int postcodei = xpostcode_unsafe2(xi, ni);
     if (!is_postcode(postcodei)) {
       continue;
     }
-    PostcodeStreets P = ALL_POSTCODE_STREETS[postcode2intrnl(postcodei)];
+    PostcodeStreets * P = &ALL_POSTCODE_STREETS[postcode2intrnl(postcodei)];
 
     uint32_t stti = stt[i];
     uint32_t sttj = stj[i];
 
     uint8_t stti4[4] = {stti >> 24, (stti >> 16) & 255, (stti >> 8) & 255, stti & 255};
     uint8_t sttj4[4] = {sttj >> 24, (sttj >> 16) & 255, (sttj >> 8) & 255, sttj & 255};
-    uint16_t n_streets_i = P.n_streets;
+    uint16_t n_streets_i = P->n_streets;
+
     // stc = street candidate
     // Loop through each of the streets in this postcode; see if
     // it matches any of the streets found by trie_streetType
@@ -5152,14 +5161,17 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
         continue;
       }
       uint8_t sttj4_k = sttj4[stti_k];
+      if (P->pos_street_codes[stti4_k] < 0) {
+        continue;
+      }
 
-      for (uint16_t stc = 0; stc < n_streets_i; ++stc) {
-        uint8_t stc_i = P.street_code[stc];
+      for (uint16_t stc = P->pos_street_codes[stti4_k]; stc < n_streets_i; ++stc) {
+        uint8_t stc_i = P->street_code[stc];
         if (stc_i > stti4_k) {
           break;
         }
         if (stc_i == stti4_k) {
-          const char * STN = P.street_names[stc];
+          const char * STN = P->street_names[stc];
           char STN0 = STN[0];
           if (!isUPPER(STN0)) {
             continue;
@@ -5169,9 +5181,9 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
           if (pos_STN0 < 0 || pos_STN0 > sttj4_k) {
             continue;
           }
-          int strlenSTN = P.strlens[stc];
+          int strlenSTN = P->strlens[stc];
           // Rprintf("STN = %s\n", STN);
-          if (contains_word(xi + pos_STN0, sttj4_k, STN, strlenSTN)) {
+          if (contains_word(xi, sttj4_k, STN, strlenSTN)) {
             // satisfied this is the correct one
             StreetTypep[i] = stc_i;
             SET_STRING_ELT(StreetName, i, mkCharCE(STN, CE_UTF8));

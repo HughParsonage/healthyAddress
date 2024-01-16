@@ -82,9 +82,11 @@ bool has_GROVE(const char * x, int n);
 bool poa_has_ROAD(int poa);
 
 bool poa_has_street_type(int poa, int type);
+void prep_postcode2tinrnl(void);
 unsigned int postcode2intrnl(unsigned int poa);
 unsigned int intrnl2postcode(unsigned int ipoa);
 bool is_postcode(unsigned int poa);
+
 
 // followed_by_STE_POSTCODE
 bool followed_by_STE_POSTCODE(int w_i, WordData wd);

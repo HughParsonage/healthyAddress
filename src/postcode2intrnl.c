@@ -279,18 +279,17 @@ const static uint16_t VALE_POSTCODES[N_VALE_POSTCODES] =
   {3350, 4570, 6014, 6025, 6027, 6030, 6031, 6056, 6069, 6076, 6083, 6111, 6122,
    6150, 6155, 6173, 6180, 6210, 6215, 6255, 6280, 6282, 6507, 6525, 6566};
 
-
-
-unsigned int postcode2intrnl(unsigned int poa) {
-  if (poa >= SUP_POSTCODES) {
-    return 0;
-  }
+void prep_postcode2tinrnl(void) {
   if (INTRNL_POSTCODES[0] < 0) {
     for (int k = 0; k < N_POSTCODES; ++k) {
       INTRNL_POSTCODES[POSTCODES[k]] = k;
     }
   }
-  return INTRNL_POSTCODES[poa];
+}
+
+
+unsigned int postcode2intrnl(unsigned int poa) {
+  return INTRNL_POSTCODES[poa & SUP_POSTCODE_];
 }
 
 unsigned int intrnl2postcode(unsigned int ipoa) {
