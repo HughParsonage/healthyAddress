@@ -226,7 +226,7 @@ AZ <-
   read_ste_fst() %>%
   .[, .(POSTCODE, STREET_TYPE_CODE, STREET_NAME)] %>%
   unique %>%
-  setkey(POSTCODE, STREET_TYPE_CODE) %>%
+  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
   .[]
 
 qs::qsave(AZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
