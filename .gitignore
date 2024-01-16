@@ -55,3 +55,4 @@ vignettes/*.pdf
 !man/*.Rd
 inst/extdata/*S.fst
 !NEWS.md
+!inst/extdata/*.qs
