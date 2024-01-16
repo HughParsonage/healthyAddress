@@ -5061,15 +5061,16 @@ SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
   return R_NilValue;
 }
 
-TrieNode* postcodeTries[SUP_POSTCODES][N_STREET_TYPES] = {NULL};
+TrieNode* postcodeTries[N_POSTCODES][N_STREET_TYPES] = {NULL};
 bool postcodeTriePopulated = false;
 
-void populateTrieForPostcode(int postcode, const char *streetName, int streetCode, int ii) {
+void populateTrieForPostcode(unsigned int opostcode, const char *streetName, unsigned int streetCode, int ii) {
   // Check for valid postcode and street code
-  if (postcode < 0 || postcode >= SUP_POSTCODES || streetCode < 0 || streetCode >= N_STREET_TYPES) {
+  if (opostcode >= SUP_POSTCODES || streetCode >= N_STREET_TYPES) {
     // Handle error or invalid input
     return;
   }
+  unsigned int postcode = postcode2intrnl(opostcode);
 
   // Initialize trie if not already done
   if (postcodeTries[postcode][streetCode] == NULL) {
@@ -5112,7 +5113,7 @@ void populate_postcodeTries(void) {
 }
 
 
-int searchPostcodeTries(int postcode, int streetCode, const char * x, int n) {
+int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const char * x, int n) {
   if (postcodeTries[postcode][streetCode] == NULL) {
     return -1; // Indicate trie not found
   }
@@ -5138,7 +5139,7 @@ int searchPostcodeTries(int postcode, int streetCode, const char * x, int n) {
 
 
 void freePopTries(void) {
-  for (int i = 0; i < SUP_POSTCODES; i++) {
+  for (int i = 0; i < N_POSTCODES; i++) {
     for (int j = 0; j < N_STREET_TYPES; j++) {
       if (postcodeTries[i][j] != NULL) {
         freeTrie(postcodeTries[i][j]); // Assuming freeTrie is a function that recursively frees a trie
@@ -5188,7 +5189,8 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     if (!is_postcode(postcodei)) {
       continue;
     }
-    PostcodeStreets * P = &ALL_POSTCODE_STREETS[postcode2intrnl(postcodei)];
+    unsigned int ipostcode = postcode2intrnl(postcodei);
+    PostcodeStreets * P = &ALL_POSTCODE_STREETS[ipostcode];
 
     uint32_t stti = stt[i];
     uint32_t sttj = stj[i];
@@ -5208,7 +5210,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       }
       uint8_t sttj4_k = sttj4[stti_k];
 
-      int search_code = searchPostcodeTries(postcodei, stti4_k, xi, sttj4_k - 1);
+      int search_code = searchPostcodeTries(ipostcode, stti4_k, xi, sttj4_k - 1);
       if (search_code > 0) {
         StreetTypep[i] = P->street_code[search_code - 1];
         SET_STRING_ELT(StreetName, i, mkCharCE(P->street_names[search_code - 1], CE_UTF8));
