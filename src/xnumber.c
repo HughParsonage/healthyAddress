@@ -43,7 +43,8 @@ void do_xnumber(__uint128_t * v, const SEXP * xp, R_xlen_t N, int nThread) {
 
 int n_numbers(const char * x, int n) {
   int o = 0;
-  for (int i = 0; i < n - 1; ++i) {
+  // if i = n - 1, we have !isdigit(x[i + 1])
+  for (int i = 0; i < n; ++i) {
     if (isdigit(x[i]) && !isdigit(x[i + 1])) {
       ++o;
     }
