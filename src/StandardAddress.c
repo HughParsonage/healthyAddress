@@ -5085,9 +5085,21 @@ void populateTrieForPostcode(unsigned int opostcode, const char *streetName, uns
   insert(postcodeTries[postcode][streetCode], streetName, ii);
 }
 
+
+void freePopTries(void) {
+  for (int i = 0; i < N_POSTCODES; i++) {
+    for (int j = 0; j < N_STREET_TYPES; j++) {
+      if (postcodeTries[i][j] != NULL) {
+        freeTrie(postcodeTries[i][j]); // Assuming freeTrie is a function that recursively frees a trie
+        postcodeTries[i][j] = NULL;
+      }
+    }
+  }
+}
+
 void populate_postcodeTries(void) {
   if (postcodeTriePopulated) {
-    return;
+    freePopTries();
   }
   for (int p = 800; p <= MAX_POSTCODE; ++p) {
     if (!is_postcode(p)) {
@@ -5120,11 +5132,11 @@ int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const ch
   TrieNode * root = postcodeTries[postcode][streetCode];
   char streetName[MAX_STREET_NAME_LEN];
 
-  for (int k = 0; k <= n - MAX_STREET_NAME_LEN; ++k) {
+  for (int k = 0; k < n; ++k) {
     if ((k == 0 || x[k - 1] == ' ') && isUPPER(x[k])) {
       int len = n - k;
       if (len > MAX_STREET_NAME_LEN - 1) {
-        len = MAX_STREET_NAME_LEN - 1;
+        continue;
       }
       strncpy(streetName, x + k, len);
       streetName[len] = '\0';
@@ -5137,17 +5149,6 @@ int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const ch
   return 0; // Indicate word not found
 }
 
-
-void freePopTries(void) {
-  for (int i = 0; i < N_POSTCODES; i++) {
-    for (int j = 0; j < N_STREET_TYPES; j++) {
-      if (postcodeTries[i][j] != NULL) {
-        freeTrie(postcodeTries[i][j]); // Assuming freeTrie is a function that recursively frees a trie
-        postcodeTries[i][j] = NULL;
-      }
-    }
-  }
-}
 
 
 SEXP C_standard_address_postcode_trie(SEXP x) {
@@ -5176,7 +5177,6 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   SEXP StreetType = PROTECT(allocVector(INTSXP, N));
   int * restrict StreetTypep = INTEGER(StreetType);
   SEXP StreetName = PROTECT(allocVector(STRSXP, N));
-
 
   for (R_xlen_t i = 0; i < N; ++i) {
     StreetTypep[i] = 0; // Assume zero for absent street type
@@ -5218,8 +5218,6 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       }
     }
   }
-  Rprintf("sizeof(postcodeTries) = %f kB\n", sizeof(postcodeTries) / 1000.0);
-  Rprintf("sizeof(ALL_POS) = %f kB\n", sizeof(ALL_POSTCODE_STREETS) / 1000.0);
 
   freePopTries();
   SEXP ans = PROTECT(allocVector(VECSXP, 2));
