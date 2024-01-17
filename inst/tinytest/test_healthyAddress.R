@@ -238,9 +238,15 @@ expect_equal(ans$NUMBER_FIRST, 4L)
 ans <- standard_address2("ST VINCENTS VILLAGE UNIT 1 250 ST AIDANS ROAD KENNINGTON VIC 3550")
 expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
 
-# Not The Strand
+# Street type not The Strand
 ans <- standard_address2("THE STRAND MELBOURNE 222-260 ELIZABETH STREET MELBOURNE VIC 3000")
 expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord()))
 
 ans <- standard_address2('9 GARDEN GROVE DRIVE MILL PARK VIC 3082')
 expect_equal(ans$STREET_TYPE_CODE, match("DRIVE", .permitted_street_type_ord()))
+
+
+## trie
+ans <- standard_address_postcode_trie("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
+expect_equal(ans[[1]], match("ROAD", .permitted_street_type_ord()))
+expect_equal(ans[[2]], "PASCOE VALE")
