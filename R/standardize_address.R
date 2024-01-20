@@ -38,54 +38,25 @@ standardize_address <- function(Address,
                                 StreetHash = FALSE) {
   return.type <- match.arg(return.type)
   integer_StreetType <- isTRUE(integer_StreetType)
-  if (nany_lowercase(Address)) {
+  StreetHash <- isTRUE(StreetHash)
+  Ans <-
+    if (is.null(AddressLine2)) {
+      standard_address2(Address)
+    } else {
+      standard_address3(Address,
+                        AddressLine2,
+                        Postcode = extract_postcode(AddressLine2),
+                        KeepStreetName = !StreetHash)
+    }
 
-  } else {
-    Address <- toupper_basic(Address)
+  if (!integer_StreetType) {
+    STREET_TYPE_CODE <- NULL
+    Ans[, "STREET_TYPE" := .permitted_street_type_ord()[STREET_TYPE_CODE]]
   }
-
-  switch(return.type,
-         "data.table" = {
-           if (is.null(AddressLine2)) {
-             POSTCODE_ <- extract_postcode(Address)
-             Numbers <- extract_flatNumberFirstLast(Address)
-             StreetType <- match_StreetType(Address, m = 2L)
-             StreetName <- match_StreetName(Address,
-                                            StreetType,
-                                            Numbers = Numbers,
-                                            hash = StreetHash)
-             out <- setDT(Numbers)
-             out[, "POSTCODE" := POSTCODE_]
-             if (is.integer(StreetName)) {
-               # hash
-               out[, "hSTREET_NAME" := StreetName]
-             } else {
-               out[, "STREET_NAME" := StreetName]
-             }
-             if (integer_StreetType) {
-               out[, "STREET_TYPE" := .digit256(StreetType, 0L)]
-             } else {
-               out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]
-             }
-           } else {
-             if (nany_lowercase(AddressLine2)) {
-               AddressLine2 <- toupper_basic(AddressLine2)
-             }
-             POSTCODE_ <- extract_postcode(AddressLine2)
-             Numbers <- extract_flatNumberFirstLast(Address)
-             StreetType <- match_StreetType_Line1(Address, m = 2L)
-             StreetName <- match_StreetName(Address, StreetType)
-             out <- setDT(Numbers)
-
-             out[, "POSTCODE" := POSTCODE_]
-             out[, "STREET_NAME" := StreetName]
-             out[, "STREET_TYPE" := .permitted_street_type_ord()[bitwAnd(StreetType, 255L)]]
-
-           }
-           return(out[])
-         })
-
-  # .Call("CStandardAddress", )
+  if (!StreetHash && hasName(Ans, "H0")) {
+    H0 <- NULL
+    Ans[, "STREET_NAME" := unHashStreetName(H0)]
+  }
 
 
 }
@@ -133,6 +104,9 @@ standard_address_postcode_trie <- function(x) {
 }
 
 
+test_C_test_ALPHABET_ENC <- function(x) {
+  .Call("C_test_ALPHABET_ENC", x, PACKAGE = packageName())
+}
 
 
 
