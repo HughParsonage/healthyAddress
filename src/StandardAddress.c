@@ -3541,23 +3541,32 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       }
     }
   }
-  if (Postcode == 2289 && strcmp(x, "GARDEN GROVE ")) {
-    ans[0] = ST_CODE_PARADE;
-    ans[1] = wd->lhs[first_word_post_number] + 13;
-    ans[2] = -1084163913; // DJB2 GARDEN GROVE
-    return;
+  if (Postcode == 2289) {
+    char * pos = strstr(x, "GARDEN GROVE ");
+    if (pos != NULL) {
+      ans[0] = ST_CODE_PARADE;
+      ans[1] = pos - x;
+      ans[2] = -1084163913; // DJB2 GARDEN GROVE
+      return;
+    }
   }
-  if (Postcode == 3082 && strcmp(x, "GARDEN GROVE ")) {
-    ans[0] = ST_CODE_DRIVE;
-    ans[1] = wd->lhs[first_word_post_number] + 13;
-    ans[2] = -1084163913;
-    return;
+  if (Postcode == 3082) {
+    char * pos = strstr(x, "GARDEN GROVE ");
+    if (pos != NULL) {
+      ans[0] = ST_CODE_DRIVE;
+      ans[1] = pos - x;
+      ans[2] = -1084163913;
+      return;
+    }
   }
-  if (Postcode == 4817 && strcmp(x, "GARDEN GROVE ")) {
-    ans[0] = ST_CODE_CRESCENT;
-    ans[1] = wd->lhs[first_word_post_number] + 13;
-    ans[2] = -1084163913;
-    return;
+  if (Postcode == 4817) {
+    char * pos = strstr(x, "GARDEN GROVE ");
+    if (pos != NULL) {
+      ans[0] = ST_CODE_CRESCENT;
+      ans[1] = pos - x;
+      ans[2] = -1084163913;
+      return;
+    }
   }
 
   if (Postcode == 3023) {

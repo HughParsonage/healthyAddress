@@ -245,6 +245,9 @@ expect_equal(ans$STREET_TYPE_CODE, match("STREET", .permitted_street_type_ord())
 ans <- standard_address2('9 GARDEN GROVE DRIVE MILL PARK VIC 3082')
 expect_equal(ans$STREET_TYPE_CODE, match("DRIVE", .permitted_street_type_ord()))
 
+ans <- standard_address2("50 PRINCE OF WALES AVENUE, MILL PARK VIC 3082")
+expect_equal(ans$H0, HashStreetName("PRINCE OF WALES"))
+
 
 ## trie
 ans <- standard_address_postcode_trie("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
