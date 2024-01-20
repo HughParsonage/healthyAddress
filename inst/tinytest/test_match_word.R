@@ -6,5 +6,3 @@ expect_equal(match_word("UNIT 7812 108 FLINDERS STREET MELBOURNE VIC 3004", PST6
 
 # Don't detect WEST here (possibly too difficult)
 expect_equal(match_word("UNIT 7812 WEST 108 FLINDERS STREET MELBOURNE VIC 3004", PST6), 2L)
-
-expect_equal(match_StreetType("UNIT 7812 WEST 108 FLINDERS STREET MELBOURNE VIC 3004") %% 256L, 2L)

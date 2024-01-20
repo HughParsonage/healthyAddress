@@ -1,5 +1,38 @@
 #include "healthyAddress.h"
 
+// avoids branching
+const unsigned int ALPHABET_ENC[256] =
+  {26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+   14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+   26, 26};
+
+static unsigned int enc_alphabet(unsigned char x) {
+#if 'A' == 65 && ALPHABET_SIZE == 27
+  unsigned int y = x;
+  return ALPHABET_ENC[y];
+#else
+  unsigned int o = x - 'A';
+  if (o >= ALPHABET_SIZE) {
+    o = ALPHABET_SIZE;
+  }
+  return o;
+#endif
+}
+
+SEXP C_test_ALPHABET_ENC(SEXP x) {
+  const char * xp = CHAR(STRING_ELT(x, 0));
+  unsigned int y = (unsigned char)xp[0];
+  return ScalarInteger(ALPHABET_ENC[y]);
+}
+
 #define N_THE_XXXS 703
 
 // US[, .N, keyby = .(STREET_NAME)][order(-N)]
@@ -479,10 +512,7 @@ void insert(TrieNode *root, const char *key, int code) {
   TrieNode *pCrawl = root;
 
   for (int i = 0; key[i] != '\0'; i++) {
-    unsigned int index = key[i] - 'A';
-    if (index >= ALPHABET_SIZE) {
-      index = ALPHABET_SIZE - 1;
-    }
+    unsigned int index = enc_alphabet(key[i]);
     if (!pCrawl->children[index]) {
       pCrawl->children[index] = getNode();
     }
@@ -497,10 +527,7 @@ int search(TrieNode *root, const char *key) {
   TrieNode *pCrawl = root;
 
   for (int i = 0; key[i] != '\0'; i++) {
-    unsigned int index = key[i] - 'A';
-    if (index >= ALPHABET_SIZE) {
-      index = ALPHABET_SIZE - 1;
-    }
+    unsigned int index = enc_alphabet(key[i]);
 
     if (!pCrawl->children[index]) {
       return -1;  // Word not found

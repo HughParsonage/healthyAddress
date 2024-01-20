@@ -2,6 +2,8 @@
 #' @description Some addresses contain 'THE' which is a string often at the
 #' beginning of some street names.
 #'
+#' @noRd
+
 
 get_the_XXX <- function(o = TRUE) {
   # if o == 1, the string are returned;
@@ -11,11 +13,12 @@ get_the_XXX <- function(o = TRUE) {
 }
 
 get_difficult_postcodes <- function() {
+  STREET_NAME <- POSTCODE <- NAME <- m_LOCALITY <- m_STREET <- NULL
   US <- read_ste_fst()
+  US[startsWith(STREET_NAME, "THE "),
+     .(POSTCODE, STREET_NAME)] |>
+    unique() |>
   merge(read_locality_by_postcode(),
-        US[startsWith(STREET_NAME, "THE "),
-           .(POSTCODE, STREET_NAME)] |>
-          unique(),
         by = "POSTCODE",
         allow.cartesian = TRUE) %>%
     .[startsWith(NAME, "THE ")] %>%
@@ -27,6 +30,7 @@ get_difficult_postcodes <- function() {
 # These postcodes are easy -- if they are present, we can simply skip testing
 # THE because no street name exists
 get_easy_postcodes <- function() {
+  NAME <- POSTCODE <- NULL
   problems <- get_difficult_postcodes()
   read_locality_by_postcode()[startsWith(NAME, "THE ")][POSTCODE %notin% problems$POSTCODE]
 }

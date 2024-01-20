@@ -30,6 +30,7 @@ extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
 extern SEXP C_standard_address_postcode_trie(SEXP);
 extern SEXP C_StaticAssert(SEXP);
+extern SEXP C_test_ALPHABET_ENC(SEXP);
 extern SEXP C_trie_streetType(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -37,8 +38,6 @@ extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
 extern SEXP Cget_suffix(SEXP);
-extern SEXP Cmatch_StreetName(SEXP, SEXP, SEXP, SEXP);
-extern SEXP Cmatch_StreetType(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
 extern SEXP Ctest_WordData(SEXP, SEXP);
@@ -70,6 +69,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_NumberSuffix2Raw",               (DL_FUNC) &C_NumberSuffix2Raw,               1},
     {"C_standard_address_postcode_trie", (DL_FUNC) &C_standard_address_postcode_trie, 1},
     {"C_StaticAssert",                   (DL_FUNC) &C_StaticAssert,                   1},
+    {"C_test_ALPHABET_ENC",              (DL_FUNC) &C_test_ALPHABET_ENC,              1},
     {"C_trie_streetType",                (DL_FUNC) &C_trie_streetType,                1},
     {"C_uniquePostcodes",                (DL_FUNC) &C_uniquePostcodes,                1},
     {"Cconcat_upper",                    (DL_FUNC) &Cconcat_upper,                    5},
@@ -77,8 +77,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"CExtractPostcode",                 (DL_FUNC) &CExtractPostcode,                 1},
     {"CFindSentence",                    (DL_FUNC) &CFindSentence,                    3},
     {"Cget_suffix",                      (DL_FUNC) &Cget_suffix,                      1},
-    {"Cmatch_StreetName",                (DL_FUNC) &Cmatch_StreetName,                4},
-    {"Cmatch_StreetType",                (DL_FUNC) &Cmatch_StreetType,                3},
     {"Cmatch_StreetType_Line1",          (DL_FUNC) &Cmatch_StreetType_Line1,          3},
     {"Cmatch_word",                      (DL_FUNC) &Cmatch_word,                      2},
     {"Ctest_WordData",                   (DL_FUNC) &Ctest_WordData,                   2},
