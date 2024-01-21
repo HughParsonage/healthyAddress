@@ -1,7 +1,9 @@
 #' Package for address standardization
 #' @useDynLib healthyAddress, .registration = TRUE
-#' @import data.table
+#'
+#' @rawNamespace import(data.table, except = "%notin%")
 #' @importFrom fastmatch %fin%
+#' @importFrom hutils %notin%
 #' @importFrom fastmatch fmatch
 #' @importFrom hutilscpp isntConstant
 #' @importFrom hutilscpp fmatchp
