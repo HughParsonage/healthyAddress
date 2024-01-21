@@ -743,13 +743,13 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
 // Returns the integer position of the first number following LEVEL or FLOOR
 // or zero if those words do not exist (a number at the start of the string
 // is not an issue as it will never be preceded by those words).
-int has_LEVEL(WordData wd) {
-  int n_words = wd.n_words;
-  const char * x = wd.x;
+int has_LEVEL(WordData * wd) {
+  int n_words = wd->n_words;
+  const char * x = wd->x;
   const char LEVEL[5] = "LEVEL";
   const char FLOOR[5] = "FLOOR";
   for (int w = 0; w < n_words - 1; ++w) {
-    int j = wd.lhs[w];
+    int j = wd->lhs[w];
     if (x[j] != 'L' && x[j] != 'F') {
       continue;
     }
@@ -770,7 +770,7 @@ int has_LEVEL(WordData wd) {
       }
     }
     if (has_level) {
-      return next_numeral(j + 5, x, wd.n);
+      return next_numeral(j + 5, x, wd->n);
     }
   }
   return 0;
@@ -778,12 +778,12 @@ int has_LEVEL(WordData wd) {
 
 
 
-unsigned int xLEVEL(WordData wd) {
+unsigned int xLEVEL(WordData * wd) {
   int j = has_LEVEL(wd);
   if (j == 0) {
     return 0;
   }
-  const char * x = wd.x;
+  const char * x = wd->x;
   unsigned int o = x[j] - '0';
   while (isdigit(x[++j])) {
     o *= 10;
@@ -3549,14 +3549,14 @@ int flat_of(const char * x, int n, int J[1]) {
   return o;
 }
 
-int next_word(int j, WordData wd) {
-  int n_words = wd.n_words;
+int next_word(int j, WordData * wd) {
+  const int n_words = wd->n_words;
   for (int w = 1; w < n_words - 1; ++w) {
-    if (wd.lhs[w] > j) {
-      return wd.lhs[w];
+    if (wd->lhs[w] > j) {
+      return wd->lhs[w];
     }
   }
-  return wd.lhs[n_words - 1];
+  return wd->lhs[n_words - 1];
 }
 
 // Popular resort seems to muck up disproprtionately the address numbers
@@ -3718,28 +3718,20 @@ unsigned char suf3suf(unsigned char x[3]) {
   return 0;
 }
 
-
-Address do_standard_address(const char * x, int n, unsigned char * m1,
-                            int postcode,
-                            TrieNode * root,
-                            bool is_single_line) {
-  int numberFirstLast[3] = {0}; // Flat, First, Last
-  int Street[2] = {0};
-  Address ad;
-  ad.where_street_type = -1;
-  WordData wd = word_data(x, n);
+static void do__numberFirstLast(int numberFirstLast[3],
+                                WordData * wd,
+                                int n_less_poa,
+                                int * j,
+                                unsigned char suf[3]) {
   int level = xLEVEL(wd);
-  unsigned char suf[3] = {0};
-  int poa_digits = (postcode == 0 ? 0 : (postcode < 1000 ? 3 : 4));
-  int n_less_poa = is_single_line ? n : (n - poa_digits);
-  int j = 0;
+  *j = 0;
   if (level) {
     int four_nos[5] = {0};
-    first_four_numbers(four_nos, suf, x, n_less_poa);
+    first_four_numbers(four_nos, suf, wd->x, n_less_poa);
     if (four_nos[3] == 0) {
       // i.e. only two numbers identified (excl postcode and level)
       // could be flat then number or number then number
-      if (has_flat(x, n_less_poa - 1)) {
+      if (has_flat(wd->x, n_less_poa - 1)) {
         numberFirstLast[0] = four_nos[0];
         numberFirstLast[1] = four_nos[2];
       } else {
@@ -3751,21 +3743,21 @@ Address do_standard_address(const char * x, int n, unsigned char * m1,
       numberFirstLast[1] = four_nos[2];
       numberFirstLast[2] = four_nos[3];
     }
-    j = next_word(four_nos[4], wd) ; // position after final digit
+    *j = next_word(four_nos[4], wd) ; // position after final digit
   } else {
     int three_nos[4] = {0};
-    int n_numbers = first_three_numbers(three_nos, suf, x, n_less_poa);
+    int n_numbers = first_three_numbers(three_nos, suf, wd->x, n_less_poa);
     if (!n_numbers) {
       // no numbers (exclude postcode)
       j = 0;
-      wd.no1st = 0;
+      wd->no1st = 0;
     } else {
       if (n_numbers == 1) {
         numberFirstLast[1] = three_nos[0];
       } else if (three_nos[2] == 0) {
         // i.e. only two numbers identified (excl postcode)
         // could be flat then number or number then number
-        if (has_flat(x, n_less_poa - 1)) {
+        if (has_flat(wd->x, n_less_poa - 1)) {
           numberFirstLast[0] = three_nos[0];
           numberFirstLast[1] = three_nos[1];
         } else {
@@ -3781,9 +3773,26 @@ Address do_standard_address(const char * x, int n, unsigned char * m1,
         numberFirstLast[1] = three_nos[1];
         numberFirstLast[2] = three_nos[2];
       }
-      j = next_word(three_nos[3], wd) ; // position after final digit
+      *j = next_word(three_nos[3], wd) ; // position after final digit
     }
   }
+}
+
+
+Address do_standard_address(const char * x, int n, unsigned char * m1,
+                            int postcode,
+                            TrieNode * root,
+                            bool is_single_line) {
+  int numberFirstLast[3] = {0}; // Flat, First, Last
+  int Street[2] = {0};
+  Address ad;
+  ad.where_street_type = -1;
+  WordData wd = word_data(x, n);
+  unsigned char suf[3] = {0};
+  int j = 0;
+  int n_less_poa = n - 3 - (postcode > 999); // point is performance, don't check last 3 digits (doesn't matter if 800 or 2000)
+  do__numberFirstLast(numberFirstLast, &wd, n_less_poa, &j, suf);
+
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
     int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
     // THE STRAND is a hotel in Melbourne and not a street name
@@ -3853,10 +3862,7 @@ static void prepare_M1(unsigned char * M1) {
     M1[postcode_p] = 128 * (n_saintsp == 2) + p;
     M_POSTCODE[postcode_p].n_saints = n_saintsp;
   }
-
-
 }
-
 
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
@@ -3908,7 +3914,16 @@ SEXP C_do_standard_address(SEXP xx) {
       continue;
     }
     const char * x = CHAR(xp[i]);
-    Address ad = do_standard_address(x, n, M1, xpostcode_unsafe(x, n), root, false);
+    int postcodei = xpostcode_unsafe(x, n);
+    if (!is_postcode(postcodei)) {
+      flat_numberp[i] = NA_INTEGER;
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      number_suffixp[i] = 34;
+      pp[i] = -1;
+      continue;
+    }
+    Address ad = do_standard_address(x, n, M1, postcodei, root, false);
     h0[i] = ad.hashStreetName;
     pp[i] = ad.postcode;
     street_codep[i] = ad.street_type;
@@ -4078,7 +4093,7 @@ SEXP C_has_word(SEXP xx, SEXP ww) {
       ansp[i] = wd.n_words;
       break;
     case 1:
-      ansp[i] = has_LEVEL(wd);
+      ansp[i] = has_LEVEL(&wd);
     }
   }
   UNPROTECT(1);
@@ -4645,17 +4660,40 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   int * restrict StreetTypep = INTEGER(StreetType);
   SEXP StreetName = PROTECT(allocVector(STRSXP, N));
 
+  SEXP FlatNumber  = PROTECT(allocVector(INTSXP, N));
+  SEXP NumberFirst = PROTECT(allocVector(INTSXP, N));
+  SEXP NumberLast  = PROTECT(allocVector(INTSXP, N));
+  SEXP NumberSuffix = PROTECT(allocVector(RAWSXP, N));
+  SEXP Postcode = PROTECT(allocVector(INTSXP, N));
+
+  int * restrict flat_numberp = INTEGER(FlatNumber);
+  int * restrict number_firstp = INTEGER(NumberFirst);
+  int * restrict number_lastp = INTEGER(NumberLast);
+  unsigned char * restrict number_suffixp = RAW(NumberSuffix);
+  int * restrict postcodep = INTEGER(Postcode);
+
   for (R_xlen_t i = 0; i < N; ++i) {
     StreetTypep[i] = 0; // Assume zero for absent street type
     int ni = length(xp[i]);
     if (ni <= 4) {
+      flat_numberp[i] = NA_INTEGER;
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      number_suffixp[i] = 33;
+      postcodep[i] = NA_INTEGER;
       continue;
     }
     const char * xi = CHAR(xp[i]);
     int postcodei = xpostcode_unsafe2(xi, ni);
     if (!is_postcode(postcodei)) {
+      flat_numberp[i] = NA_INTEGER;
+      number_firstp[i] = NA_INTEGER;
+      number_lastp[i] = NA_INTEGER;
+      number_suffixp[i] = 34;
+      postcodep[i] = -1;
       continue;
     }
+    postcodep[i] = postcodei;
     unsigned int ipostcode = postcode2intrnl(postcodei);
     PostcodeStreets * P = &ALL_POSTCODE_STREETS[ipostcode];
 
@@ -4675,22 +4713,44 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       //   // The street type does not exist in this postcode
       //   continue;
       // }
+
+      // This is the position where the street name possibly started
       uint8_t sttj4_k = sttj4[stti_k];
 
       int search_code = searchPostcodeTries(ipostcode, stti4_k, xi, sttj4_k - 1);
       if (search_code > 0) {
         StreetTypep[i] = P->street_code[search_code - 1];
         SET_STRING_ELT(StreetName, i, mkCharCE(P->street_names[search_code - 1], CE_UTF8));
+        // static void do__numberFirstLast(int numberFirstLast[3],
+        //                                 WordData * wd,
+        //                                 int postcode,
+        //                                 bool is_single_line,
+        //                                 int * j,
+        //                                 unsigned char suf[3])
+        int numberFirstLast[3] = {0};
+        WordData wd = word_data(xi, ni);
+        int jj = 0;
+        unsigned char suf[3] = {0};
+        do__numberFirstLast(numberFirstLast, &wd, sttj4_k - 1, &jj, suf);
+        flat_numberp[i] = numberFirstLast[0];
+        number_firstp[i] = numberFirstLast[1];
+        number_lastp[i] = numberFirstLast[2];
+        number_suffixp[i] = suf3suf(suf);
         break;
       }
     }
   }
 
   freePopTries();
-  SEXP ans = PROTECT(allocVector(VECSXP, 2));
+  SEXP ans = PROTECT(allocVector(VECSXP, 7));
   SET_VECTOR_ELT(ans, 0, StreetType);
   SET_VECTOR_ELT(ans, 1, StreetName);
-  UNPROTECT(4);
+  SET_VECTOR_ELT(ans, 2, FlatNumber);
+  SET_VECTOR_ELT(ans, 3, NumberFirst);
+  SET_VECTOR_ELT(ans, 4, NumberLast);
+  SET_VECTOR_ELT(ans, 5, NumberSuffix);
+  SET_VECTOR_ELT(ans, 6, Postcode);
+  UNPROTECT(9);
   return ans;
 }
 

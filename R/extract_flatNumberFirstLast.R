@@ -17,3 +17,7 @@ extract_flatNumberFirstLast <- function(address) {
 xnumbers <- function(x) {
   ans <- .Call("Cxnumber", x)
 }
+
+xnumber128 <- function(x) {
+  .Call("Cxnumber128", x, PACKAGE = packageName())
+}
