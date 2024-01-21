@@ -3790,7 +3790,7 @@ Address do_standard_address(const char * x, int n, unsigned char * m1,
   WordData wd = word_data(x, n);
   unsigned char suf[3] = {0};
   int j = 0;
-  int n_less_poa = n - 3 - (postcode > 999); // point is performance, don't check last 3 digits (doesn't matter if 800 or 2000)
+  int n_less_poa = n - 3 - (postcode > 999);
   do__numberFirstLast(numberFirstLast, &wd, n_less_poa, &j, suf);
 
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
