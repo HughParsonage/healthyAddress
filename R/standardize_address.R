@@ -17,7 +17,8 @@
 #' @param integer_StreetType Should the street type be returned as an integer
 #' vector?
 #'
-#' @param StreetHash Should \code{STREET_NAME} be returned as an integer hash.
+#' @param hash_StreetName Should \code{STREET_NAME} be returned as an integer hash,
+#' as in \code{\link{HashStreetName}}?
 #' @param KeepStreetName Should an additional character vector be included in
 #' the result of the street name?
 #'
@@ -35,13 +36,17 @@ standardize_address <- function(Address,
                                 AddressLine2 = NULL,
                                 return.type = c("data.table", "integer"),
                                 integer_StreetType = FALSE,
-                                StreetHash = FALSE) {
+                                hash_StreetName = FALSE) {
   return.type <- match.arg(return.type)
   integer_StreetType <- isTRUE(integer_StreetType)
-  StreetHash <- isTRUE(StreetHash)
+  hash_StreetName <- isTRUE(hash_StreetName)
   Ans <-
     if (is.null(AddressLine2)) {
-      standard_address2(Address)
+      if (hash_StreetName) {
+        standard_address2(Address)
+      } else {
+        standard_address_postcode_trie(Address)
+      }
     } else {
       standard_address3(Address,
                         AddressLine2,
@@ -53,10 +58,7 @@ standardize_address <- function(Address,
     STREET_TYPE_CODE <- NULL
     Ans[, "STREET_TYPE" := .permitted_street_type_ord()[STREET_TYPE_CODE]]
   }
-  if (!StreetHash && hasName(Ans, "H0")) {
-    H0 <- NULL
-    Ans[, "STREET_NAME" := unHashStreetName(H0)]
-  }
+
 
 
 }
@@ -100,7 +102,8 @@ standard_address3 <- function(Line1, Line2, Postcode = NULL, KeepStreetName = FA
 }
 
 standard_address_postcode_trie <- function(x) {
-  .Call("C_standard_address_postcode_trie", x, PACKAGE = packageName())
+  ans <- .Call("C_standard_address_postcode_trie", x, PACKAGE = packageName())
+  setDT(ans)
 }
 
 

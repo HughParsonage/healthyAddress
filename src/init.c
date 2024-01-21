@@ -43,6 +43,7 @@ extern SEXP Cmatch_word(SEXP, SEXP);
 extern SEXP Ctest_WordData(SEXP, SEXP);
 extern SEXP CToUpperBasic(SEXP);
 extern SEXP Cxnumber(SEXP);
+extern SEXP Cxnumber128(SEXP);
 extern SEXP MAX_uN_STCDs(SEXP);
 extern SEXP ZMatchStreetName(SEXP);
 
@@ -82,6 +83,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"Ctest_WordData",                   (DL_FUNC) &Ctest_WordData,                   2},
     {"CToUpperBasic",                    (DL_FUNC) &CToUpperBasic,                    1},
     {"Cxnumber",                         (DL_FUNC) &Cxnumber,                         1},
+    {"Cxnumber128",                      (DL_FUNC) &Cxnumber128,                      1},
     {"MAX_uN_STCDs",                     (DL_FUNC) &MAX_uN_STCDs,                     1},
     {"ZMatchStreetName",                 (DL_FUNC) &ZMatchStreetName,                 1},
     {NULL, NULL, 0}

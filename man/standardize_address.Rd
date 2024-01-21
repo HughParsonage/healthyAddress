@@ -11,7 +11,7 @@ standardize_address(
   AddressLine2 = NULL,
   return.type = c("data.table", "integer"),
   integer_StreetType = FALSE,
-  StreetHash = FALSE
+  hash_StreetName = FALSE
 )
 
 standard_address2(Address)
@@ -33,7 +33,8 @@ address and the \code{PSMA} internal id.}
 \item{integer_StreetType}{Should the street type be returned as an integer
 vector?}
 
-\item{StreetHash}{Should \code{STREET_NAME} be returned as an integer hash.}
+\item{hash_StreetName}{Should \code{STREET_NAME} be returned as an integer hash,
+as in \code{\link{HashStreetName}}?}
 
 \item{Line1, Line2, Postcode}{For addresses split by line. \code{Line1} is
 assumed to end with the street type. The second line is only used to determine
