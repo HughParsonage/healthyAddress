@@ -5,3 +5,12 @@
 ^do_test\.R$
 ^.github$
 ^LICENSE$
+^inst/extdata/ACT_FULL_ADDRESS\.fst$
+^inst/extdata/NSW_FULL_ADDRESS\.fst$
+^inst/extdata/NT_FULL_ADDRESS\.fst$
+^inst/extdata/OT_FULL_ADDRESS\.fst$
+^inst/extdata/QLD_FULL_ADDRESS\.fst$
+^inst/extdata/SA_FULL_ADDRESS\.fst$
+^inst/extdata/TAS_FULL_ADDRESS\.fst$
+^inst/extdata/VIC_FULL_ADDRESS\.fst$
+^inst/extdata/WA_FULL_ADDRESS\.fst$

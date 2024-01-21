@@ -26,17 +26,15 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
 
     file.fst <- paste0(tools::R_user_dir(packageName()), "/", ste, "_FULL_ADDRESS.fst")
     if (!file.exists(file.fst)) {
-      file.fst <- system.file("extdata", paste0(ste, "_FULL_ADDRESS.fst"), package = packageName())
-      if (!file.exists(file.fst)) {
-        url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
-        file.fst <- file.path(tools::R_user_dir(packageName()), paste0(ste, "_FULL_ADDRESS.fst"))
-        status <- utils::download.file(url,
-                                       mode = "wb",
-                                       destfile = file.fst,
-                                       quiet = TRUE)
-        if (status) {
-          stop("Unable to download ", ste, "from URL:\n\t", url)
-        }
+      url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
+      file.fst <- file.path(tools::R_user_dir(packageName()), paste0(ste, "_FULL_ADDRESS.fst"))
+      hutils::provide.file(file.fst)
+      status <- utils::download.file(url,
+                                     mode = "wb",
+                                     destfile = file.fst,
+                                     quiet = TRUE)
+      if (status) {
+        stop("Unable to download ", ste, "from URL:\n\t", url)
       }
     }
     columns_avbl <- fst::metadata_fst(file.fst)[["columnNames"]]
@@ -72,7 +70,7 @@ sys_fst <- function(NAME,
   }
   file.fst <- paste0(tools::R_user_dir(packageName()), "/", NAME, ".fst")
   if (!file.exists(file.fst)) {
-    file.fst <- system.file("extdata", paste0(file, ".fst"), package = packageName())
+    file.fst <- system.file("extdata", paste0(NAME, ".fst"), package = packageName())
   }
   if (!file.exists(file.fst)) {
     stop("Expected file at ", normalizePath(file.fst, winslash = "/"))
