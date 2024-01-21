@@ -51,7 +51,7 @@ standardize_address <- function(Address,
       standard_address3(Address,
                         AddressLine2,
                         Postcode = extract_postcode(AddressLine2),
-                        KeepStreetName = !StreetHash)
+                        KeepStreetName = !hash_StreetName)
     }
 
   if (!integer_StreetType) {
