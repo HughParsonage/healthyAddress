@@ -72,6 +72,9 @@ sys_fst <- function(NAME,
   }
   file.fst <- paste0(tools::R_user_dir(packageName()), "/", NAME, ".fst")
   if (!file.exists(file.fst)) {
+    file.fst <- system.file("extdata", paste0(file, ".fst"), package = packageName())
+  }
+  if (!file.exists(file.fst)) {
     stop("Expected file at ", normalizePath(file.fst, winslash = "/"))
   }
   columns_avbl <- fst::metadata_fst(file.fst)[["columnNames"]]
