@@ -4286,7 +4286,11 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     number_suffixp[i] = ad.suffix;
     if (keepStreetName) {
       int n_char_street_name = n1 - J[0] + 1;
-      char SN[n_char_street_name];
+      if (n_char_street_name >= MAX_STREET_NAME_LEN) {
+        SET_STRING_ELT(StreetName, i, mkCharCE("<EXCEEDED MAX_STREET_NAME_LEN>", CE_UTF8));
+        continue;
+      }
+      char SN[MAX_STREET_NAME_LEN];
       for (int snj = 0; snj < n_char_street_name; ++snj) {
         SN[snj] = x1pi[snj + J[0]];
       }
