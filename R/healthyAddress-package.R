@@ -7,6 +7,7 @@
 #' @importFrom hutilscpp fmatchp
 #' @importFrom hutils coalesce
 #' @importFrom magrittr %>%
+#' @importFrom tools R_user_dir
 #' @importFrom utils packageName
 #' @importFrom utils hasName
 #' @importFrom utils head

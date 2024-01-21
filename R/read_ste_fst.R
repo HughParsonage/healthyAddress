@@ -24,13 +24,12 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
       return(hutils::selector(ans, cols = columns))
     }
 
-    file.fst <- paste0("inst/extdata/", ste, "_FULL_ADDRESS.fst")
+    file.fst <- paste0(tools::R_user_dir(packageName()), "/", ste, "_FULL_ADDRESS.fst")
     if (!file.exists(file.fst)) {
       file.fst <- system.file("extdata", paste0(ste, "_FULL_ADDRESS.fst"), package = packageName())
       if (!file.exists(file.fst)) {
         url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
-        pkg_path <- find.package("healthyAddress")
-        file.fst <- file.path(pkg_path, "inst", "extdata", paste0(ste, "_FULL_ADDRESS.fst"))
+        file.fst <- file.path(tools::R_user_dir(packageName()), paste0(ste, "_FULL_ADDRESS.fst"))
         status <- utils::download.file(url,
                                        mode = "wb",
                                        destfile = file.fst,
@@ -71,10 +70,7 @@ sys_fst <- function(NAME,
       return(hutils::selector(full, cols = columns))
     }
   }
-  file.fst <- paste0("inst/extdata/", NAME, ".fst")
-  if (!file.exists(file.fst)) {
-    file.fst <- system.file("extdata", paste0(NAME, ".fst"), package = packageName())
-  }
+  file.fst <- paste0(tools::R_user_dir(packageName()), "/", NAME, ".fst")
   if (!file.exists(file.fst)) {
     stop("Expected file at ", normalizePath(file.fst, winslash = "/"))
   }
