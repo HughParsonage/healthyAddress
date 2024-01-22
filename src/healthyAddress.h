@@ -119,5 +119,9 @@ void verifyEquiStr4(SEXP x, const char * xx,
                     SEXP w, const char * ww);
 void errifNotTF(SEXP x, const char * v);
 
+// xnumbers
+int n_numbers(const char * x, int n);
+
+
 
 #endif
