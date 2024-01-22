@@ -771,6 +771,7 @@ int has_LEVEL(WordData * wd) {
     }
     if (has_level) {
       return next_numeral(j + 5, x, wd->n);
+
     }
   }
   return 0;
@@ -3293,11 +3294,13 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
   }
 }
 
-#define N_FLATS 9
+#define N_FLATS 11
 const char * FLATS[N_FLATS] =
   {"U", "G",
+   "SE",
    "APT",
    "CARS", "FLAT", "ROOM", "SHOP", "UNIT",
+   "SUITE",
    "APARTMENT"};
 
 // Approximate frequency
@@ -3305,13 +3308,16 @@ const char * FLATS[N_FLATS] =
 #define FLAT_CODE_FLAT 2
 #define FLAT_CODE_CARS 3
 #define FLAT_CODE_SHOP 4
-#define FLAT_CODE_APT_ 5
+#define FLAT_CODE_SUITE 5
+#define FLAT_CODE_APT_ 6
 #define FLAT_CODE_ROOM 9
 // corresponding codes
 const uint8_t FLATC[N_FLATS] =
   {FLAT_CODE_UNIT, FLAT_CODE_UNIT,
+   FLAT_CODE_SUITE,
    FLAT_CODE_APT_,
    FLAT_CODE_CARS, FLAT_CODE_FLAT, FLAT_CODE_ROOM, FLAT_CODE_SHOP, FLAT_CODE_UNIT,
+   FLAT_CODE_SUITE,
    FLAT_CODE_APT_};
 
 
@@ -3365,6 +3371,9 @@ int has_flat(const char * x, int n) {
             substring_within(x, j, n, "CARPARK ", 8)) {
           return FLAT_CODE_CARS;
         }
+      }
+      if (substring_within(x, j, n, "SUITE ", 6) && isdigit(x[j + 6])) {
+        return FLAT_CODE_SUITE;
       }
 
       unsigned char xk = x[j + 1];
