@@ -44,13 +44,47 @@ assumed to end with the street type. The second line is only used to determine
 the result of the street name?}
 }
 \value{
-A \code{data.table} containing columns indicating the components of the standard address,
-including \code{H0} which is the \code{\link{HashStreetName}} of the street name.
+A \code{data.table} containing columns indicating the components of the standard address:
+
+\describe{
+\item{\code{FLAT_NUMBER}}{The flat or unit number. This includes things like SHOP number.}
+\item{\code{NUMBER_FIRST}}{As used in the PSMA, this identified the first (or only) number
+in the address range.}
+\item{\code{NUMBER_LAST}}{As used in the PSMA, if an address is marked as having
+a range of street numbers, the last of the range.}
+\item{\code{NUMBER_SUFFIX}}{A \code{raw} vector. The suffix observed after the numbers. The PSMA
+technically has multiple suffixes for each number component.}
+\item{\code{H0}}{If \code{hash_StreetName = TRUE}, the DJB2 hash (as used in
+\code{\link{HashStreetName}} of the street name.). Observed to have performance
+benefits.}
+\item{\code{STREET_NAME}}{The (uppercase) of the street name. Streets such
+as 'THE ESPLANADE' or 'THE AVENUE' are treated as entirely made up of a street
+name and have a \code{STREET_TYPE_CODE} of zero.}
+\item{\code{STREET_TYPE_CODE}}{An integer, the street type code marking the type
+of street such as ROAD, STREET, AVENUE, etc. They code corresponds approximately
+to the rank of their frequency in addresses.}
+\item{\code{STREET_TYPE}}{If \code{integer_StreetType = FALSE}, then the (uppercase)
+standard name of the street type.}
+\item{\code{POSTCODE}}{An integer vector, the postcode observed.}
+}
 }
 \description{
-Standard address
+Standardize an address from a free text expression into its
+components as used in the PSMA (formerly, "Public Sector for Mapping Agencies")
+database.
 }
 \details{
 By convention observed in the PSMA, street names such as 'THE ESPLANADE' have
 a street name of 'THE ESPLANADE' and an absent street type code.
+
+Non-addresses passed have unspecified behaviour, though usually the
+numbers of the standard address will be 0 or NA. Postcodes may be negative
+in some circumstances where a postcode is not detected,
+though this should not be relied on.
+
+For maximum performance, consider setting \code{integer_StreetType} and
+\code{hash_StreetName} to \code{TRUE}. It has been observed that joining
+two tables together has been faster when using the hash of the standardized
+street name, rather than the street name, even when taking into account
+the hashing process.
 }
