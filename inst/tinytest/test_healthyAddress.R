@@ -253,6 +253,14 @@ expect_equal(ans$H0, HashStreetName("PRINCE OF WALES"))
 ans <- standard_address2("  50 PRINCE OF WALES AVENUE, MILL PARK VIC 3082")
 expect_equal(ans$H0, HashStreetName("PRINCE OF WALES"))
 
+# Many words but valid
+ans <- standard_address2("BRANDON PARK CORPORATE CENTRE SUITE 4 LEVEL 1 2 BRANDON PARK DRIVE WHEELERS HILL VIC 3150")
+expect_equal(ans$FLAT_NUMBER, 4L)
+expect_equal(ans$NUMBER_FIRST, 2L)
+expect_equal(ans$NUMBER_LAST, 0L)
+expect_equal(ans$POSTCODE, 3150L)
+expect_equal(ans$H0, HashStreetName("BRANDON PARK"))
+
 # No address parsable
 na_or_zero <- function(x) is.na(x) | x == 0L
 ans <- standard_address2(NA_character_)
@@ -274,5 +282,5 @@ expect_true(na_or_zero(ans$NUMBER_LAST))
 ## trie
 standard_address_postcode_trie <- healthyAddress:::standard_address_postcode_trie
 ans <- standard_address_postcode_trie("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
-expect_equal(ans[[1]], match("ROAD", .permitted_street_type_ord()))
-expect_equal(ans[[2]], "PASCOE VALE")
+expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
+expect_equal(ans$STREET_NAME, "PASCOE VALE")
