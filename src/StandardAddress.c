@@ -4758,8 +4758,67 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   return ans;
 }
 
+#define STATUS_TOO_THIN 1
+#define STATUS_NO_DIGIT 2
+#define STATUS_LOWERCAS 3
+#define STATUS_ISNT_POA 4
+#define STATUS_MANY_NUM -1
+#define STATUS_MANY_WOR -2
+#define STATUS_MAYBE_PH -3
+
+static int status_check_address(const char * x, int n) {
+  if (n < 4) {
+    return STATUS_TOO_THIN;
+  }
+  bool any_digit = false;
+  bool any_lower = false;
+  for (int j = 0; j < n; ++j) {
+    if (isdigit(x[j])) {
+      any_digit = true;
+    }
+    if (islower(x[j])) {
+      any_lower = true;
+    }
+  }
+  if (!any_digit) {
+    return STATUS_NO_DIGIT;
+  }
+  if (any_lower) {
+    return STATUS_LOWERCAS;
+  }
+  int postcode = xpostcode_unsafe(x, n);
+  if (!is_postcode(postcode)) {
+    return STATUS_ISNT_POA;
+  }
+  WordData wd = word_data(x, n);
+  if (wd.n_words >= WORD_DATUMS) {
+    return STATUS_MANY_WOR;
+  }
+
+  if (n_numbers(x, n) > 6) {
+    return STATUS_MANY_NUM;
+  }
 
 
+
+  return 0;
+}
+
+SEXP C_check_address_input(SEXP x) {
+  errIfNotStr(x, "address");
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    if (xp[i] == NA_STRING) {
+      continue;
+    }
+    int s = status_check_address(CHAR(xp[i]), length(xp[i]));
+    if (s < 0) {
+      return ScalarInteger(i + 1);
+    }
+  }
+  return ScalarInteger(0);
+}
 
 
 
