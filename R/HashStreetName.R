@@ -22,16 +22,27 @@ HashStreetName <- function(x) {
 #' @rdname HashStreetName
 #' @export
 unHashStreetName <- function(x) {
-  noms <-
-    if (is.environment(hash_env) && exists("noms", hash_env, inherits = FALSE)) {
-      get0("noms", hash_env, inherits = FALSE)
-    } else {
-      assign("noms",
-             envir = hash_env,
-             value = unique(.subset2(read_ste_fst(columns = "STREET_NAME"), 1L)))
-    }
+  noms <- all_STREET_NAME()
   homs <- HashStreetName(noms)
-  noms[fmatch(x, homs)]
+  noms[fmatchp(x, homs)]
 }
 
 hash_env <- new.env()
+
+all_STREET_NAME <- function() {
+  if (is.environment(hash_env) && exists("noms", hash_env, inherits = FALSE)) {
+    get0("noms", hash_env, inherits = FALSE)
+  } else {
+    file.qs <-
+      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs", package = packageName())
+
+    if (!file.exists(file.qs) || file.access(file.qs, mode = 4L)) {
+      stop("file.qs below not found or readable\n\t", file.qs)
+    }
+
+    DT <- qs::qread(file.qs)
+    assign("noms",
+           envir = hash_env,
+           value = unique(.subset2(DT, "STREET_NAME")))
+  }
+}
