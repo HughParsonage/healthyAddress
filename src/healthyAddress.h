@@ -47,14 +47,16 @@ typedef struct TrieNode {
 
 // Parameters or assumptions (often about stacks)
 // // Number of words per string to be considered
-#define WORD_DATUMS 16
+#define WORD_DATUMS 32
 typedef struct {
-  int n_words;
+  int n_words; // the actual number of words
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
-  int no1st;
-  const char * x;
-  int n;
+  int no1st; // position of first digit
+  int postcode;
+  int postcode_pos; // x[j + 0:3] is the postcode
+  const char * x; // the original string
+  int n; // the original string's length
 } WordData;
 
 WordData word_data(const char * x, int n);
@@ -93,7 +95,7 @@ bool is_postcode(unsigned int poa);
 
 
 // followed_by_STE_POSTCODE
-bool followed_by_STE_POSTCODE(int w_i, WordData wd);
+bool followed_by_STE_POSTCODE(int w_i, WordData * wd);
 
 int isnt_sorted_asc(SEXP x);
 
@@ -104,7 +106,7 @@ void insert(TrieNode *root, const char *key, int code);
 int search(TrieNode *root, const char *key);
 void insert_all(TrieNode *root);
 void memoize_trie_postcodes(void);
-int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode);
+int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode);
 
 // verifyEquiStr.c
 void errIfNotStr(SEXP x, const char * xx);

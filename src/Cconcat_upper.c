@@ -9,14 +9,6 @@ static char toupper1(char x) {
   return (xi < 26) ? LETTERS[xi] : x;
 }
 
-static void set_upper(char * x) {
-  int i = 0;
-  while (x[i] != '\0') {
-    x[i] = toupper1(x[i]);
-    ++i;
-  }
-}
-
 #define SEP_COMMA_SPACE 1
 
 
@@ -269,11 +261,11 @@ SEXP Cconcat_upper(SEXP xx1, SEXP xx2, SEXP xx3, SEXP xx4, SEXP ssep) {
   SEXP * x2p = STRING_PTR(xx2);
   SEXP * x3p = STRING_PTR(xx3);
   SEXP * x4p = STRING_PTR(xx4);
-  int m2 = 0;
+  // int m2 = 0;
   const bool comma_sep = sep == SEP_COMMA_SPACE;
-  if (comma_sep) {
-    m2 = 2;
-  }
+  // if (comma_sep) {
+  //   m2 = 2;
+  // }
 
 
   if (xlength(xx2) == 1 ||

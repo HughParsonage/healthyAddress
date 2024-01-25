@@ -261,6 +261,16 @@ expect_equal(ans$NUMBER_LAST, 0L)
 expect_equal(ans$POSTCODE, 3150L)
 expect_equal(ans$H0, HashStreetName("BRANDON PARK"))
 
+ans <- standard_address2("Director, Governance Section, Department of Infrastructure, Transport, Regional Development, Communications and the Arts 111 Alinga St Canberra Australian Capital Territory 2601 Australia")
+expect_equal(ans$POSTCODE, 2601)
+expect_equal(ans$H0, HashStreetName("ALINGA"))
+expect_equal(ans$NUMBER_FIRST, 111)
+
+ans <- standard_address_postcode_trie("Director, Governance Section, Department of Infrastructure, Transport, Regional Development, Communications and the Arts 111 Alinga St Canberra Australian Capital Territory 2601 Australia")
+expect_equal(ans$POSTCODE, 2601)
+expect_equal(ans$STREET_NAME, "ALINGA")
+expect_equal(ans$NUMBER_FIRST, 111)
+
 # No address parsable
 na_or_zero <- function(x) is.na(x) | x == 0L
 ans <- standard_address2(NA_character_)
