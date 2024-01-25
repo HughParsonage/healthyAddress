@@ -81,9 +81,13 @@ standardize_address <- function(Address,
                                 check = 1L) {
   do_check <- !identical(check, 0L)
   if (do_check) {
-    check_address_input(Address, check)
+    Address_check <- check_address_input(Address, 1L)
+    AddressLine2_check <- 0L
     if (!is.null(AddressLine2)) {
-      check_address_input(AddressLine2)
+      AddressLine2_check <- check_address_input(AddressLine2, 1L)
+    }
+    if (Address_check) {
+      stop("`Address` failed check for position ", Address_check)
     }
   }
   return.type <- match.arg(return.type)

@@ -5,7 +5,7 @@ expect_equal(1 + 1, 2)
 library(healthyAddress)
 NumberSuffix2Raw <- healthyAddress:::NumberSuffix2Raw
 
-if (F) {
+
 ans <- standardize_address("4/110-120 Rupert St, Victoria 3012")
 names(ans) <- toupper(names(ans))
 expect_equal(ans$FLAT_NUMBER, 4)
@@ -73,7 +73,7 @@ ans <- standard_address2("46 ABBOTT RD ST LEONARDS 2064")
 expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
 ans <- standard_address2("46 ABBOTT ROAD ST LEONARDS 2064")
 expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
-}
+
 ans <- standard_address2("UNIT G2 5 OLIVE YORK WAY BRUNSWICK WEST VICTORIA 3055")
 expect_equal(ans$FLAT_NUMBER, 2L)
 expect_equal(ans$NUMBER_FIRST, 5L)
@@ -267,11 +267,6 @@ expect_equal(ans$H0, HashStreetName("ALINGA"))
 expect_equal(ans$NUMBER_FIRST, 111)
 
 
-standard_address_postcode_trie <- healthyAddress:::standard_address_postcode_trie
-ans <- standard_address_postcode_trie("Director, Governance Section, Department of Infrastructure, Transport, Regional Development, Communications and the Arts 111 Alinga St Canberra Australian Capital Territory 2601 Australia")
-expect_equal(ans$POSTCODE, 2601)
-expect_equal(ans$STREET_NAME, "ALINGA")
-expect_equal(ans$NUMBER_FIRST, 111)
 
 # No address parsable
 na_or_zero <- function(x) is.na(x) | x == 0L
@@ -296,3 +291,11 @@ standard_address_postcode_trie <- healthyAddress:::standard_address_postcode_tri
 ans <- standard_address_postcode_trie("UNIT 2 125 PASCOE VALE ROAD MOONEE PONDS VIC 3039")
 expect_equal(ans$STREET_TYPE_CODE, match("ROAD", .permitted_street_type_ord()))
 expect_equal(ans$STREET_NAME, "PASCOE VALE")
+
+ans <- standard_address_postcode_trie("Director, Governance Section, Department of Infrastructure, Transport, Regional Development, Communications and the Arts 111 Alinga St Canberra Australian Capital Territory 2601 Australia")
+expect_equal(ans$POSTCODE, 2601)
+expect_equal(ans$STREET_NAME, "ALINGA")
+expect_equal(ans$NUMBER_FIRST, 111)
+
+ans <- standard_address_postcode_trie("")
+expect_true(na_or_zero(ans$NUMBER_FIRST))
