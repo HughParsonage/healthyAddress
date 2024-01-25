@@ -4608,7 +4608,11 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
       warning("Unable to allocate memory for street names/codes.");
       break;
     }
-    P->pos_street_codes[0] = -1;
+    // Initialize
+    for (int j = 0; j < N_STREET_TYPES; ++j) {
+      P->pos_street_codes[j] = -1;
+    }
+
     for (uint16_t j = 0; j < n_in_postcode; ++j) {
 
       const char * street_name_i = CHAR(xp[i + j]);
