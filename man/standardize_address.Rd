@@ -11,7 +11,8 @@ standardize_address(
   AddressLine2 = NULL,
   return.type = c("data.table", "integer"),
   integer_StreetType = FALSE,
-  hash_StreetName = FALSE
+  hash_StreetName = FALSE,
+  check = 1L
 )
 
 standard_address2(Address)
@@ -35,6 +36,9 @@ vector?}
 
 \item{hash_StreetName}{Should \code{STREET_NAME} be returned as an integer hash,
 as in \code{\link{HashStreetName}}?}
+
+\item{check}{An integer, whether the inputs should be checked for possibly
+invalid addresses or addresses that may not be parsed correctly.}
 
 \item{Line1, Line2, Postcode}{For addresses split by line. \code{Line1} is
 assumed to end with the street type. The second line is only used to determine
@@ -87,4 +91,6 @@ For maximum performance, consider setting \code{integer_StreetType} and
 two tables together has been faster when using the hash of the standardized
 street name, rather than the street name, even when taking into account
 the hashing process.
+
+For performance reasons, addresses with more than 32 words are not supported.
 }

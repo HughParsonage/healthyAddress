@@ -593,16 +593,16 @@ int isProblemPostcode(int postcode, uint16_t ans[N_POSTCODES]) {
   return ans[postcode];
 }
 
-int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode /* problem postcode */) {
+int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode /* problem postcode */) {
   if (p_postcode == 0) {
     return 0; // nothing to check, postcode known to be free of any THE street
   }
-  const char *x = wd.x;
-  int n_words = wd.n_words;
+  const char *x = wd->x;
+  int n_words = wd->n_words;
 
   for (int w = 0; w < n_words - 1; ++w) {
-    int lhs = wd.lhs[w];
-    int rhs = wd.rhs[w];
+    int lhs = wd->lhs[w];
+    int rhs = wd->rhs[w];
 
     // Check if the current word is 'THE'
     if (rhs - lhs != 3 || strncmp(x + lhs, "THE", 3) != 0) {
@@ -617,8 +617,8 @@ int THE_xxx3(TrieNode *root, WordData wd, unsigned char p_postcode /* problem po
     int trie_codes[3] = {0};
     int j_t = 0;
     for (int i = w + 1; i < n_words; ++i) {
-      int wordStart = wd.lhs[i];
-      int wordEnd = wd.rhs[i];
+      int wordStart = wd->lhs[i];
+      int wordEnd = wd->rhs[i];
       int wordLength = wordEnd - wordStart;
 
       // Check if adding the next word exceeds the buffer size
@@ -729,16 +729,16 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode) {
     WordData wd = word_data(xi, ni); // 9M/s
     // ansp[i] = THE_xxx2(root, wd); // 60M/s
     if (postcode_was_null) {
-      ansp[i] = THE_xxx3(root, wd, 2); // pessimistic postcode
+      ansp[i] = THE_xxx3(root, &wd, 2); // pessimistic postcode
       continue;
     }
     unsigned int postcode = postcodep[i];
     // possibly NA
     if ((postcode - 800u) > SUP_POSTCODE_) {
-      ansp[i] = THE_xxx3(root, wd, 2);
+      ansp[i] = THE_xxx3(root, &wd, 2);
       continue;
     }
-    ansp[i] = THE_xxx3(root, wd, problem_postcodes[postcode]);
+    ansp[i] = THE_xxx3(root, &wd, problem_postcodes[postcode]);
   }
   freeTrie(root);
   free(problem_postcodes);

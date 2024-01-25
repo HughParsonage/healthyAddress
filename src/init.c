@@ -10,7 +10,7 @@
 /* .Call calls */
 extern SEXP C_anyComma(SEXP, SEXP);
 extern SEXP C_areST(SEXP);
-extern SEXP C_check_address_input(SEXP);
+extern SEXP C_check_address_input(SEXP, SEXP);
 extern SEXP C_contains_BIG4(SEXP);
 extern SEXP C_do_standard_address(SEXP);
 extern SEXP C_do_standard_address3(SEXP, SEXP, SEXP, SEXP);
@@ -32,6 +32,7 @@ extern SEXP C_NumberSuffix2Raw(SEXP);
 extern SEXP C_standard_address_postcode_trie(SEXP);
 extern SEXP C_StaticAssert(SEXP);
 extern SEXP C_test_ALPHABET_ENC(SEXP);
+extern SEXP C_test_n_words(SEXP);
 extern SEXP C_trie_streetType(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
 extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -51,7 +52,7 @@ extern SEXP ZMatchStreetName(SEXP);
 static const R_CallMethodDef CallEntries[] = {
     {"C_anyComma",                       (DL_FUNC) &C_anyComma,                       2},
     {"C_areST",                          (DL_FUNC) &C_areST,                          1},
-    {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            1},
+    {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            2},
     {"C_contains_BIG4",                  (DL_FUNC) &C_contains_BIG4,                  1},
     {"C_do_standard_address",            (DL_FUNC) &C_do_standard_address,            1},
     {"C_do_standard_address3",           (DL_FUNC) &C_do_standard_address3,           4},
@@ -73,6 +74,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_standard_address_postcode_trie", (DL_FUNC) &C_standard_address_postcode_trie, 1},
     {"C_StaticAssert",                   (DL_FUNC) &C_StaticAssert,                   1},
     {"C_test_ALPHABET_ENC",              (DL_FUNC) &C_test_ALPHABET_ENC,              1},
+    {"C_test_n_words",                   (DL_FUNC) &C_test_n_words,                   1},
     {"C_trie_streetType",                (DL_FUNC) &C_trie_streetType,                1},
     {"C_uniquePostcodes",                (DL_FUNC) &C_uniquePostcodes,                1},
     {"Cconcat_upper",                    (DL_FUNC) &Cconcat_upper,                    5},

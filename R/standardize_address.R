@@ -26,6 +26,9 @@
 #' @param KeepStreetName Should an additional character vector be included in
 #' the result of the street name?
 #'
+#' @param check An integer, whether the inputs should be checked for possibly
+#' invalid addresses or addresses that may not be parsed correctly.
+#'
 #' @return A \code{data.table} containing columns indicating the components of the standard address:
 #'
 #' \describe{
@@ -65,6 +68,8 @@
 #' street name, rather than the street name, even when taking into account
 #' the hashing process.
 #'
+#' For performance reasons, addresses with more than 32 words are not supported.
+#'
 #'
 #' @export
 
@@ -72,7 +77,15 @@ standardize_address <- function(Address,
                                 AddressLine2 = NULL,
                                 return.type = c("data.table", "integer"),
                                 integer_StreetType = FALSE,
-                                hash_StreetName = FALSE) {
+                                hash_StreetName = FALSE,
+                                check = 1L) {
+  do_check <- !identical(check, 0L)
+  if (do_check) {
+    check_address_input(Address, check)
+    if (!is.null(AddressLine2)) {
+      check_address_input(AddresLine2)
+    }
+  }
   return.type <- match.arg(return.type)
   integer_StreetType <- isTRUE(integer_StreetType)
   hash_StreetName <- isTRUE(hash_StreetName)
@@ -140,7 +153,7 @@ standard_address3 <- function(Line1, Line2, Postcode = NULL, KeepStreetName = FA
 }
 
 standard_address_postcode_trie <- function(x) {
-  ans <- .Call("C_standard_address_postcode_trie", x, PACKAGE = packageName())
+  ans <- .Call("C_standard_address_postcode_trie", ensure_uppercase(x), PACKAGE = packageName())
   setDT(ans)
   setnames(ans,
            c("STREET_TYPE_CODE", "STREET_NAME",
