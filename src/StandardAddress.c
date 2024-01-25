@@ -8,7 +8,8 @@ typedef struct {
   int number_last;
   unsigned char suffix;
   int hashStreetName;
-  int where_street_type;
+  int street_name_lhs;
+  int street_name_rhs;
   int street_type;
   int postcode;
 } Address;
@@ -3892,7 +3893,6 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   int numberFirstLast[3] = {0}; // Flat, First, Last
   int Street[2] = {0};
   Address ad;
-  ad.where_street_type = -1;
   unsigned char suf[3] = {0};
   int j = 0;
   int n_less_poa = wd->postcode_pos;
@@ -3921,6 +3921,8 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   do_street_type(street_type, wd->x, wd->n, j, wd, postcode, m1);
   Street[1] = street_type[0];
   ad.hashStreetName = street_type[2];
+  ad.street_name_lhs = j;
+  ad.street_name_rhs = street_type[1] - 1;
 
   // int j_StreetName = j;
 
@@ -3932,7 +3934,7 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
     // so < -1 to omit space
     int hash_lhs = j;
     int hash_rhs = street_type[1] - 1;
-    while (hash_rhs > j && !isupper(wd->x[hash_rhs])) {
+    while (hash_rhs > j && !isUPPER(wd->x[hash_rhs])) {
       --hash_rhs;
     }
     for (int k = hash_lhs; k <= hash_rhs; ++k) {
@@ -4384,7 +4386,6 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     WordData wd = word_data(x1pi, n1);
     wd.postcode = postcodei;
     wd.postcode_pos = n1 - 1;
-    int J[1] = {0};
     // Address ad = get_address_line1(x1pi, n1, J);
     Address ad = do_standard_address(&wd, M1, root);
     h0[i] = ad.hashStreetName;
@@ -4394,14 +4395,14 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     number_lastp[i] = ad.number_last;
     number_suffixp[i] = ad.suffix;
     if (keepStreetName) {
-      int n_char_street_name = n1 - J[0] + 1;
+      int n_char_street_name = ad.street_name_rhs - ad.street_name_lhs;
       if (n_char_street_name >= MAX_STREET_NAME_LEN) {
         SET_STRING_ELT(StreetName, i, mkCharCE("<EXCEEDED MAX_STREET_NAME_LEN>", CE_UTF8));
         continue;
       }
       char SN[MAX_STREET_NAME_LEN];
       for (int snj = 0; snj < n_char_street_name; ++snj) {
-        SN[snj] = x1pi[snj + J[0]];
+        SN[snj] = x1pi[snj + ad.street_name_lhs];
       }
       SN[n_char_street_name] = '\0';
       SET_STRING_ELT(StreetName, i, mkCharCE((const char *)SN, CE_UTF8));
@@ -4753,7 +4754,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   R_xlen_t N = xlength(x);
   const SEXP * xp = STRING_PTR(x);
   if (ALL_POSTCODE_STREETS == NULL) {
-    error("(Internal error)ALL_POSTCODE_STREETS was NULL, aborting.");
+    error("(Internal error)ALL_POSTCODE_STREETS was NULL, aborting."); // # nocov
   }
 
   // This is an important efficiency step for converting postcodes to internl
@@ -4895,23 +4896,45 @@ static int status_check_address(const char * x, int n) {
   if (any_lower) {
     return STATUS_LOWERCAS;
   }
-  int postcode = xpostcode_unsafe(x, n);
-  if (!is_postcode(postcode)) {
-    return STATUS_ISNT_POA;
-  }
   WordData wd = word_data(x, n);
   if (wd.n_words >= WORD_DATUMS) {
     return STATUS_MANY_WOR;
   }
+  int postcode = xpostcode_unsafe2(x, n);
+  if (postcode && !is_postcode(postcode)) {
+    return STATUS_ISNT_POA;
+  }
+
 
   if (n_numbers(x, n) > 6) {
     return STATUS_MANY_NUM;
   }
-
-
-
   return 0;
 }
+
+void error_or_warn_on_status(const char * v, R_xlen_t i, int status, const char * x, int n) {
+  if (status == 0) {
+    return;
+  }
+  if (status > 0) {
+    switch(status) {
+    case STATUS_TOO_THIN:
+      warning("`%s[%lld] = %s`, which is too thin to accommodate an address.`", v, (long long)i + 1, x);
+      return;
+    case STATUS_NO_DIGIT:
+      warning("`%s[%lld] = %s`, which has no digit.`", v, (long long)i + 1, x);
+      return;
+    case STATUS_ISNT_POA:
+      warning("`%s[%lld] = %s`, appears to contain postcode `%d` which is not a valid postcode.`", v, (long long)i + 1, x, xpostcode_unsafe(x, n));
+    }
+  } else {
+    switch(status) {
+    case STATUS_MANY_WOR:
+      error("`%s[%lld] = %s, which is has %d words, which is more than the permitted limit: %d.", v, (long long)i + 1, x, n_words(x, n), WORD_DATUMS);
+    }
+  }
+}
+
 
 SEXP C_check_address_input(SEXP x, SEXP mm) {
   errIfNotStr(x, "address");
@@ -4951,6 +4974,15 @@ SEXP C_check_address_input(SEXP x, SEXP mm) {
       if (s < 0) {
         return ScalarInteger(i + 1);
       }
+    }
+  }
+  if (m == 2) {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      if (xp[i] == NA_STRING) {
+        continue;
+      }
+      int s = status_check_address(CHAR(xp[i]), length(xp[i]));
+      error_or_warn_on_status("Address", i, s, CHAR(xp[i]), length(xp[i]));
     }
   }
   return ScalarInteger(0);
