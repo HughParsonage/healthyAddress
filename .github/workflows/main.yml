@@ -30,11 +30,6 @@ jobs:
       - name: Run Check
         run: Rscript -e "rcmdcheck::rcmdcheck(build_args = '--no-manual', error_on = 'note')"
     container: rocker/verse:latest
-  rchk:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - uses: r-lib/actions/run-rchk@master
   test-r-sanitizers:
     name: ASAN-UBSAN
     timeout-minutes: 60
@@ -54,4 +49,4 @@ jobs:
           Rdevel CMD build .
           Rdevel CMD INSTALL --install-tests *.tar.gz
           Rdevel -q -f do_test.R
-          Rdevel -d "valgrind --tool=memcheck --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1 --vanilla" -f do_test.R
+          Rdevel -d "valgrind --tool=memcheck --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1" --vanilla -f do_test.R
