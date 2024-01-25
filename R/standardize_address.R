@@ -83,7 +83,7 @@ standardize_address <- function(Address,
   if (do_check) {
     check_address_input(Address, check)
     if (!is.null(AddressLine2)) {
-      check_address_input(AddresLine2)
+      check_address_input(AddressLine2)
     }
   }
   return.type <- match.arg(return.type)

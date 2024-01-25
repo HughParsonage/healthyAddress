@@ -266,6 +266,8 @@ expect_equal(ans$POSTCODE, 2601)
 expect_equal(ans$H0, HashStreetName("ALINGA"))
 expect_equal(ans$NUMBER_FIRST, 111)
 
+
+standard_address_postcode_trie <- healthyAddress:::standard_address_postcode_trie
 ans <- standard_address_postcode_trie("Director, Governance Section, Department of Infrastructure, Transport, Regional Development, Communications and the Arts 111 Alinga St Canberra Australian Capital Territory 2601 Australia")
 expect_equal(ans$POSTCODE, 2601)
 expect_equal(ans$STREET_NAME, "ALINGA")
