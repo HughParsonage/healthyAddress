@@ -54,3 +54,4 @@ jobs:
           Rdevel CMD build .
           Rdevel CMD INSTALL --install-tests *.tar.gz
           Rdevel -q -f do_test.R
+          Rdevel -d "valgrind --tool=memcheck --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1 --vanilla" -f do_test.R
