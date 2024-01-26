@@ -4334,7 +4334,21 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
 
   const int * postcode = INTEGER(Postcode);
   const SEXP * x1p = STRING_PTR(Line1);
-  // const SEXP * x2p = STRING_PTR(Line2);
+  // const SEXP * x2p = STRING_PTR(Line2)
+
+  unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
+  if (M1 == NULL) {
+    error("Internal error(C_do_standard_address3): unable to allocate M1");
+  }
+  prepare_M1(M1);
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    free(M1);
+    free(root);
+    error("Unable to allocate TrieNode*root.");
+  }
+  insert_all(root);
+  memoize_trie_postcodes(); // inserts the THE codes appropriately
 
   int np = 0;
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
@@ -4351,20 +4365,6 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
   int * restrict h0 = INTEGER(H0);
   int * restrict street_codep = INTEGER(StreetCode);
   unsigned char * restrict number_suffixp = RAW(NumberSuffix);
-
-  unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
-  if (M1 == NULL) {
-    error("Internal error(C_do_standard_address3): unable to allocate M1");
-  }
-  prepare_M1(M1);
-  TrieNode * root = getNode();
-  if (root == NULL) {
-    free(M1);
-    free(root);
-    error("Unable to allocate TrieNode*root.");
-  }
-  insert_all(root);
-  memoize_trie_postcodes(); // inserts the THE codes appropriately
 
   for (R_xlen_t i = 0; i < N; ++i) {
     int postcodei = postcode[i];
