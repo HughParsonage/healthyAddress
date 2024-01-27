@@ -937,22 +937,6 @@ SEXP C_HashStreetName(SEXP x) {
   return ans;
 }
 
-bool char_is_LETTER(char x) {
-  // assumes AZ contiguous and in order
-  unsigned int xi = x - 'A';
-  return xi <= 25u;
-}
-
-bool jchar_is_LETTER(const char * x, int j) {
-  unsigned char xj = x[j];
-  return char_is_LETTER(xj);
-}
-
-bool jchar_is_LETTER_or_hyphen(const char * x, int j) {
-  unsigned char xj = x[j];
-  return char_is_LETTER(xj) || xj == '-';
-}
-
 // Is y a substring within x, starting at position i?
 // x The string within which y is suspected to exist
 // i the character position of x from which y is expected
@@ -994,29 +978,6 @@ bool contains_word(const char * str, int n, const char * word, int wn) {
     }
   }
   return false; // Word not found
-}
-
-
-// For detecting things like 'THE ESPLANADE'
-// Is the first 'word' the substring 'THE'
-bool string_first_word_THE(const char * x, int n, int j) {
-  while (++j < n - 5) {
-    if (x[j] != ' ') {
-      continue;
-    }
-    if (x[j + 1] == 'T' &&
-        x[j + 2] == 'H' &&
-        x[j + 3] == 'E' &&
-        x[j + 4] == ' ') {
-      return true;
-    }
-    // is a word
-    if (jchar_is_LETTER(x, j) && !jchar_is_number(x, j - 1) &&
-        jchar_is_LETTER(x, j + 1) && jchar_is_LETTER(x, j + 2)) {
-      break;
-    }
-  }
-  return false;
 }
 
 
@@ -1106,41 +1067,13 @@ int ndigits_positive(int x) {
   return 10;
 }
 
-int which_char_is_space(const char * x, int n) {
-  for (int i = 0; i < n; ++i) {
-    if (x[i] == ' ') {
-      return i + 1;
-    }
-  }
-  return 0;
-}
-
-
-int digit_of_from(const char * x, int * j, unsigned char barrier, int len) {
-  // x a string of length len from which the digit is sought from
-  // position j, terminating whenever barrier occurs
-  int o = 0;
-  int k = j[0];
-  while (k < len && x[k] != barrier) {
-    unsigned int xk = x[k] - '0';
-    if (xk > 9U) {
-      break;
-    }
-    o *= 10;
-    o += xk;
-    ++k;
-  }
-  j[0] = k;
-  return o;
-}
-
 
 
 // VIC->2
 int ste_as_int(const char * x, int ii) {
   int i = ii;
   // we don't know
-  while (!char_is_LETTER(x[i])) {
+  while (!isUPPER(x[i])) {
     ++i;
   }
   unsigned char xi = x[i];
@@ -1466,7 +1399,7 @@ SEXP C_NumberFirstLast(SEXP xx) {
     j_start = flat_number2i[1] > 0 ? (flat_number2i[0] + 1) : j_start;
     int j = j_start;
     for (; j < n - 4; ++j) {
-      if (jchar_is_number(x, j)) {
+      if (isdigit(x[j])) {
         int digit = x[j] - '0';
         if (two_numbers) {
           o2 *= 10;
@@ -1504,15 +1437,11 @@ SEXP C_NumberFirstLast(SEXP xx) {
   return ans;
 }
 
-bool jchar_is_number(const char * x, int j) {
-  return isdigit(x[j]);
-}
-
 unsigned int pos_preceding_word(const char * x, int i) {
   for (int j = i - 3; j > 0; --j) {
     // want the position of the preceding word (following a number)
     // because we're really after the street name
-    if (x[j] == ' ' && isdigit(x[j - 1]) && jchar_is_LETTER(x, j + 1)) {
+    if (x[j] == ' ' && isdigit(x[j - 1]) && isUPPER(x[j + 1])) {
       return j + 1;
     }
   }
@@ -3881,7 +3810,6 @@ int locate_good_cleave(const char * x, int n) {
         break;
       }
     }
-    Rprintf("j = %d\n", j);
     return j;
   }
   return n/2;
@@ -4116,12 +4044,14 @@ SEXP C_StaticAssert(SEXP x) {
     if (zi && zi < 271) {
       int len0 = ZTZ[zi - 1]->lenx;
       int len1 = ZTZ[zi]->lenx;
+      // # nocov start
       if (len0 == len1) {
         warning("(StaticAssert FAIL)len0 == len1 [%d == %d] at i = %d with %s", len0, len1, i, ZTZ[zi]->x);
       }
       if (len1 != i) {
         warning("(StaticAssert FAIL)len1 != i + 2 [%d != %d + 2]", len1, i);
       }
+      // # nocov end
     }
   }
   for (int i = 1; i < 271; ++i) {
@@ -4129,6 +4059,7 @@ SEXP C_StaticAssert(SEXP x) {
     int o_ztz_i0 = oZTC[i - 1];
     int cd_i0 = ZTZ[o_ztz_i0]->cd;
     int cd_i1 = ZTZ[o_ztz_i1]->cd;
+    // # nocov start
     if (cd_i0 != cd_i1 && (cd_i0 != cd_i1 - 1)) {
       Rprintf("ZTZ[oztz_i - 1].x = %s\n", ZTZ[o_ztz_i0]->x);
       Rprintf("ZTZ[oztz_i].x = %s\n", ZTZ[o_ztz_i1]->x);
@@ -4136,6 +4067,7 @@ SEXP C_StaticAssert(SEXP x) {
       warning("(StaticAssert FAIL)cd_i0 = %d, yet cd_i1 = %d, at %d ", cd_i0, cd_i1, i);
       break;
     }
+    // # nocov end
   }
 
   return R_NilValue;
@@ -4211,69 +4143,6 @@ SEXP C_has_word(SEXP xx, SEXP ww) {
 
 }
 
-static int get_street_type_line1(const char * x, int n) {
-  int j = n - 1;
-  while (j > 0 && x[j] != ' ') {
-    --j;
-  }
-  ++j;
-  int len = n - j;
-  char x0 = x[j];
-  if (len >= NZ0POS) {
-    return 0;
-  }
-  int lhs = z0pos_by_len[len];
-  int rhs = ((len + 1) >= NZ0POS) ? NZ : z0pos_by_len[len + 1];
-  for (int z = lhs; z < rhs; ++z) {
-    const char * zi = ZTZ[z]->x;
-    if (x0 != zi[0]) {
-      continue;
-    }
-    bool matched = true;
-    for (int k = 1; k < len; ++k) {
-      if (x[j + k] != zi[k]) {
-        matched = false;
-        break;
-      }
-    }
-    if (!matched) {
-      continue;
-    }
-    int zcd = ZTZ[z]->cd;
-    return zcd;
-  }
-  return 0;
-}
-
-static void xnumber2(unsigned int ans[2], int J[1], const char * x, int n) {
-  int j = J[0];
-  for (int i = j, k = 0; i < n; ++i) {
-    if (isdigit(x[i])) {
-      if (i >= 2 && (i == 2 || x[i - 3] == ' ') && x[i - 2] == 'L' && x[i - 1] == ' ') {
-        continue; // is LEVEL
-      }
-      if (i >= 6 && (i == 6 || x[i - 7] == ' ') &&
-          x[i - 6] == 'L' &&
-          x[i - 5] == 'E' &&
-          x[i - 4] == 'V' &&
-          x[i - 3] == 'E' &&
-          x[i - 2] == 'L' &&
-          x[i - 1] == ' ') {
-        continue;
-      }
-      do {
-        ans[k] *= 10;
-        ans[k] += x[i] - '0';
-        ++i;
-      } while (isdigit(x[i]));
-      J[0] = i; // move the pointer to the char after digit
-      ++k;
-      if (k == 2) {
-        return;
-      }
-    }
-  }
-}
 
 unsigned char get_suff(const char * x, int n) {
   unsigned char suf[3] = {0};
@@ -4290,43 +4159,12 @@ unsigned char get_suff(const char * x, int n) {
 }
 
 
-Address get_address_line1(const char * x, int n, int J[1]) {
-  Address A;
-  A.street_type = get_street_type_line1(x, n);
-  int flat = flat_of(x, n, J);
-  if (flat) {
-    A.flat_number = flat;
-  }
-  unsigned int nos[2] = {0};
-  xnumber2(nos, J, x, n);
-  A.number_first = nos[0];
-  A.number_last = nos[1];
-  while (isspace(J[0])) {
-    ++J[0];
-  }
-
-  A.suffix = get_suff(x, n);
-  if (A.suffix != 0) {
-    J[0] += 1;
-    J[0] += isspace(J[0]);
-  }
-  int len_street_name = ZTZ[A.street_type]->lenx;
-  A.hashStreetName = djb2_hash(x, n - len_street_name - 1, J[0]);
-  if (A.hashStreetName == 193462076) {
-    // street name is 'THE', so street name is the street type
-    A.hashStreetName = djb2_hash(x, n, J[0]);
-  }
-  return A;
-}
-
-
 //' When the address input is in multiple vectors.
 SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStreetName) {
-  // error("Not yet implemented.");
   R_xlen_t N = xlength(Postcode);
   verifyEquiStr2(Line1, "Line1", Line2, "Line2");
   if (!isInteger(Postcode)) {
-    error("`Postcode` was type '%s' but must be type integer.", type2char(TYPEOF(Postcode)));
+    error("`Postcode` was type '%s' but must be type integer.", type2char(TYPEOF(Postcode))); // # nocov
   }
   errIfNotLen(Line1, "Line1", N);
   errifNotTF(KeepStreetName, "KeepStreetName");
@@ -4334,19 +4172,20 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
 
   const int * postcode = INTEGER(Postcode);
   const SEXP * x1p = STRING_PTR(Line1);
-  // const SEXP * x2p = STRING_PTR(Line2)
 
   unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
   if (M1 == NULL) {
-    error("Internal error(C_do_standard_address3): unable to allocate M1");
+    error("Internal error(C_do_standard_address3): unable to allocate M1"); // # nocov
   }
   prepare_M1(M1);
   TrieNode * root = getNode();
+  // # nocov start
   if (root == NULL) {
     free(M1);
     free(root);
     error("Unable to allocate TrieNode*root.");
   }
+  // # nocov end
   insert_all(root);
   memoize_trie_postcodes(); // inserts the THE codes appropriately
 
@@ -4386,7 +4225,6 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     WordData wd = word_data(x1pi, n1);
     wd.postcode = postcodei;
     wd.postcode_pos = n1 - 1;
-    // Address ad = get_address_line1(x1pi, n1, J);
     Address ad = do_standard_address(&wd, M1, root);
     h0[i] = ad.hashStreetName;
     street_codep[i] = ad.street_type;
@@ -4466,14 +4304,14 @@ SEXP C_trie_streetType(SEXP x) {
 
   TrieNode * root = getNode();
   if (root == NULL) {
-    UNPROTECT(1);
-    return R_NilValue;
+    UNPROTECT(1); // # nocov
+    return R_NilValue; // # nocov
   }
   for (int i = 0; i < NZ; ++i) {
     insert(root, ZTZ[i]->x, ZTZ[i]->cd);
   }
   const SEXP * xp = STRING_PTR(x);
-#pragma omp parallel for
+
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = 0;
     ansp1[i] = 0;
