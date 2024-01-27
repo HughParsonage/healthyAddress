@@ -22,5 +22,7 @@ expect_equal(ans[[1]], 712)
 expect_equal(ans[[2]], 108)
 
 ans <- extract_flatNumberFirstLast("2/18A MULGARA LOOP, THROSBY ACT 2914")
+expect_equal(ans$FLAT_NUMBER, 2L)
+expect_equal(ans$NUMBER_SUFFIX, healthyAddress:::NumberSuffix2Raw('A'))
 
 

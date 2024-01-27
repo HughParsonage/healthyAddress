@@ -2,6 +2,8 @@ library(tinytest)
 # Placeholder with simple test
 expect_equal(1 + 1, 2)
 
+expect_null(healthyAddress:::static_assert())
+
 library(healthyAddress)
 NumberSuffix2Raw <- healthyAddress:::NumberSuffix2Raw
 
@@ -136,6 +138,11 @@ expect_equal(ans$FLAT_NUMBER, 0)
 expect_equal(ans$NUMBER_FIRST, 1)
 expect_equal(ans$NUMBER_SUFFIX, healthyAddress:::NumberSuffix2Raw("A"))
 expect_equal(ans$H0, HashStreetName("THE ESPLANADE"))
+expect_equal(ans$POSTCODE, 2019)
+
+ans <- standard_address3(" ", "BOTANY NSW 2019")
+expect_equal(is.na(ans$NUMBER_FIRST), TRUE)
+expect_equal(ans$H0, 0L)
 expect_equal(ans$POSTCODE, 2019)
 
 ans <- standard_address2("1/59 THE RIGHI, SOUTH YARRA, VIC, 3141")
