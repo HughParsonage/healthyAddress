@@ -57,9 +57,22 @@ ans <- standardize_address(c("15 CANBERRA AVENUE FORREST ACT 2609",
                              "1 BEALE CRESCENT DEAKIN ACT 2600",
                              "116 MUGGA LANE Symonston ACT 2609",
                              "1 BIDWILL CLOSE YARRALUMLA ACT 2600",
-                             "5/1 GEILS COURT DEAKING ACT 2600"))
+                             "5/1 GEILS COURT DEAKING ACT 2600",
+                             "1/3 OUTLOOK RISE QLD 4553"))
 expect_equal(ans$STREET_TYPE,
-             c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT"))
+             c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT", "RISE"))
+
+ans <- standardize_address(c("15 CANBERRA AVENUE FORREST ACT 2609",
+                             "1 BEALE CRESCENT DEAKIN ACT 2600",
+                             "116 MUGGA LANE Symonston ACT 2609",
+                             "1 BIDWILL CLOSE YARRALUMLA ACT 2600",
+                             "5/1 GEILS COURT DEAKING ACT 2600",
+                             "1/3 OUTLOOK RISE QLD 4553"),
+                           integer_StreetType = TRUE,
+                           hash_StreetName = TRUE)
+expect_equal(ans$STREET_TYPE,
+             match(c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT", "RISE"),
+                   .permitted_street_type_ord()))
 
 
 ans <- standardize_address("1 PARK ST, ST KILDA WEST VIC 3182")
