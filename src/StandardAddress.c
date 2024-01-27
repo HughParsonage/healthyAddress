@@ -956,30 +956,6 @@ bool substring_within(const char * x, int i, int n, const char * y, int m) {
   return true;
 }
 
-// does str contain word (either at the beginning or preceded by a space)
-bool contains_word(const char * str, int n, const char * word, int wn) {
-  if (wn > n) {
-    return false; // Word is longer than the string
-  }
-
-  for (int j = 0; j <= n - wn; ++j) {
-    // Check if the word is at the start of the string or preceded by a space
-    if (j == 0 || str[j - 1] == ' ') {
-      bool match = true;
-      for (int k = 0; k < wn; ++k) {
-        if (str[j + k] != word[k]) {
-          match = false;
-          break;
-        }
-      }
-      if (match) {
-        return true; // Word found
-      }
-    }
-  }
-  return false; // Word not found
-}
-
 
 
 // 0 if no THE in word
@@ -1209,9 +1185,7 @@ SEXP C_uniquePostcodes(SEXP xx) {
 
 SEXP CToUpperBasic(SEXP x) {
   R_xlen_t N = xlength(x);
-  if (TYPEOF(x) != STRSXP) {
-    error("TYPEOF(x) != STRSXP");
-  }
+  errIfNotStr(x, "x");
   SEXP ans = PROTECT(allocVector(STRSXP, N));
   for (R_xlen_t i = 0; i < N; ++i) {
     SEXP xi = STRING_ELT(x, i);
@@ -4677,12 +4651,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       if (search_code > 0) {
         StreetTypep[i] = P->street_code[search_code - 1];
         SET_STRING_ELT(StreetName, i, mkCharCE(P->street_names[search_code - 1], CE_UTF8));
-        // static void do__numberFirstLast(int numberFirstLast[3],
-        //                                 WordData * wd,
-        //                                 int postcode,
-        //                                 bool is_single_line,
-        //                                 int * j,
-        //                                 unsigned char suf[3])
+        // Now find the numbers
         int numberFirstLast[3] = {0};
         WordData wd = word_data(xi, ni);
         int jj = 0;
