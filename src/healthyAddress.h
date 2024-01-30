@@ -48,10 +48,12 @@ typedef struct TrieNode {
 // Parameters or assumptions (often about stacks)
 // // Number of words per string to be considered
 #define WORD_DATUMS 32
+#define COMMA_DATUMS 8
 typedef struct {
   int n_words; // the actual number of words
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
+  int comma_pos[COMMA_DATUMS];
   int no1st; // position of first digit
   int postcode;
   int postcode_pos; // x[j + 0:3] is the postcode

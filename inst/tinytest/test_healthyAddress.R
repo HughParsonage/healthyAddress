@@ -67,11 +67,12 @@ ans <- standardize_address(c("15 CANBERRA AVENUE FORREST ACT 2609",
                              "116 MUGGA LANE Symonston ACT 2609",
                              "1 BIDWILL CLOSE YARRALUMLA ACT 2600",
                              "5/1 GEILS COURT DEAKING ACT 2600",
+                             "BIG4 SHEPPARTON PARKLANDS 7835 GOULBURN VALLEY HIGHWAY KIALLA VIC 3631",
                              "1/3 OUTLOOK RISE QLD 4553"),
                            integer_StreetType = TRUE,
                            hash_StreetName = TRUE)
 expect_equal(ans$STREET_TYPE,
-             match(c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT", "RISE"),
+             match(c("AVENUE", "CRESCENT", "LANE", "CLOSE", "COURT", "HIGHWAY", "RISE"),
                    .permitted_street_type_ord()))
 
 
@@ -319,3 +320,52 @@ expect_equal(ans$NUMBER_FIRST, 111)
 
 ans <- standard_address_postcode_trie("")
 expect_true(na_or_zero(ans$NUMBER_FIRST))
+
+ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
+                             "35 OLD FOREST ROAD, THE BASIN, VIC, 3154",
+                             "16/21-31 ST PHILLIP STREET, BRUNSWICK EAST, VIC, 3057",
+                             "23 LOOKOUT RISE, MACLEOD, VIC, 3085",
+                             "38 ST VINCENT STREET, ALBERT PARK, VIC, 3206",
+                             "9 SANDSTONE ISLAND CIRCLE, BITTERN, VIC, 3918",
+                             "28 ST MITCHELL CIRCUIT, MORNINGTON, VIC, 3931",
+                             "23 MERIDIAN ACCESS ROAD, WALPEUP, VIC, 3507",
+                             "1/17 ST LEONARDS ROAD, HEALESVILLE, VIC, 3777",
+                             "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"))
+
+expect_equal(ans$STREET_NAME,
+             c("CRESCENT",
+               "OLD FOREST",
+               "ST PHILLIP",
+               "LOOKOUT",
+               "ST VINCENT",
+               "SANDSTONE ISLAND",
+               "ST MITCHELL",
+               "MERIDIAN ACCESS",
+               "ST LEONARDS",
+               "ST NINIANS"))
+
+ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
+                             "35 OLD FOREST ROAD, THE BASIN, VIC, 3154",
+                             "16/21-31 ST PHILLIP STREET, BRUNSWICK EAST, VIC, 3057",
+                             "23 LOOKOUT RISE, MACLEOD, VIC, 3085",
+                             "38 ST VINCENT STREET, ALBERT PARK, VIC, 3206",
+                             "9 SANDSTONE ISLAND CIRCLE, BITTERN, VIC, 3918",
+                             "28 ST MITCHELL CIRCUIT, MORNINGTON, VIC, 3931",
+                             "23 MERIDIAN ACCESS ROAD, WALPEUP, VIC, 3507",
+                             "1/17 ST LEONARDS ROAD, HEALESVILLE, VIC, 3777",
+                             "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"),
+                           hash_StreetName = TRUE)
+
+expect_equal(ans$H0,
+             HashStreetName(c("CRESCENT",
+                              "OLD FOREST",
+                              "ST PHILLIP",
+                              "LOOKOUT",
+                              "ST VINCENT",
+                              "SANDSTONE ISLAND",
+                              "ST MITCHELL",
+                              "MERIDIAN ACCESS",
+                              "ST LEONARDS",
+                              "ST NINIANS")))
+
+

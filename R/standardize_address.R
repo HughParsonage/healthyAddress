@@ -109,7 +109,7 @@ standardize_address <- function(Address,
 
   if (!integer_StreetType) {
     STREET_TYPE_CODE <- NULL
-    Ans[, "STREET_TYPE" := .permitted_street_type_ord()[STREET_TYPE_CODE]]
+    Ans[STREET_TYPE_CODE > 0L, "STREET_TYPE" := .permitted_street_type_ord()[STREET_TYPE_CODE]]
   }
 
   Ans

@@ -645,6 +645,68 @@ SEXP C_test_n_words(SEXP x) {
   return ans;
 }
 
+int has_comma(const char * x, int n) {
+  for (int j = 0; j < n; ++j) {
+    if (x[j] == ',') {
+      return j + 1;
+    }
+  }
+  return 0;
+}
+
+void comma_locations(int commas[8], const char * x, int n) {
+  unsigned int j = 0;
+  for (int i = 0; i < n; ++i) {
+    commas[j & 7] = i;
+    j += (*(x + i) == ',');
+  }
+  // ensure remaining are filled with negatives
+  for (; j < 8; ++j) {
+    commas[j] = -1;
+  }
+}
+
+void detect_char(unsigned char ans[256], const char * x, int n) {
+  for (int j = 0; j < n; ++j) {
+    unsigned int xj = (unsigned char)x[j];
+    ans[xj] = 1;
+  }
+}
+
+SEXP C_anyComma(SEXP x, SEXP oo) {
+  // # nocov start
+  if (!isString(x)) {
+    warning("Not a string, so returning 0.");
+    return ScalarInteger(0);
+  }
+  // # nocov end
+  const int o = asInteger(oo);
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  if (o == 1) {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      // if (has_comma(CHAR(xp[i]), length(xp[i]))) {
+      //   return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
+      // }
+      int xx[8] = {0};
+      comma_locations(xx, CHAR(xp[i]), length(xp[i]));
+      if (xx[0] >= 0) {
+        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
+      }
+    }
+  } else if (o == 0) {
+    unsigned char all_chars[256] = {0};
+    for (R_xlen_t i = 0; i < N; ++i) {
+      detect_char(all_chars, CHAR(xp[i]), length(xp[i]));
+      if (all_chars[44]) {
+        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
+      }
+    }
+
+  }
+  return ScalarInteger(0);
+}
+
 
 //' @noRd
 //' @description
@@ -745,6 +807,7 @@ WordData word_data(const char * x, int n) {
     wd.lhs[jj] = lhs[jj];
     wd.rhs[jj] = rhs[jj];
   }
+  comma_locations(wd.comma_pos, x, n);
   wd.x = x;
   wd.n = n;
   wd.no1st = no1st;
@@ -1420,67 +1483,6 @@ unsigned int pos_preceding_word(const char * x, int i) {
     }
   }
   return 0;
-}
-
-
-int has_comma(const char * x, int n) {
-  for (int j = 0; j < n; ++j) {
-    if (x[j] == ',') {
-      return j + 1;
-    }
-  }
-  return 0;
-}
-
-void comma_locations(int commas[8], const char * x, int n) {
-  unsigned int j = 0;
-  for (int i = 0; i < n; ++i) {
-    commas[j & 7] = i;
-    j += (*(x + i) == ',');
-  }
-  // ensure remaining are filled with negatives
-  for (; j < 8; ++j) {
-    commas[j] = -1;
-  }
-}
-
-void detect_char(unsigned char ans[256], const char * x, int n) {
-  for (int j = 0; j < n; ++j) {
-    unsigned int xj = (unsigned char)x[j];
-    ans[xj] = 1;
-  }
-}
-
-SEXP C_anyComma(SEXP x, SEXP oo) {
-  if (!isString(x)) {
-    warning("Not a string, so returning 0.");
-    return ScalarInteger(0);
-  }
-  const int o = asInteger(oo);
-  R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
-  if (o == 1) {
-    for (R_xlen_t i = 0; i < N; ++i) {
-      // if (has_comma(CHAR(xp[i]), length(xp[i]))) {
-      //   return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
-      // }
-      int xx[8] = {0};
-      comma_locations(xx, CHAR(xp[i]), length(xp[i]));
-      if (xx[0] >= 0) {
-        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
-      }
-    }
-  } else if (o == 0) {
-    unsigned char all_chars[256] = {0};
-    for (R_xlen_t i = 0; i < N; ++i) {
-      detect_char(all_chars, CHAR(xp[i]), length(xp[i]));
-      if (all_chars[44]) {
-        return i >= INT_MAX ? ScalarReal(i + 1) : ScalarInteger(i + 1);
-      }
-    }
-
-  }
-  return ScalarInteger(0);
 }
 
 
@@ -2942,6 +2944,8 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
   }
 
 
+
+
   int no1st = wd->no1st;
   int n_words = wd->n_words;
   int first_word_post_number = 1;
@@ -3178,6 +3182,53 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       }
     }
   }
+  int comma_pos0 = wd->comma_pos[0];
+
+  if (comma_pos0 > 0) {
+    // has a comma, street type probably precedes
+    for (int w = 0; w < 8; ++w) {
+      if (w > n_words) {
+        break;
+      }
+      if ((wd->lhs[w + 1]) < comma_pos0) {
+        continue;
+      }
+      int lhs_w = wd->lhs[w];
+      int rhs_w = wd->rhs[w];
+      // # nocov start
+      if (rhs_w == 0) {
+        continue;
+      }
+      if (lhs_w > comma_pos0) {
+        break; // no find
+      }
+      // # nocov end
+      unsigned int width_w = rhs_w - lhs_w;
+      int z0pos = z0pos_by_len[width_w & NZ0POR];
+      unsigned int width_w1 = width_w + 1;
+      int z1pos = z0pos_by_len[width_w1 & NZ0POR];
+      for (int z = z0pos; z < z1pos; ++z) {
+        const StreetType * Z = ZTZ[z];
+        const char * xz = Z->x;
+        int nz = Z->lenx;
+        if (Z->cd == ST_CODE_VALE && isnt_vale_postcode(Postcode)) {
+          continue;
+        }
+        // bool substring_within(const char * x, int i, int n, const char * y, int m)
+        if (nz == width_w && substring_within(x, lhs_w, n, xz, nz)) {
+          if (z == ST_ST_ST && iz_saint(w, x, n, wd, m1, Postcode)) {
+            continue;
+          }
+
+          ans[0] = Z->cd;
+          ans[1] = lhs_w;
+          return;
+        }
+      }
+    }
+  }
+
+
   // Loop through the first four words after the number; check these words
   // against the 20 most common word types (for efficiency, rather than
   // checking all 270+).
@@ -3836,6 +3887,7 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   // Give the hashes of the next 1,2,3,4 words
   // idea is the street name may be more than one name
   if (!ad.hashStreetName) {
+    // Rprintf("%d %d\n", j, street_type[1] - 1);
     unsigned int hash = 5381;
     // street_type[1] = pos of first word of street type
     // so < -1 to omit space
@@ -4504,6 +4556,7 @@ void freePopTries(void) {
       }
     }
   }
+  postcodeTriePopulated = false;
 }
 
 void populate_postcodeTries(void) {
