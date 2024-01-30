@@ -3178,9 +3178,11 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
       }
     }
   }
-  // one with first 20
+  // Loop through the first four words after the number; check these words
+  // against the 20 most common word types (for efficiency, rather than
+  // checking all 270+).
   for (int w_ = 0; w_ < 4; ++w_) {
-    int w = w_ + first_word_post_number;
+    int w = w_ + first_word_post_number + 1;
     if (w > n_words) {
       continue;
     }
@@ -3190,6 +3192,9 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     if (rhs_w == 0) {
       continue;
     }
+    // Now select the range of street types with the same string width
+    // as we observe at this word; [z0pos-z1pos) are the indices of ZTZ
+    // that are candidates for this word length.
     unsigned int width_w = rhs_w - lhs_w;
     int z0pos = z0pos_by_len[width_w & NZ0POR];
     unsigned int width_w1 = width_w + 1;
@@ -3197,7 +3202,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     for (int z = z0pos; z < z1pos; ++z) {
       const StreetType * Z = ZTZ[z];
       if (Z->cd > 20) {
-        // Don't check if code is outside top 16 common
+        // Don't check if code is outside top 20 common
         continue;
       }
 
@@ -3223,7 +3228,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     if (w > n_words) {
       continue;
     }
-    if (w < first_word_post_number) {
+    if (w <= first_word_post_number) {
       continue;
     }
     int lhs_w = wd->lhs[w];
@@ -4540,14 +4545,17 @@ int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const ch
 
   // Annoyingly, there is a street name with a single character, so we can't
   // even choose k = n - 2;
-  // We go in reverse direction since the street name is most likely to be
+  // We DO NOT go in reverse direction EVEN THOUGH the street name is most likely to be
   // (only) the preceding word to the street type; if it's not we keep going
   // for multi-word street names
-  for (int k = n - 1; k >= 0; --k) {
+  // Instead we go forward, sacrficing performance for correctness: there are
+  // street names in the same postcode where a longer name is correct, e.g.
+  //   FOREST ROAD   vs   OLD FOREST ROAD
+  for (int k = 0; k < n - 1; ++k) {
     if ((k == 0 || x[k - 1] == ' ') && isUPPER(x[k])) {
       int len = n - k;
       if (len > MAX_STREET_NAME_LEN - 1) {
-        break;
+        continue;
       }
       strncpy(streetName, x + k, len);
       streetName[len] = '\0';
