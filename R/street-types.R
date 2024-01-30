@@ -116,7 +116,7 @@ permitted_street_cds <- function() {
     "WHARF", "WOODS", "WYND", "YARD")
 }
 # ordered from most common to least
-.permitted_street_type_ord <- function() {
+..permitted_street_type_ord <- function() {
   c("ROAD", "STREET", "COURT", "AVENUE", "PLACE", "LANE", "DRIVE",
     "CLOSE", "TRACK", "CRESCENT", "WAY", "TRAIL", "HIGHWAY", "TERRACE",
     "PARADE", "GROVE", "ACCESS", "CIRCUIT", "RAMP", "BOULEVARD",
@@ -153,6 +153,7 @@ permitted_street_cds <- function() {
     "TWIST", "VILLA", "WATERWAY", "YARD")
 }
 
+# nocov start
 .abbrev_street_names <- function() {
   fread(text = "Abbreviation,Name
   ALY,ALLEY
@@ -446,7 +447,7 @@ ensure_street_type_decode <- function(v) {
   }
   .permitted_street_type_ord()[v]
 }
-
+# nocov end
 
 
 
