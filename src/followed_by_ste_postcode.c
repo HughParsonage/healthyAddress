@@ -6,7 +6,10 @@ static bool last4rdigs(const char * x, int n) {
 
 bool followed_by_STE_POSTCODE(int w_i, WordData * wd) {
   int n_words = wd->n_words;
-  if (n_words != w_i + 2) {
+  // THE BASIN VIC 3154
+  //     ^     ^   ^  ^
+  //     w_i          n_words
+  if (n_words != w_i + 3) {
     return false;
   }
   const char * x = wd->x;
