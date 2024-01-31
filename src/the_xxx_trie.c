@@ -645,7 +645,7 @@ int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode /* problem 
           // on locality names that are not also street names.
           if (followed_by_STE_POSTCODE(i, wd)) {
             // likely not a correct code, but the locality we've picked up
-            return j_t == 1 ? 0 : trie_codes[j_t - 1];
+            return j_t < 1 ? 0 : trie_codes[j_t - 1];
           }
           // we rely on the forward movement of the address. That is, our
           // algorithm will pick up street names before localities if
