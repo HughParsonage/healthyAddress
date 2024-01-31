@@ -368,4 +368,9 @@ expect_equal(ans$H0,
                               "ST LEONARDS",
                               "ST NINIANS")))
 
+ans <- standardize_address('1408/170 The Esplanade St Kilda VIC 3182')
+expect_equal(ans$STREET_NAME, "THE ESPLANADE")
+expect_equal(ans$FLAT_NUMBER, 1408L)
+expect_equal(ans$NUMBER_FIRST, 170)
+
 

@@ -112,7 +112,7 @@ standardize_address <- function(Address,
     Ans[STREET_TYPE_CODE > 0L, "STREET_TYPE" := .permitted_street_type_ord()[STREET_TYPE_CODE]]
   }
 
-  Ans
+  Ans[]
 
 
 

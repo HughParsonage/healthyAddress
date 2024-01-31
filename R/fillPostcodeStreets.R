@@ -16,7 +16,7 @@ fillPostcodeStreets <- function(DT, test = 0L) {
   .Call("C_fillPostcodeStreets",
         .subset2(DT, "POSTCODE"),
         .subset2(DT, "STREET_NAME"),
-        .subset2(DT, "STREET_TYPE_CODE"),
+        coalesce0(.subset2(DT, "STREET_TYPE_CODE")),
         test,
         PACKAGE = packageName())
 }

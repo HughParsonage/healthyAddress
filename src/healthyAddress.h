@@ -102,6 +102,9 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd);
 int isnt_sorted_asc(SEXP x);
 
 // trie
+#define N_THE_XXXS 703
+extern const char * THE_XXXs[N_THE_XXXS];
+extern const int H_THE_XXX[N_THE_XXXS];
 TrieNode *getNode(void);
 void freeTrie(TrieNode *root);
 void insert(TrieNode *root, const char *key, int code);
@@ -109,6 +112,8 @@ int search(TrieNode *root, const char *key);
 void insert_all(TrieNode *root);
 void memoize_trie_postcodes(void);
 int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode);
+SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash);
+void prepend_THE(char SN[MAX_STREET_NAME_LEN], const char * suffix);
 
 // verifyEquiStr.c
 void errIfNotStr(SEXP x, const char * xx);

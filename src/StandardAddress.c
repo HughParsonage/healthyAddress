@@ -3859,6 +3859,10 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
 
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
     int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
+    if (the_street > 0) {
+      the_street = H_THE_XXX[the_street - 1];
+    }
+
     // THE STRAND is a hotel in Melbourne and not a street name
     if (postcode >= 3000 && postcode <= 3004 && the_street == DJB2_THE_STRAND) {
       the_street = 0;
@@ -4650,6 +4654,8 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   SEXP StreetType = PROTECT(allocVector(INTSXP, N));
   int * restrict StreetTypep = INTEGER(StreetType);
   SEXP StreetName = PROTECT(allocVector(STRSXP, N));
+  SEXP THE__ = PROTECT(C_do_the_xxx(x, R_NilValue, ScalarLogical(0)));
+  int * restrict the__ = INTEGER(THE__);
 
   SEXP FlatNumber  = PROTECT(allocVector(INTSXP, N));
   SEXP NumberFirst = PROTECT(allocVector(INTSXP, N));
@@ -4676,15 +4682,40 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     }
     const char * xi = CHAR(xp[i]);
     int postcodei = xpostcode_unsafe2(xi, ni);
+
+    flat_numberp[i] = NA_INTEGER;
+    number_firstp[i] = NA_INTEGER;
+    number_lastp[i] = NA_INTEGER;
+    number_suffixp[i] = 35;
     if (!is_postcode(postcodei)) {
-      flat_numberp[i] = NA_INTEGER;
-      number_firstp[i] = NA_INTEGER;
-      number_lastp[i] = NA_INTEGER;
       number_suffixp[i] = 34;
       postcodep[i] = -1;
       continue;
     }
     postcodep[i] = postcodei;
+    int the_i = the__[i];
+    if (the_i > 0) {
+      char SN[MAX_STREET_NAME_LEN];
+      prepend_THE(SN, THE_XXXs[the_i - 1]);
+      SET_STRING_ELT(StreetName, i, mkCharCE((const char *)SN, CE_UTF8));
+      // Now find the numbers
+      int numberFirstLast[3] = {0};
+      WordData wd = word_data(xi, ni);
+      int jj = 0;
+      unsigned char suf[3] = {0};
+      // n - 7 since postcode and 'the'
+      do__numberFirstLast(numberFirstLast, &wd, ni - 7, &jj, suf);
+      flat_numberp[i] = numberFirstLast[0];
+      number_firstp[i] = numberFirstLast[1];
+      number_lastp[i] = numberFirstLast[2];
+      number_suffixp[i] = suf3suf(suf);
+      continue;
+    }
+
+
+
+
+
     unsigned int ipostcode = postcode2intrnl(postcodei);
     PostcodeStreets * P = &ALL_POSTCODE_STREETS[ipostcode];
 
@@ -4694,16 +4725,12 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
     uint8_t stti4[4] = {stti >> 24, (stti >> 16) & 255, (stti >> 8) & 255, stti & 255};
     uint8_t sttj4[4] = {sttj >> 24, (sttj >> 16) & 255, (sttj >> 8) & 255, sttj & 255};
 
+
     for (int stti_k = 0; stti_k < 4; ++stti_k) {
       uint8_t stti4_k = stti4[stti_k];
       if (stti_k != 3 && stti4_k == 0) {
         continue;
       }
-
-      // if (P->pos_street_codes[stti4_k] < 0) {
-      //   // The street type does not exist in this postcode
-      //   continue;
-      // }
 
       // This is the position where the street name possibly started
       uint8_t sttj4_k = sttj4[stti_k];
@@ -4725,6 +4752,8 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
         break;
       }
     }
+
+
   }
 
   freePopTries();
@@ -4736,7 +4765,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   SET_VECTOR_ELT(ans, 4, NumberLast);
   SET_VECTOR_ELT(ans, 5, NumberSuffix);
   SET_VECTOR_ELT(ans, 6, Postcode);
-  UNPROTECT(9);
+  UNPROTECT(10);
   return ans;
 }
 
