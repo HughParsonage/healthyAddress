@@ -637,7 +637,7 @@ int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode /* problem 
       int trie_code = search(root, streetName);
       if (trie_code != -1) {
         if (j_t < 3) {
-          trie_codes[j_t++] = trie_code;
+          trie_codes[j_t] = trie_code;
         }
         if (p_postcode == 2) {
           // need to investigate whether the 'THE' has occurred because of
@@ -645,13 +645,14 @@ int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode /* problem 
           // on locality names that are not also street names.
           if (followed_by_STE_POSTCODE(i, wd)) {
             // likely not a correct code, but the locality we've picked up
-            return trie_codes[j_t - 1];
+            return j_t == 1 ? 0 : trie_codes[j_t - 1];
           }
           // we rely on the forward movement of the address. That is, our
           // algorithm will pick up street names before localities if
           // both appear, because streets appear to the left in Australian
           // addresses
         }
+        ++j_t;
       }
     }
     if (j_t) {

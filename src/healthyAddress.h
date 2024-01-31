@@ -70,7 +70,7 @@ void err_if_nchar_geq(SEXP x, int max_nchar, const char * vx);
 int isnt_sorted_asc(SEXP x);
 int find_common_street(const char * x, int n, int i);
 
-bool jchar_is_number(const char * x, int j);
+bool isUPPER(char x);
 int next_numeral(int j, const char * x, int n);
 int j_post_LEVEL(const char * x, int n);
 
