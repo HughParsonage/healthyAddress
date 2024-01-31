@@ -21,17 +21,17 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd) {
   int j = wd->lhs[w_i + 1];
   switch(x[j]) {
   case 'A':
-    return x[j + 1] == 'C' && x[j + 2] == 'T' && !isupper(x[j + 3]);
+    return x[j + 1] == 'C' && x[j + 2] == 'T' && !isUPPER(x[j + 3]);
   case 'N':
-    return (x[j + 1] == 'T' && !isupper(x[j + 3])) || (x[j + 1] == 'S' && x[j + 2] == 'W');
+    return (x[j + 1] == 'T' && !isUPPER(x[j + 2])) || (x[j + 1] == 'S' && x[j + 2] == 'W');
   case 'Q':
-    return x[j + 1] == 'L' && x[j + 2] == 'D' && !isupper(x[j + 3]);
+    return x[j + 1] == 'L' && x[j + 2] == 'D' && !isUPPER(x[j + 3]);
   case 'T':
-    return x[j + 1] == 'A' && x[j + 2] == 'S' && !isupper(x[j + 3]);
+    return x[j + 1] == 'A' && x[j + 2] == 'S' && !isUPPER(x[j + 3]);
   case 'W':
-    return x[j + 1] == 'A' && !isupper(x[j + 2]);
+    return x[j + 1] == 'A' && !isUPPER(x[j + 2]);
   case 'V':
-    return x[j + 1] == 'I' && x[j + 2] == 'C' && !isupper(x[j + 3]);
+    return x[j + 1] == 'I' && x[j + 2] == 'C' && !isUPPER(x[j + 3]);
   }
   return false;
 }

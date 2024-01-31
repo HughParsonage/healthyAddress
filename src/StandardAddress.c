@@ -493,7 +493,7 @@ static const char LETTERS[26] =
 
 // isUPPER is faster than isupper
 // 20 s to 7 s for 30 M strings
-static bool isUPPER(char x) {
+bool isUPPER(char x) {
   unsigned char AAA = 'A';
   unsigned char uac = x;
   unsigned int y = (unsigned int)uac - AAA;
@@ -4711,10 +4711,6 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       number_suffixp[i] = suf3suf(suf);
       continue;
     }
-
-
-
-
 
     unsigned int ipostcode = postcode2intrnl(postcodei);
     PostcodeStreets * P = &ALL_POSTCODE_STREETS[ipostcode];
