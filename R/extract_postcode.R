@@ -18,8 +18,8 @@ extract_postcode <- function(x) {
   .Call("CExtractPostcode", x, PACKAGE = packageName())
 }
 
-the__ <- function(x, postcode = NULL) {
-  .Call("C_do_the_xxx", x, if (is.null(postcode)) extract_postcode(x) else postcode, PACKAGE = packageName())
+the__ <- function(x, postcode = NULL, hash = TRUE) {
+  .Call("C_do_the_xxx", x, if (is.null(postcode)) extract_postcode(x) else postcode, hash, PACKAGE = packageName())
 }
 
 

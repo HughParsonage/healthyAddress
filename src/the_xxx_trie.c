@@ -33,8 +33,6 @@ SEXP C_test_ALPHABET_ENC(SEXP x) {
   return ScalarInteger(ALPHABET_ENC[y]);
 }
 
-#define N_THE_XXXS 703
-
 // US[, .N, keyby = .(STREET_NAME)][order(-N)]
 // There was one street (with a mere 9 addresses Australia-wide) that contained
 // anything other than A-Z or ' ', viz THE YACHTSMAN'S DRIVE
@@ -544,7 +542,7 @@ int search(TrieNode *root, const char *key) {
 
 void insert_all(TrieNode *root) {
   for (int i = 0; i < N_THE_XXXS; ++i) {
-    insert(root, THE_XXXs[i], H_THE_XXX[i]);
+    insert(root, THE_XXXs[i], i + 1);
   }
 }
 
@@ -678,8 +676,9 @@ void memoize_trie_postcodes(void) {
   }
 }
 
-SEXP C_do_the_xxx(SEXP x, SEXP Postcode) {
+SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
   errIfNotStr(x, "x");
+  const bool do_hash = asLogical(Hash);
   R_xlen_t N = xlength(x);
   const SEXP * xp = STRING_PTR(x);
   bool postcode_was_null = !isInteger(Postcode);
@@ -742,8 +741,31 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode) {
   }
   freeTrie(root);
   free(problem_postcodes);
+  if (do_hash) {
+    for (R_xlen_t i = 0; i < N; ++i) {
+      int anspi = ansp[i];
+      if (anspi > 0 && anspi < N_THE_XXXS) {
+        ansp[i] = H_THE_XXX[anspi - 1];
+      }
+    }
+  }
   UNPROTECT(1);
   return ans;
+}
+
+void prepend_THE(char SN[MAX_STREET_NAME_LEN], const char * suffix) {
+  SN[0] = 'T';
+  SN[1] = 'H';
+  SN[2] = 'E';
+  SN[3] = ' ';
+  int j = 0;
+  while (1) {
+    SN[j + 4] = suffix[j];
+    if (suffix[j] == '\0') {
+      break;
+    }
+    ++j;
+  }
 }
 
 
