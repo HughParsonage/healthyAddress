@@ -373,4 +373,16 @@ expect_equal(ans$STREET_NAME, "THE ESPLANADE")
 expect_equal(ans$FLAT_NUMBER, 1408L)
 expect_equal(ans$NUMBER_FIRST, 170)
 
+ans <- standardize_address("13 APOLLONIAN VALE, GYMPIE, QLD 4570")
+expect_equal(ans$STREET_NAME, "APOLLONIAN")
+expect_equal(ans$STREET_TYPE, "VALE")
+ans <- standard_address2("13 APOLLONIAN VALE, GYMPIE, QLD 4570")
+expect_equal(ans$H0, HashStreetName("APOLLONIAN"))
+expect_equal(ans$STREET_TYPE_CODE, match("VALE", .permitted_street_type_ord()))
+
+ans <- standardize_address("3/18 Bungan St Mona Vale NSW 2103")
+expect_equal(ans$STREET_NAME, "BUNGAN")
+ans <- standard_address2("3/18 Bungan St Mona Vale NSW 2103")
+expect_equal(ans$H0, HashStreetName("BUNGAN"))
+
 
