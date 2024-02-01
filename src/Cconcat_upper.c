@@ -220,7 +220,7 @@ static SEXP xpaste4(const char * x1, int n1,
     }
   }
 
-  char oi[n];
+  char oi[n + 1];
   int k = 0;
   for (int j = 0; j < n1; ++j) {
     oi[k++] = toupper1(x1[j]);
