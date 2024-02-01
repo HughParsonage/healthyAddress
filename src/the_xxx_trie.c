@@ -546,51 +546,6 @@ void insert_all(TrieNode *root) {
   }
 }
 
-int THE_xxx2(TrieNode *root, WordData wd) {
-  const char *x = wd.x;
-  int n_words = wd.n_words;
-
-  for (int w = 0; w < n_words - 1; ++w) {
-    int lhs = wd.lhs[w];
-    int rhs = wd.rhs[w];
-
-    if (rhs - lhs != 3) continue;
-
-    int j = lhs;
-    if (x[j++] != 'T' || x[j++] != 'H' || x[j++] != 'E') continue;
-
-    lhs = wd.lhs[w + 1];
-    rhs = wd.rhs[w + 1];
-    int w_ = rhs - lhs;
-    // ensure that the below buffer won't overflow || disregard numbers
-    // both are unlikely
-    if (w_ > MAX_STREET_NAME_LEN || !isupper(x[lhs])) {
-      continue;
-    }
-
-    // Extract the substring starting after 'THE ' and use it for trie search
-    char streetName[MAX_STREET_NAME_LEN]; // Define MAX_STREET_NAME_LEN appropriately
-    strncpy(streetName, x + lhs, w_);
-    streetName[w_] = '\0'; // Null-terminate the extracted string
-
-    // Use trie to check if this is a known street name
-    int maybe_code = search(root, streetName);
-    if (maybe_code != -1) {
-      // Found a match, return appropriate code or perform needed action
-      return maybe_code; // Replace with actual return code
-    }
-    // There are some roads with THE XXX but where XXX is more than one word
-
-
-  }
-
-  return 0; // No match found
-}
-
-int isProblemPostcode(int postcode, uint16_t ans[N_POSTCODES]) {
-  return ans[postcode];
-}
-
 int THE_xxx3(TrieNode *root, WordData * wd, unsigned char p_postcode /* problem postcode */) {
   if (p_postcode == 0) {
     return 0; // nothing to check, postcode known to be free of any THE street
@@ -689,7 +644,7 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
   }
   TrieNode * root = getNode();
   if (root == NULL) {
-    error("Unable to allocate TrieNode * root == NULL");
+    error("Unable to allocate TrieNode * root == NULL"); // # nocov
   }
   insert_all(root);
 
@@ -699,8 +654,8 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
   // 2 = THE in STREET NAME and LOCALITY
   unsigned char * problem_postcodes = calloc(SUP_POSTCODES, sizeof(char));
   if (problem_postcodes == NULL) {
-    freeTrie(root);
-    error("Unable to calloc problem postcodes.");
+    freeTrie(root);  // # nocov
+    error("Unable to calloc problem postcodes."); // # nocov
   }
   for (int p = 0; p < N_POSTCODES_WITH_THE_STREET_NAME; ++p) {
     problem_postcodes[THE_POSTCODES_W_STREET_NAME[p]] = 1;
@@ -708,8 +663,6 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
   for (int p = 0; p < N_XXXPOSTCODE; ++p) {
     problem_postcodes[THE_XXX_COMPLX[p].postcode] = 2;
   }
-
-
 
 
   SEXP ans = PROTECT(allocVector(INTSXP, N));
@@ -727,7 +680,6 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
     }
 
     WordData wd = word_data(xi, ni); // 9M/s
-    // ansp[i] = THE_xxx2(root, wd); // 60M/s
     if (postcode_was_null) {
       ansp[i] = THE_xxx3(root, &wd, 2); // pessimistic postcode
       continue;

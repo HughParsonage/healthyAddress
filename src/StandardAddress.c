@@ -951,7 +951,6 @@ int has_LEVEL(WordData * wd) {
     }
     if (has_level) {
       return next_numeral(j + 5, x, wd->n);
-
     }
   }
   return 0;
