@@ -26,6 +26,8 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd) {
     return (x[j + 1] == 'T' && !isUPPER(x[j + 2])) || (x[j + 1] == 'S' && x[j + 2] == 'W');
   case 'Q':
     return x[j + 1] == 'L' && x[j + 2] == 'D' && !isUPPER(x[j + 3]);
+  case 'S':
+    return x[j + 1] == 'A' && !isUPPER(x[j + 2]);
   case 'T':
     return x[j + 1] == 'A' && x[j + 2] == 'S' && !isUPPER(x[j + 3]);
   case 'W':
@@ -34,4 +36,19 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd) {
     return x[j + 1] == 'I' && x[j + 2] == 'C' && !isUPPER(x[j + 3]);
   }
   return false;
+}
+
+SEXP Cfollowed_by_STE_POSTCODE(SEXP Wi, SEXP x) {
+  R_xlen_t N = xlength(x);
+  const SEXP * xp = STRING_PTR(x);
+  const int * wip = INTEGER(Wi);
+  errIfNotLen(Wi, "wi", N);
+  SEXP ans = PROTECT(allocVector(LGLSXP, N));
+  int * restrict ansp = LOGICAL(ans);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    WordData wd = word_data(CHAR(xp[i]), length(xp[i]));
+    ansp[i] = followed_by_STE_POSTCODE(wip[i], &wd);
+  }
+  UNPROTECT(1);
+  return ans;
 }

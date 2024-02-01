@@ -41,6 +41,7 @@ extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
 extern SEXP CFindSentence(SEXP, SEXP, SEXP);
+extern SEXP Cfollowed_by_STE_POSTCODE(SEXP, SEXP);
 extern SEXP Cget_suffix(SEXP);
 extern SEXP Cmatch_StreetType_Line1(SEXP, SEXP, SEXP);
 extern SEXP Cmatch_word(SEXP, SEXP);
@@ -85,6 +86,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"Cdigit256",                        (DL_FUNC) &Cdigit256,                        2},
     {"CExtractPostcode",                 (DL_FUNC) &CExtractPostcode,                 1},
     {"CFindSentence",                    (DL_FUNC) &CFindSentence,                    3},
+    {"Cfollowed_by_STE_POSTCODE",        (DL_FUNC) &Cfollowed_by_STE_POSTCODE,        2},
     {"Cget_suffix",                      (DL_FUNC) &Cget_suffix,                      1},
     {"Cmatch_StreetType_Line1",          (DL_FUNC) &Cmatch_StreetType_Line1,          3},
     {"Cmatch_word",                      (DL_FUNC) &Cmatch_word,                      2},
