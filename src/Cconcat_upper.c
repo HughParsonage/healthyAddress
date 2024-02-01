@@ -223,28 +223,28 @@ static SEXP xpaste4(const char * x1, int n1,
   char oi[n];
   int k = 0;
   for (int j = 0; j < n1; ++j) {
-    oi[k++] = x1[j];
+    oi[k++] = toupper1(x1[j]);
   }
   if (comma_sep && n1) {
     oi[k++] = ',';
     oi[k++] = ' ';
   }
   for (int j = 0; j < n2; ++j) {
-    oi[k++] = x2[j];
+    oi[k++] =  toupper1(x2[j]);
   }
   if (comma_sep && n2) {
     oi[k++] = ',';
     oi[k++] = ' ';
   }
   for (int j = 0; j < n3; ++j) {
-    oi[k++] = x3[j];
+    oi[k++] =  toupper1(x3[j]);
   }
   if (comma_sep && n3) {
     oi[k++] = ',';
     oi[k++] = ' ';
   }
   for (int j = 0; j < n4; ++j) {
-    oi[k++] = x4[j];
+    oi[k++] =  toupper1(x4[j]);
   }
   oi[k] = '\0';
 
