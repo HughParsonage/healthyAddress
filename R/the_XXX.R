@@ -6,7 +6,7 @@
 
 
 get_the_XXX <- function(o = TRUE) {
-  # if o == 1, the string are returned;
+  # if o == 1, the strings are returned;
   # otherwise the indices of localities that are common to those strings
   # are returned.
   .Call("C_getTHEXXX", o, PACKAGE = packageName())
