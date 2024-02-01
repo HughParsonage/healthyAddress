@@ -21,3 +21,7 @@ xnumbers <- function(x) {
 xnumber128 <- function(x) {
   .Call("Cxnumber128", x, PACKAGE = packageName())
 }
+
+uint128_not_supported <- function() {
+  .Call("C_uint128_not_supported", NULL, PACKAGE = packageName())
+}
