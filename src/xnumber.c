@@ -1,5 +1,17 @@
 #include "healthyAddress.h"
 
+bool uint128_not_supported(void) {
+#ifdef __SIZEOF_INT128__
+  return false;
+#else
+  return true;
+#endif
+}
+
+SEXP C_uint128_not_supported(SEXP X) {
+  return ScalarLogical(uint128_not_supported());
+}
+
 static void xnumbers(unsigned int ans[5], const char * x, int n) {
   for (int i = 0, j = -1; i < n; ++i) {
     if (isdigit(x[i])) {
@@ -22,35 +34,29 @@ unsigned int uansi(unsigned int ans[5]) {
   return o;
 }
 
-void do_xnumber(__uint128_t * v, const SEXP * xp, R_xlen_t N, int nThread) {
-  for (R_xlen_t k = 0; k < N; ++k) {
-    __uint128_t o = 0;
-    const char * x = CHAR(xp[k]);
-    int n = length(xp[k]);
-    for (int i = 0; i < n; ++i) {
-      if (isdigit(x[i])) {
-        o <<= 32;
-        uint32_t z = 0;
-        do {
-          z *= 10;
-          z += x[i] - '0';
-          ++i;
-        } while (isdigit(x[i]));
-        o += z;
-      }
+#ifdef __SIZEOF_INT128__
+
+__uint128_t xnumber_128(const char * x, int n) {
+  __uint128_t o = 0;
+  for (int i = 0; i < n; ++i) {
+    if (isdigit(x[i])) {
+      o <<= 32;
+      uint32_t z = 0;
+      do {
+        z *= 10;
+        z += x[i] - '0';
+        ++i;
+      } while (isdigit(x[i]));
+      o += z;
     }
-    v[k] = o;
   }
+  return o;
 }
+#endif
 
 SEXP Cxnumber128(SEXP x) {
   R_xlen_t N = xlength(x);
   const SEXP * xp = STRING_PTR(x);
-  __uint128_t * v = malloc(sizeof(__uint128_t) * N);
-  if (v == NULL) {
-    return R_NilValue;
-  }
-  do_xnumber(v, xp, N, 1);
   SEXP ans1 = PROTECT(allocVector(INTSXP, N));
   SEXP ans2 = PROTECT(allocVector(INTSXP, N));
   SEXP ans3 = PROTECT(allocVector(INTSXP, N));
@@ -60,17 +66,26 @@ SEXP Cxnumber128(SEXP x) {
   int * restrict ans3p = INTEGER(ans3);
   int * restrict ans4p = INTEGER(ans4);
   for (R_xlen_t i = 0; i < N; ++i) {
-    ans1p[i] = v[i] >> 96;
-    ans2p[i] = (v[i] >> 64) & INT_MAX;
-    ans3p[i] = (v[i] >> 32) & INT_MAX;
-    ans4p[i] = v[i] & INT_MAX;
+#ifdef __SIZEOF_INT128__
+    __uint128_t vi = xnumber_128(CHAR(xp[i]), length(xp[i]));
+    ans1p[i] = vi >> 96;
+    ans2p[i] = (vi >> 64) & INT_MAX;
+    ans3p[i] = (vi >> 32) & INT_MAX;
+    ans4p[i] = vi & INT_MAX;
+#else
+    unsigned int ans5[5] = {0};
+    xnumbers(ans5, CHAR(xp[i]), length(xp[i]));
+    ans1p[i] = ans[0];
+    ans2p[i] = ans[1];
+    ans3p[i] = ans[2];
+    ans4p[i] = ans[3];
+#endif
   }
   SEXP ans = PROTECT(allocVector(VECSXP, 4));
   SET_VECTOR_ELT(ans, 0, ans1);
   SET_VECTOR_ELT(ans, 1, ans2);
   SET_VECTOR_ELT(ans, 2, ans3);
   SET_VECTOR_ELT(ans, 3, ans4);
-  free(v);
   UNPROTECT(5);
   return ans;
 }
