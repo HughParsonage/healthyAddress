@@ -17,13 +17,13 @@ int isnt_sorted_asc_int(SEXP x) {
   return 0;
 }
 
-  int isnt_sorted_asc(SEXP x) {
-    if (xlength(x) <= 1 || xlength(x) >= INT_MAX) {
-      return 0;
+int isnt_sorted_asc(SEXP x) {
+  if (xlength(x) <= 1 || xlength(x) >= INT_MAX) {
+    return 0; // # nocov
   }
   switch(TYPEOF(x)) {
   case INTSXP:
     return isnt_sorted_asc_int(x);
   }
-  error("Unsupported type %d.", TYPEOF(x));
+  error("Unsupported type %d.", TYPEOF(x)); // # nocov
 }
