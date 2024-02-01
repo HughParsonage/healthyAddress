@@ -26,6 +26,7 @@ extern SEXP C_has_word(SEXP, SEXP);
 extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_isPostcode(SEXP);
 extern SEXP C_max_nchar(SEXP);
+extern SEXP C_multistate_postcodes(SEXP);
 extern SEXP C_noLC(SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
@@ -69,6 +70,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_HashStreetName",                 (DL_FUNC) &C_HashStreetName,                 1},
     {"C_isPostcode",                     (DL_FUNC) &C_isPostcode,                     1},
     {"C_max_nchar",                      (DL_FUNC) &C_max_nchar,                      1},
+    {"C_multistate_postcodes",           (DL_FUNC) &C_multistate_postcodes,           1},
     {"C_noLC",                           (DL_FUNC) &C_noLC,                           1},
     {"C_NumberFirstLast",                (DL_FUNC) &C_NumberFirstLast,                1},
     {"C_NumberSuffix2Raw",               (DL_FUNC) &C_NumberSuffix2Raw,               1},
