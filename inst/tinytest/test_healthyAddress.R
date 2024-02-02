@@ -399,3 +399,6 @@ expect_equal(ans$H0, HashStreetName("FLINDERS"))
 expect_equal(ans$FLAT_NUMBER, 500L)
 expect_equal(ans$NUMBER_FIRST, 120L)
 
+ans <- standardize_address("50 UNIT STREET FICTION 1999")
+expect_equal(ans$POSTCODE, -1)
+

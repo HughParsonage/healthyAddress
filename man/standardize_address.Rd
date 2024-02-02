@@ -93,4 +93,8 @@ street name, rather than the street name, even when taking into account
 the hashing process.
 
 For performance reasons, addresses with more than 32 words are not supported.
+
+If a postcode-like number exists at the end of a \code{Address}, but is not
+in fact a postcode, then \code{NA} will be in each field, except postcode,
+which will have the value -1.
 }
