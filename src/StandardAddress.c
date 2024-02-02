@@ -3973,7 +3973,7 @@ SEXP C_xFlatFirstLast(SEXP x) {
   return R_NilValue;
 }
 
-unsigned char suf3suf(unsigned char x[3]) {
+static unsigned char suf3suf(unsigned char x[3]) {
   if (x[2] > '/') {
     return x[2];
   }
@@ -3986,109 +3986,6 @@ unsigned char suf3suf(unsigned char x[3]) {
   return 0;
 }
 
-// inserts the flat_number, number_first, number_last into its 1st argument
-// taking into account things like 'level'
-static void do__numberFirstLast(int numberFirstLast[3],
-                                WordData * wd,
-                                int n_less_poa,
-                                int * j,
-                                unsigned char suf[3]) {
-  int w_level = has_LEVEL(wd);
-  *j = 0;
-  if (w_level) {
-    int four_nos[5] = {0};
-    first_four_numbers(four_nos, suf, wd->x, n_less_poa);
-    if (four_nos[3] == 0) {
-      // i.e. only two numbers identified (excl postcode and level)
-      // could be flat then number or number then number
-      if (has_flat(wd)) {
-        numberFirstLast[0] = four_nos[0];
-        numberFirstLast[1] = four_nos[2];
-      } else {
-        numberFirstLast[1] = four_nos[1];
-        numberFirstLast[2] = four_nos[2];
-      }
-    } else {
-      numberFirstLast[0] = four_nos[0];
-      numberFirstLast[1] = four_nos[2];
-      numberFirstLast[2] = four_nos[3];
-    }
-    *j = next_word(four_nos[4], wd) ; // position after final digit
-  } else {
-    int three_nos[4] = {0};
-    int n_numbers = first_three_numbers(three_nos, suf, wd->x, n_less_poa);
-    if (!n_numbers) {
-      // no numbers (exclude postcode)
-      *j = 0;
-      wd->no1st = 0;
-    } else {
-      if (n_numbers == 1) {
-        numberFirstLast[1] = three_nos[0];
-      } else if (three_nos[2] == 0) {
-        // i.e. only two numbers identified (excl postcode)
-        // could be flat then number or number then number
-        if (has_flat(wd)) {
-          numberFirstLast[0] = three_nos[0];
-          numberFirstLast[1] = three_nos[1];
-        } else {
-          if (three_nos[0]) {
-            numberFirstLast[1] = three_nos[0];
-            numberFirstLast[2] = three_nos[1];
-          } else {
-            numberFirstLast[1] = three_nos[1];
-          }
-        }
-      } else {
-        numberFirstLast[0] = three_nos[0];
-        numberFirstLast[1] = three_nos[1];
-        numberFirstLast[2] = three_nos[2];
-      }
-      *j = next_word(three_nos[3], wd) ; // position after final digit
-    }
-  }
-}
-
-int n_cleaves = 8;
-int locate_good_cleave(const char * x, int n) {
-  --n_cleaves;
-  if (n_cleaves <= 0) {
-    return n / 2;
-  }
-  if (isdigit(x[0])) {
-    int n_words = 0;
-    // If the number os the first character, it's probably needed
-    for (int j = 1; j < n; ++j) {
-      if (x[j - 1] == ' ' && (isUPPER(x[j]) || isdigit(x[j]))) {
-        ++n_words;
-        if (n_words == (WORD_DATUMS - 1)) {
-          return j;
-        }
-      }
-    }
-  } else {
-    int j = 1;
-    while (!isdigit(x[j]) && j < n) {
-      ++j;
-    }
-    if (j == n) {
-      return n / 2;
-    }
-    while (--j > 0) {
-      if (isUPPER(x[j])) {
-        break;
-      }
-    }
-    while (--j > 0) {
-      if (!isUPPER(x[j])) {
-        break;
-      }
-    }
-    return j;
-  }
-  return n/2;
-}
-
-
 Address do_standard_address(WordData * wd, unsigned char * m1,
                             TrieNode * root) {
   int numberFirstLast[3] = {0}; // Flat, First, Last
@@ -4096,9 +3993,9 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   Address ad;
   unsigned char suf[3] = {0};
   int j = 0;
-  int n_less_poa = wd->postcode_pos;
   xFlatFirstLast(numberFirstLast, suf, wd, &j);
   int16_t postcode = wd->postcode;
+  ad.suffix = *suf;
 
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
     int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
@@ -4118,7 +4015,6 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
       // assume such a street may not be hashed
       ad.hashStreetName = the_street;
       ad.street_type = 0;
-      ad.suffix = suf3suf(suf);
       return ad;
     }
   }
@@ -4163,7 +4059,6 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
     ad.hashStreetName = DJB2_ESPLANADE;
     ad.street_type = 0;
   }
-  ad.suffix = suf3suf(suf);
 
   return ad;
 }
