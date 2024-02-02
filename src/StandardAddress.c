@@ -3515,6 +3515,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
       if (x[j] != '-') {
         if (isUPPER(x[j])) {
           *suf = x[j];
+          ++j;
         }
         *jj = j;
         return;
@@ -3527,6 +3528,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
       }
       if (isUPPER(x[j])) {
         *suf = x[j];
+        ++j;
       }
       *jj = j;
       return;
@@ -3550,6 +3552,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         if (x[j] != '-') {
           if (isUPPER(x[j])) {
             *suf = x[j];
+            ++j;
           }
           *jj = j;
           return;
@@ -3562,6 +3565,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         }
         if (isUPPER(x[j])) {
           *suf = x[j];
+          ++j;
         }
         *jj = j;
         return;
@@ -3580,6 +3584,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         if (x[j] != '-') {
           if (isUPPER(x[j])) {
             *suf = x[j];
+            ++j;
           }
           *jj = j;
           return;
@@ -3592,6 +3597,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         }
         if (isUPPER(x[j])) {
           *suf = x[j];
+          ++j;
         }
         *jj = j;
         return;
@@ -3631,6 +3637,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         if (x[j] != '-') {
           if (isUPPER(x[j])) {
             *suf = x[j];
+            ++j;
           }
           *jj = j;
           return;
@@ -3643,6 +3650,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         }
         if (isUPPER(x[j])) {
           *suf = x[j];
+          ++j;
         }
         *jj = j;
         return;
@@ -3665,6 +3673,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         if (x[j] != '-') {
           if (isUPPER(x[j])) {
             *suf = x[j];
+            ++j;
           }
           *jj = j;
           return;
@@ -3677,6 +3686,7 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
         }
         if (isUPPER(x[j])) {
           *suf = x[j];
+          ++j;
         }
         *jj = j;
         return;

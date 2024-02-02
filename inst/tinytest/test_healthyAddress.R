@@ -336,6 +336,9 @@ ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
                              "28 ST MITCHELL CIRCUIT, MORNINGTON, VIC, 3931",
                              "23 MERIDIAN ACCESS ROAD, WALPEUP, VIC, 3507",
                              "1/17 ST LEONARDS ROAD, HEALESVILLE, VIC, 3777",
+                             "149A ST GEORGES RD BEXLEY NSW, 2207",
+                             "8/136 ST GEORGES ROAD NORTHCOTE VIC, 3070",
+                             "802/1A SURREY ROAD SOUTH YARRA, VIC, 3141",
                              "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"))
 
 expect_equal(ans$STREET_NAME,
@@ -348,6 +351,9 @@ expect_equal(ans$STREET_NAME,
                "ST MITCHELL",
                "MERIDIAN ACCESS",
                "ST LEONARDS",
+               "ST GEORGES",
+               "ST GEORGES",
+               "SURREY",
                "ST NINIANS"))
 
 ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
@@ -359,6 +365,9 @@ ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
                              "28 ST MITCHELL CIRCUIT, MORNINGTON, VIC, 3931",
                              "23 MERIDIAN ACCESS ROAD, WALPEUP, VIC, 3507",
                              "1/17 ST LEONARDS ROAD, HEALESVILLE, VIC, 3777",
+                             "149A ST GEORGES RD BEXLEY, NSW, 2207",
+                             "8/136 ST GEORGES ROAD NORTHCOTE VIC, 3070",
+                             "802/1A SURREY ROAD SOUTH YARRA, VIC, 3141",
                              "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"),
                            hash_StreetName = TRUE)
 
@@ -372,6 +381,9 @@ expect_equal(ans$H0,
                               "ST MITCHELL",
                               "MERIDIAN ACCESS",
                               "ST LEONARDS",
+                              "ST GEORGES",
+                              "ST GEORGES",
+                              "SURREY",
                               "ST NINIANS")))
 
 ans <- standardize_address('1408/170 The Esplanade St Kilda VIC 3182')
