@@ -3442,17 +3442,6 @@ int has_flat(WordData * wd) {
   return 0;
 }
 
-
-int next_word(int j, WordData * wd) {
-  const int n_words = wd->n_words;
-  for (int w = 1; w < n_words - 1; ++w) {
-    if (wd->lhs[w] > j) {
-      return wd->lhs[w];
-    }
-  }
-  return wd->lhs[n_words - 1];
-}
-
 // Popular resort seems to muck up disproprtionately the address numbers
 typedef union {
   char chars[4];
@@ -3695,6 +3684,8 @@ void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, in
   }
 }
 
+// Purely for debugging
+// # nocov start
 SEXP C_xFlatFirstLast(SEXP x) {
   int A[3] = {0};
   unsigned char z = 0;
@@ -3708,6 +3699,7 @@ SEXP C_xFlatFirstLast(SEXP x) {
   }
   return R_NilValue;
 }
+// # nocov end
 
 static unsigned char suf3suf(unsigned char x[3]) {
   if (x[2] > '/') {
