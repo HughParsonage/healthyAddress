@@ -9,7 +9,6 @@
 
 /* .Call calls */
 extern SEXP C_anyComma(SEXP, SEXP);
-extern SEXP C_areST(SEXP);
 extern SEXP C_check_address_input(SEXP, SEXP);
 extern SEXP C_contains_BIG4(SEXP);
 extern SEXP C_do_standard_address(SEXP);
@@ -22,7 +21,6 @@ extern SEXP C_get_StreetCode(SEXP);
 extern SEXP C_get_StreetType(SEXP);
 extern SEXP C_getTHEXXX(SEXP);
 extern SEXP C_has_saint_name(SEXP, SEXP);
-extern SEXP C_has_word(SEXP, SEXP);
 extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_isPostcode(SEXP);
 extern SEXP C_max_nchar(SEXP);
@@ -51,11 +49,9 @@ extern SEXP CToUpperBasic(SEXP);
 extern SEXP Cxnumber(SEXP);
 extern SEXP Cxnumber128(SEXP);
 extern SEXP MAX_uN_STCDs(SEXP);
-extern SEXP ZMatchStreetName(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"C_anyComma",                       (DL_FUNC) &C_anyComma,                       2},
-    {"C_areST",                          (DL_FUNC) &C_areST,                          1},
     {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            2},
     {"C_contains_BIG4",                  (DL_FUNC) &C_contains_BIG4,                  1},
     {"C_do_standard_address",            (DL_FUNC) &C_do_standard_address,            1},
@@ -68,7 +64,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_get_StreetType",                 (DL_FUNC) &C_get_StreetType,                 1},
     {"C_getTHEXXX",                      (DL_FUNC) &C_getTHEXXX,                      1},
     {"C_has_saint_name",                 (DL_FUNC) &C_has_saint_name,                 2},
-    {"C_has_word",                       (DL_FUNC) &C_has_word,                       2},
     {"C_HashStreetName",                 (DL_FUNC) &C_HashStreetName,                 1},
     {"C_isPostcode",                     (DL_FUNC) &C_isPostcode,                     1},
     {"C_max_nchar",                      (DL_FUNC) &C_max_nchar,                      1},
@@ -97,7 +92,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"Cxnumber",                         (DL_FUNC) &Cxnumber,                         1},
     {"Cxnumber128",                      (DL_FUNC) &Cxnumber128,                      1},
     {"MAX_uN_STCDs",                     (DL_FUNC) &MAX_uN_STCDs,                     1},
-    {"ZMatchStreetName",                 (DL_FUNC) &ZMatchStreetName,                 1},
     {NULL, NULL, 0}
 };
 

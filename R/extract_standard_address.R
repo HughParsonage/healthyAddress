@@ -35,8 +35,4 @@ test_WordData <- function(x, r = 0L) {
 }
 
 
-zMatchStreetName <- function(x) {
-  .Call("ZMatchStreetName", x)
-}
-
 

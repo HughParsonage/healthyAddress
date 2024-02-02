@@ -50,6 +50,3 @@ encode_address <- function(StandardAddress) {
                          "FLAT_NUMBER")]
 }
 
-areST <- function(x) {
-  .Call("C_areST", x, PACKAGE = packageName())
-}
