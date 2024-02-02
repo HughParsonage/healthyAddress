@@ -339,6 +339,7 @@ ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
                              "149A ST GEORGES RD BEXLEY NSW, 2207",
                              "8/136 ST GEORGES ROAD NORTHCOTE VIC, 3070",
                              "802/1A SURREY ROAD SOUTH YARRA, VIC, 3141",
+                             "802/1A  SURREY  ROAD SOUTH YARRA, VIC, 3141",
                              "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"))
 
 expect_equal(ans$STREET_NAME,
@@ -354,6 +355,7 @@ expect_equal(ans$STREET_NAME,
                "ST GEORGES",
                "ST GEORGES",
                "SURREY",
+               "SURREY",
                "ST NINIANS"))
 
 ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
@@ -368,6 +370,7 @@ ans <- standardize_address(c("4/13 CRESCENT STREET, NOBLE PARK, VIC, 3174",
                              "149A ST GEORGES RD BEXLEY, NSW, 2207",
                              "8/136 ST GEORGES ROAD NORTHCOTE VIC, 3070",
                              "802/1A SURREY ROAD SOUTH YARRA, VIC, 3141",
+                             "802/1A SURREY  ROAD SOUTH YARRA, VIC, 3141",
                              "18 ST NINIANS ROAD, BRIGHTON, VIC, 3186"),
                            hash_StreetName = TRUE)
 
@@ -383,6 +386,7 @@ expect_equal(ans$H0,
                               "ST LEONARDS",
                               "ST GEORGES",
                               "ST GEORGES",
+                              "SURREY",
                               "SURREY",
                               "ST NINIANS")))
 

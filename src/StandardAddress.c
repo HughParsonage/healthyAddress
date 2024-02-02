@@ -645,15 +645,6 @@ SEXP C_test_n_words(SEXP x) {
   return ans;
 }
 
-int has_comma(const char * x, int n) {
-  for (int j = 0; j < n; ++j) {
-    if (x[j] == ',') {
-      return j + 1;
-    }
-  }
-  return 0;
-}
-
 void comma_locations(int commas[8], const char * x, int n) {
   unsigned int j = 0;
   for (int i = 0; i < n; ++i) {
@@ -4358,12 +4349,13 @@ void populate_postcodeTries(void) {
 }
 
 
-int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const char * x, int n) {
+int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const char * x, int nn) {
   if (postcodeTries[postcode][streetCode] == NULL) {
     return -1; // Indicate trie not found
   }
   TrieNode * root = postcodeTries[postcode][streetCode];
   char streetName[MAX_STREET_NAME_LEN];
+  int n = nn;
 
   // Annoyingly, there is a street name with a single character, so we can't
   // even choose k = n - 2;
@@ -4373,6 +4365,11 @@ int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const ch
   // Instead we go forward, sacrficing performance for correctness: there are
   // street names in the same postcode where a longer name is correct, e.g.
   //   FOREST ROAD   vs   OLD FOREST ROAD
+
+  // trim trailing whitespace
+  while (n && x[n - 1] == ' ') {
+    --n;
+  }
   for (int k = 0; k < n - 1; ++k) {
     if ((k == 0 || x[k - 1] == ' ') && isUPPER(x[k])) {
       int len = n - k;
