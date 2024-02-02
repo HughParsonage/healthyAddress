@@ -4546,6 +4546,7 @@ typedef struct {
 PostcodeStreets * ALL_POSTCODE_STREETS = NULL;
 uint16_t PostcodeStreetsPostcodes[N_POSTCODES] = {0};
 
+// # nocov start
 void freeALL_POSTCODE_STREETS(void) {
   if (ALL_POSTCODE_STREETS == NULL) {
     return;
@@ -4564,18 +4565,19 @@ void freeALL_POSTCODE_STREETS(void) {
   free(ALL_POSTCODE_STREETS); // Finally, free the array of structs
   ALL_POSTCODE_STREETS = NULL;
 }
+// # nocov end
 
 void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
   R_xlen_t N = xlength(Postcode);
   const int test = asInteger(Test);
-  if (N > 500e3) {
-    return;
+  if (N > 500e3 || test < -1) {
+    return; // # nocov
   }
   err_if_nchar_geq(STREET_NAME, (int)UINT8_MAX, "STREET_NAME");
 
   int postcode_sorted_code = isnt_sorted_asc(Postcode);
   if (postcode_sorted_code) {
-    error("Postcodes was not sorted at position %d.", postcode_sorted_code);
+    error("Postcodes was not sorted at position %d.", postcode_sorted_code); // # nocov
   }
   const int * Postcodes = INTEGER(Postcode);
 
@@ -4586,7 +4588,7 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
   if (ALL_POSTCODE_STREETS == NULL) {
     ALL_POSTCODE_STREETS = malloc(sizeof(PostcodeStreets) * N_POSTCODES);
     if (ALL_POSTCODE_STREETS == NULL) {
-      error("Could not allocate ALL_POSTCODE_STREETS");
+      error("Could not allocate ALL_POSTCODE_STREETS"); // # nocov
     }
   }
 
@@ -4599,18 +4601,22 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
       // likely NA_INTEGER
       continue;
     }
+    // # nocov start
     if (k > N_POSTCODES) {
       warning("Internal error: k = %d > N_POSTCODES = %d.", k, N_POSTCODES);
       break;
     }
+    // # nocov end
     uint16_t n_in_postcode = 1;
     while ((i + n_in_postcode) < N && Postcodes[i + n_in_postcode] == postcodei) {
       ++n_in_postcode;
     }
+    // # nocov start
     if (n_in_postcode == UINT16_MAX) {
       warning("n_in_postcode = UINT16_MAX");
       continue;
     }
+    // # nocov end
 
     PostcodeStreets *P = &ALL_POSTCODE_STREETS[k];
     P->n_streets = n_in_postcode;
@@ -4633,8 +4639,8 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
       int nchari = length(xp[i + j]);
       char * buff = (char *)calloc(nchari + 1, sizeof(char));
       if (buff == NULL) {
-        warning("Unable to allocate buffer for street name.");
-        break;
+        warning("Unable to allocate buffer for street name."); // # nocov
+        break; // # nocov
       }
       strcpy(buff, street_name_i);
       P->street_names[j] = buff;
@@ -4650,14 +4656,10 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
     PostcodeStreetsPostcodes[k] = postcodei;
     k++; // Move to the next PostcodeStreets structure
   }
-
-  if (k >= 2639 && test == 1) {
-    Rprintf("> %s < \n", ALL_POSTCODE_STREETS[2639].street_names[60]);
-  }
 }
 
+// # nocov start
 SEXP C_fillPostcodeStreets(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
-
   fillALL_POSTCODE_STREETS(Postcode, STREET_NAME, STREET_TYPE_CODE, Test);
   return R_NilValue;
 }
@@ -4666,6 +4668,7 @@ SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
   freeALL_POSTCODE_STREETS();
   return R_NilValue;
 }
+// # nocov end
 
 TrieNode* postcodeTries[N_POSTCODES][N_STREET_TYPES] = {NULL};
 bool postcodeTriePopulated = false;
@@ -4706,7 +4709,7 @@ void freePopTries(void) {
 
 void populate_postcodeTries(void) {
   if (postcodeTriePopulated) {
-    freePopTries();
+    freePopTries(); // # nocov
   }
   int k = 0; // the internal postcode
   for (int p = 800; p <= MAX_POSTCODE; ++p) {
@@ -4722,7 +4725,7 @@ void populate_postcodeTries(void) {
       }
     }
     if (!postcode_ok) {
-      continue;
+      continue; // # nocov
     }
     PostcodeStreets * P_k = (&ALL_POSTCODE_STREETS[k]);
     uint16_t n_in_postcode = P_k->n_streets;

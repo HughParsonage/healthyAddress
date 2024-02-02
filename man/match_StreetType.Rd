@@ -4,23 +4,16 @@
 \alias{match_StreetType}
 \title{Find the street type within an address}
 \usage{
-match_StreetType(address, m = 0L)
+match_StreetType(address)
 }
 \arguments{
 \item{address}{A character vector, every string an address.}
-
-\item{m}{An integer. Values greater than \code{0} are for internal use and
-encode additional data in the return value:
-
-\enumerate{
-\item An integer vector \code{y} is returned such that \code{y mod 256} gives
-which street code and \code{y / 256} gives the character position in address
-at which the street type starts.
-}}
 }
 \value{
-Which of \code{\link{.permitted_street_type_ord}} appears
-in \code{address}.
+A list of two elements. The first element are the indices of
+street type in \code{.permitted_street_type_ord()} that is found in the
+address. The second element are the corresponding string positions of
+the street so identified.
 }
 \description{
 Find the street type within an address
@@ -29,6 +22,7 @@ Find the street type within an address
 cds <- .permitted_street_type_ord()
 head(cds)
 match_StreetType("712 FLINDERS STREET MELBOURNE 3004")
-match_StreetType("712 FLINDERS STREET MELBOURNE 3004", 1L)
+#                 012345678901234
+match_StreetType("712 FLINDERS ST MELBOURNE 3004")
 
 }
