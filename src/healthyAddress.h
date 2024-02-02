@@ -54,6 +54,7 @@ typedef struct {
   int lhs[WORD_DATUMS];
   int rhs[WORD_DATUMS];
   int comma_pos[COMMA_DATUMS];
+  int flat_pos;
   int no1st; // position of first digit
   int postcode;
   int postcode_pos; // x[j + 0:3] is the postcode

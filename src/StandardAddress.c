@@ -735,12 +735,15 @@ WordData word_data(const char * x, int n) {
   while (j0 < n && x[j0] == ' ') {
     ++j0;
   }
+  lhs[0] = j0;
 
   WordData wd;
+  wd.flat_pos = -1;
   const int n_words_x = n_words(x, n);
   wd.n_words = n_words_x;
   const bool word_datums_exceeded = n_words_x >= WORD_DATUMS;
   int w = 0;
+
   if (word_datums_exceeded) {
     for (int j = j0; j < n; ++j) {
       unsigned char b = x[j];
@@ -788,6 +791,21 @@ WordData word_data(const char * x, int n) {
     }
   }
 
+  // shift the lhs of 'care of' word forward
+  char * cpos_careof = strstr(x, "C/-");
+  if (cpos_careof == NULL) {
+    cpos_careof = strstr(x, "C/O");
+  }
+  if (cpos_careof != NULL) {
+    // skip lhs careof
+    int pos_careof = cpos_careof - x;
+    for (int w = 0; w < WORD_DATUMS; ++w) {
+      if (lhs[w] == pos_careof) {
+        lhs[w] += 3;
+        break;
+      }
+    }
+  }
 
   wd.postcode_pos = n - 4;
   wd.postcode = -1;
@@ -880,7 +898,6 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
       return R_NilValue;
     }
 
-
     int k = 0;
     for (R_xlen_t i = 0; i < N; ++i) {
       A[i] = 0;
@@ -907,20 +924,25 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
         }
       }
     }
+    unsigned int o4 = 0;
+    for (R_xlen_t i = 0; i < N; ++i) {
+      o4 += A[i] & INT_MAX;
+      o4 += B[i] & INT_MAX;
+    }
     free(A);
     free(B);
-    return ScalarInteger(4);
+    return ScalarInteger(o4);
   }
 
 
   }
-  return R_NilValue;
+  return R_NilValue; // # nocov
 }
 
 // the words LEVEL and FLOOR are followed by numbers which do not
 // form part of the standard address, so must be specially identified so that
 // number parsers know to exclude them
-// Returns the integer position of the first number following LEVEL or FLOOR
+// Returns the word number of the first number following LEVEL or FLOOR
 // or zero if those words do not exist (a number at the start of the string
 // is not an issue as it will never be preceded by those words).
 int has_LEVEL(WordData * wd) {
@@ -934,14 +956,15 @@ int has_LEVEL(WordData * wd) {
       continue;
     }
     if (isdigit(x[j + 1])) {
-      return j + 1;
+      return w + 1;
     }
-    bool has_level = true;
+
     // L 251
     if (x[j + 1] == ' ' && isdigit(x[j + 2])) {
-      return j + 2;
+      return w + 1;
     }
-    // LEVEL
+    // Check whether the string here is LEVEL or FLOOR
+    bool has_level = true;
     for (int k = 1; k < 5; ++k) {
       const char xjk = x[j + k];
       if (xjk != LEVEL[k] && xjk != FLOOR[k]) {
@@ -950,27 +973,10 @@ int has_LEVEL(WordData * wd) {
       }
     }
     if (has_level) {
-      return next_numeral(j + 5, x, wd->n);
+      return w + 1;
     }
   }
   return 0;
-}
-
-
-
-unsigned int xLEVEL(WordData * wd) {
-  int j = has_LEVEL(wd);
-  if (j == 0) {
-    return 0;
-  }
-  const char * x = wd->x;
-  unsigned int o = x[j] - '0';
-  while (isdigit(x[++j])) {
-    o *= 10;
-    o += x[j] - '0';
-  }
-  return o;
-
 }
 
 
@@ -3321,6 +3327,7 @@ const char * FLATS[N_FLATS] =
    "APARTMENT"};
 
 // Approximate frequency
+#define FLAT_CODE_SLASH -1
 #define FLAT_CODE_UNIT 1
 #define FLAT_CODE_FLAT 2
 #define FLAT_CODE_CARS 3
@@ -3329,7 +3336,7 @@ const char * FLATS[N_FLATS] =
 #define FLAT_CODE_APT_ 6
 #define FLAT_CODE_ROOM 9
 // corresponding codes
-const uint8_t FLATC[N_FLATS] =
+const int8_t FLATC[N_FLATS] =
   {FLAT_CODE_UNIT, FLAT_CODE_UNIT,
    FLAT_CODE_SUITE,
    FLAT_CODE_APT_,
@@ -3337,72 +3344,99 @@ const uint8_t FLATC[N_FLATS] =
    FLAT_CODE_SUITE,
    FLAT_CODE_APT_};
 
-
-int has_flat(const char * x, int n) {
-  for (int j = 0; j < n; ++j) {
+// Returns an integer, 0 if no flat number expected
+int has_flat(WordData * wd) {
+  const char * x = wd->x;
+  const int n = wd->n;
+  const int n_words = wd->n_words - (wd->postcode > 0);
+  for (int w = 0; w < n_words; ++w) {
+    int j = wd->lhs[w];
     unsigned char xj = x[j];
-    if (isdigit(x[j])) {
+    if (isdigit(xj)) {
+      int j_digit_start = j;
       // if a digit but no 'flat' synonym encountered, we check for
       // a slash to signify unit
       ++j;
       while (isdigit(x[j])) {
         ++j;
       }
-      while (isspace(x[j])) {
-        ++j;
-      }
       // Possibly 108A/144
       if (isUPPER(x[j]) && x[j + 1] == '/') {
-        return 1;
+        wd->flat_pos = j_digit_start;
+        return FLAT_CODE_SLASH;
       }
       if (x[j] == '/') {
-        return 1;
+        wd->flat_pos = j_digit_start;
+        return FLAT_CODE_SLASH;
+      }
+    }
+    if (xj == 'U') {
+      if ((x[j + 1] == ' ' && isdigit(x[j + 2]))) {
+        wd->flat_pos = j + 2;
+        return FLAT_CODE_UNIT;
+      }
+      if (isdigit(x[j + 1])) {
+        wd->flat_pos = j + 1;
+        return FLAT_CODE_UNIT;
+      }
+    }
+    // Not sure why I previously put "UNIT" rather than "UNIT " here; however
+    // UNITS sometimes appears in addresses that do not a FLAT_NUMBER field.
+    if (substring_within(x, j, n, "UNIT", 4)) {
+      if (isdigit(x[j + 4])) {
+        wd->flat_pos = j + 4;
+        return FLAT_CODE_UNIT;
+      }
+      if (x[j + 4] == ' ' && isdigit(x[j + 5])) {
+        wd->flat_pos = j + 5;
+        return FLAT_CODE_UNIT;
+      }
+      if (x[j + 4] == ' ' && isdigit(x[j + 6])) {
+        // e.g. UNIT G05
+        wd->flat_pos = j + 6;
+        return FLAT_CODE_UNIT;
       }
       return 0;
     }
-    if (j == 0 || x[j - 1] == ' ') {
-      if (x[j] == 'U') {
-        if ((x[j + 1] == ' ' && isdigit(x[j + 2])) || isdigit(x[j + 1])) {
-          return FLAT_CODE_UNIT;
-        }
+    if (substring_within(x, j, n, "APARTMENT ", 10) && isdigit(x[j + 10])) {
+      wd->flat_pos = j + 10;
+      return FLAT_CODE_APT_;
+    }
+    if (substring_within(x, j, n, "FLAT ", 5) && isdigit(x[j + 5])) {
+      wd->flat_pos = j + 5;
+      return FLAT_CODE_FLAT;
+    }
+    if (substring_within(x, j, n, "ROOM ", 5) && isdigit(x[j + 5])) {
+      wd->flat_pos = j + 5;
+      return FLAT_CODE_ROOM;
+    }
+    if (substring_within(x, j, n, "SHOP ", 5) && isdigit(x[j + 5])) {
+      wd->flat_pos = j + 5;
+      return FLAT_CODE_SHOP;
+    }
+    if (substring_within(x, j, n, "CAR", 3)) {
+      if (substring_within(x, j, n, "CARSPACE ", 9)) {
+        wd->flat_pos = j + 9;
+        return FLAT_CODE_CARS;
       }
-      // Not sure why I previously put "UNIT" rather than "UNIT " here; however
-      // UNITS sometimes appears in addresses that do not a FLAT_NUMBER field.
-      if (substring_within(x, j, n, "UNIT", 4) && (x[j + 4] == ' ' || isdigit(x[j + 4]))) {
+      if (substring_within(x, j, n, "CARPARK ", 8)) {
+        wd->flat_pos = j + 8;
+        return FLAT_CODE_CARS;
+      }
+    }
+    if (substring_within(x, j, n, "SUITE ", 6) && isdigit(x[j + 6])) {
+      wd->flat_pos = j + 6;
+      return FLAT_CODE_SUITE;
+    }
+
+    unsigned char xk = x[j + 1];
+    if (isdigit(xk)) {
+      if (xj == 'G' || xj == 'U') {
+        // e.g. G05
+        wd->flat_pos = j + 1;
         return FLAT_CODE_UNIT;
       }
-      if (substring_within(x, j, n, "APARTMENT ", 10)) {
-        return FLAT_CODE_APT_;
-      }
-      if (substring_within(x, j, n, "FLAT ", 5)) {
-        return FLAT_CODE_FLAT;
-      }
-      if (substring_within(x, j, n, "ROOM ", 5)) {
-        return FLAT_CODE_ROOM;
-      }
-      if (substring_within(x, j, n, "SHOP ", 5)) {
-        return FLAT_CODE_SHOP;
-      }
-      if (substring_within(x, j, n, "CAR", 3)) {
-        if (substring_within(x, j, n, "CARSPACE ", 9) ||
-            substring_within(x, j, n, "CARPARK ", 8)) {
-          return FLAT_CODE_CARS;
-        }
-      }
-      if (substring_within(x, j, n, "SUITE ", 6) && isdigit(x[j + 6])) {
-        return FLAT_CODE_SUITE;
-      }
 
-      unsigned char xk = x[j + 1];
-      if (isdigit(xk)) {
-        // e.g. G05
-        switch(xj) {
-        case 'G':
-          return FLAT_CODE_UNIT;
-        case 'U':
-          return FLAT_CODE_UNIT;
-        }
-      }
     }
   }
   return 0;
@@ -3478,11 +3512,6 @@ int where_LEVEL_abbrev_number_ends(const char * x, int n) {
 int flat_of(const char * x, int n, int J[1]) {
   int k = 0; // position of digit starting flat
   bool has_flat = false;
-  // WordData wd = word_data(x, n, 0);
-
-  // test for level:
-  // int has_level = has_LEVEL(wd);
-  // int j = j_post_LEVEL(x, n);
 
   int j = 0;
   for (; j < n; ++j) {
@@ -3731,6 +3760,219 @@ void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n)
   }
 }
 
+void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, int * jj) {
+  int j = 0; // index of x
+  // n_words but if the string contains a postcode we don't want it polluting
+  const int n_words = wd->n_words - (wd->postcode > 0);
+  const char * x = wd->x;
+  int xHasFlat = has_flat(wd);
+  int xHasLevl = has_LEVEL(wd);
+  switch(xHasFlat) {
+  case FLAT_CODE_SLASH:
+    if (wd->flat_pos < 0) {
+      return; // # nocov
+    } else {
+      j = wd->flat_pos;
+      FlatFirstLast[0] = x[j] - '0';
+      while (isdigit(x[++j])) {
+        FlatFirstLast[0] *= 10;
+        FlatFirstLast[0] += x[j] - '0';
+      }
+      ++j; // slash
+      while (!isdigit(x[j])) {
+        ++j; // # nocov
+      }
+      FlatFirstLast[1] = x[j] - '0';
+      while (isdigit(x[++j])) {
+        FlatFirstLast[1] *= 10;
+        FlatFirstLast[1] += x[j] - '0';
+      }
+      if (x[j] != '-') {
+        if (isUPPER(x[j])) {
+          *suf = x[j];
+        }
+        *jj = j;
+        return;
+      }
+      ++j;
+      FlatFirstLast[2] = x[j] - '0';
+      while (isdigit(x[++j])) {
+        FlatFirstLast[2] *= 10;
+        FlatFirstLast[2] += x[j] - '0';
+      }
+      if (isUPPER(x[j])) {
+        *suf = x[j];
+      }
+      *jj = j;
+      return;
+    }
+    break;
+  case 0:
+    if (xHasLevl) {
+      for (int w = 0; w < n_words; ++w) {
+        if (w == xHasLevl) {
+          continue;
+        }
+        int j = wd->lhs[w];
+        if (!isdigit(x[j])) {
+          continue;
+        }
+        FlatFirstLast[1] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[1] *= 10;
+          FlatFirstLast[1] += x[j] - '0';
+        }
+        if (x[j] != '-') {
+          if (isUPPER(x[j])) {
+            *suf = x[j];
+          }
+          *jj = j;
+          return;
+        }
+        ++j;
+        FlatFirstLast[2] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[2] *= 10;
+          FlatFirstLast[2] += x[j] - '0';
+        }
+        if (isUPPER(x[j])) {
+          *suf = x[j];
+        }
+        *jj = j;
+        return;
+      }
+    } else {
+      for (int w = 0; w < n_words; ++w) {
+        int j = wd->lhs[w];
+        if (!isdigit(x[j])) {
+          continue;
+        }
+        FlatFirstLast[1] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[1] *= 10;
+          FlatFirstLast[1] += x[j] - '0';
+        }
+        if (x[j] != '-') {
+          if (isUPPER(x[j])) {
+            *suf = x[j];
+          }
+          *jj = j;
+          return;
+        }
+        ++j;
+        FlatFirstLast[2] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[2] *= 10;
+          FlatFirstLast[2] += x[j] - '0';
+        }
+        if (isUPPER(x[j])) {
+          *suf = x[j];
+        }
+        *jj = j;
+        return;
+      }
+    }
+    break; // necessary in case of no numbers
+  default:
+      // has a flat number, but it's not among a slash
+      if (xHasLevl) {
+        j = wd->flat_pos;
+        FlatFirstLast[0] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[0] *= 10;
+          FlatFirstLast[0] += x[j] - '0';
+        }
+        // Now we have to find the next two numbers, that aren't the level number.
+        int j_level = wd->lhs[xHasLevl]; // position of the level number in x
+
+        // If the level number precedes the unit number, nothing to do, the
+        // next number will be number_first.  Otherwise, as this branch handles,
+        // we need to skip j past the numbers
+        if (j < j_level) {
+          // i.e. the unit number preceded
+          j = j_level;
+          while (isdigit(x[j])) {
+            ++j;
+          }
+        }
+        while (!isdigit(x[j])) {
+          ++j;
+        }
+        FlatFirstLast[1] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[1] *= 10;
+          FlatFirstLast[1] += x[j] - '0';
+        }
+        if (x[j] != '-') {
+          if (isUPPER(x[j])) {
+            *suf = x[j];
+          }
+          *jj = j;
+          return;
+        }
+        ++j;
+        FlatFirstLast[2] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[2] *= 10;
+          FlatFirstLast[2] += x[j] - '0';
+        }
+        if (isUPPER(x[j])) {
+          *suf = x[j];
+        }
+        *jj = j;
+        return;
+
+      } else {
+        j = wd->flat_pos;
+        FlatFirstLast[0] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[0] *= 10;
+          FlatFirstLast[0] += x[j] - '0';
+        }
+        while (!isdigit(x[j])) {
+          ++j;
+        }
+        FlatFirstLast[1] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[1] *= 10;
+          FlatFirstLast[1] += x[j] - '0';
+        }
+        if (x[j] != '-') {
+          if (isUPPER(x[j])) {
+            *suf = x[j];
+          }
+          *jj = j;
+          return;
+        }
+        ++j;
+        FlatFirstLast[2] = x[j] - '0';
+        while (isdigit(x[++j])) {
+          FlatFirstLast[2] *= 10;
+          FlatFirstLast[2] += x[j] - '0';
+        }
+        if (isUPPER(x[j])) {
+          *suf = x[j];
+        }
+        *jj = j;
+        return;
+      }
+  }
+}
+
+SEXP C_xFlatFirstLast(SEXP x) {
+  int A[3] = {0};
+  unsigned char z = 0;
+  int j = 0;
+  WordData wd = word_data(CHAR(STRING_ELT(x, 0)), length(STRING_ELT(x, 0)));
+  xFlatFirstLast(A, &z, &wd, &j);
+  if (z == 0) {
+    Rprintf("%d-%d-%d\n", A[0], A[1], A[2]);
+  } else {
+    Rprintf("%d-%d-%d/%c\n", A[0], A[1], A[2], z);
+  }
+  return R_NilValue;
+}
+
 unsigned char suf3suf(unsigned char x[3]) {
   if (x[2] > '/') {
     return x[2];
@@ -3744,20 +3986,22 @@ unsigned char suf3suf(unsigned char x[3]) {
   return 0;
 }
 
+// inserts the flat_number, number_first, number_last into its 1st argument
+// taking into account things like 'level'
 static void do__numberFirstLast(int numberFirstLast[3],
                                 WordData * wd,
                                 int n_less_poa,
                                 int * j,
                                 unsigned char suf[3]) {
-  int level = xLEVEL(wd);
+  int w_level = has_LEVEL(wd);
   *j = 0;
-  if (level) {
+  if (w_level) {
     int four_nos[5] = {0};
     first_four_numbers(four_nos, suf, wd->x, n_less_poa);
     if (four_nos[3] == 0) {
       // i.e. only two numbers identified (excl postcode and level)
       // could be flat then number or number then number
-      if (has_flat(wd->x, n_less_poa - 1)) {
+      if (has_flat(wd)) {
         numberFirstLast[0] = four_nos[0];
         numberFirstLast[1] = four_nos[2];
       } else {
@@ -3783,7 +4027,7 @@ static void do__numberFirstLast(int numberFirstLast[3],
       } else if (three_nos[2] == 0) {
         // i.e. only two numbers identified (excl postcode)
         // could be flat then number or number then number
-        if (has_flat(wd->x, n_less_poa - 1)) {
+        if (has_flat(wd)) {
           numberFirstLast[0] = three_nos[0];
           numberFirstLast[1] = three_nos[1];
         } else {
@@ -3853,7 +4097,7 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   unsigned char suf[3] = {0};
   int j = 0;
   int n_less_poa = wd->postcode_pos;
-  do__numberFirstLast(numberFirstLast, wd, n_less_poa, &j, suf);
+  xFlatFirstLast(numberFirstLast, suf, wd, &j);
   int16_t postcode = wd->postcode;
 
   if (postcode > 0 && postcode <= MAX_POSTCODE) {
@@ -3882,6 +4126,9 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   do_street_type(street_type, wd->x, wd->n, j, wd, postcode, m1);
   Street[1] = street_type[0];
   ad.hashStreetName = street_type[2];
+  while (wd->x[j] == ' ') {
+    ++j;
+  }
   ad.street_name_lhs = j;
   ad.street_name_rhs = street_type[1] - 1;
 
@@ -4703,7 +4950,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
       int jj = 0;
       unsigned char suf[3] = {0};
       // n - 7 since postcode and 'the'
-      do__numberFirstLast(numberFirstLast, &wd, ni - 7, &jj, suf);
+      xFlatFirstLast(numberFirstLast, suf, &wd, &jj);
       flat_numberp[i] = numberFirstLast[0];
       number_firstp[i] = numberFirstLast[1];
       number_lastp[i] = numberFirstLast[2];
@@ -4739,7 +4986,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
         WordData wd = word_data(xi, ni);
         int jj = 0;
         unsigned char suf[3] = {0};
-        do__numberFirstLast(numberFirstLast, &wd, sttj4_k - 1, &jj, suf);
+        xFlatFirstLast(numberFirstLast, suf, &wd, &jj);
         flat_numberp[i] = numberFirstLast[0];
         number_firstp[i] = numberFirstLast[1];
         number_lastp[i] = numberFirstLast[2];

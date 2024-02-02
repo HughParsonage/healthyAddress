@@ -25,3 +25,8 @@ xnumber128 <- function(x) {
 uint128_not_supported <- function() {
   .Call("C_uint128_not_supported", NULL, PACKAGE = packageName())
 }
+
+x_FlatFirstLast <- function(x) {
+  stopifnot(is.character(x))
+  .Call("C_xFlatFirstLast", x, PACKAGE = packageName())
+}

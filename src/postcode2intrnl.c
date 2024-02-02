@@ -285,6 +285,8 @@ void prep_postcode2tinrnl(void) {
       INTRNL_POSTCODES[POSTCODES[k]] = k;
     }
   }
+  // MAP 3004 -> 3000
+  INTRNL_POSTCODES[3004] = INTRNL_POSTCODES[3000];
 }
 
 
