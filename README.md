@@ -17,5 +17,23 @@ to provide fast and intelligent parsing of Australian addresses.
 The main function is `standardize_address`:
 
 ```r
-
+library(healthyAddress)
+standardize_address("1408/170 The Esplanade St Kilda VIC 3182")
+#>    FLAT_NUMBER NUMBER_FIRST NUMBER_LAST NUMBER_SUFFIX   STREET_NAME
+#>          <int>        <int>       <int>         <raw>        <char>
+#> 1:        1408          170           0            00 THE ESPLANADE
+#>    STREET_TYPE_CODE POSTCODE STREET_TYPE
+#>               <int>    <int>      <char>
+#> 1:                0     3182        <NA>
 ```
+
+<sup>Created on 2024-01-31 by the [reprex package](https://reprex.tidyverse.org) (v2.0.1)</sup>
+
+There are two arguments to the function that affect performance, 
+
+* `hash_StreetName`: instead of returning the street name as a string, return an integer. This
+  can be useful when performing merges (which are faster on integer vectors), by applying
+  `HashStreetName` to the foreign table's street name.
+* `integer_StreetType`: instead of returning the street type as a string, return an integer. 
+* `check` performs a check on the input. Setting to zero can improve performance on
+  input that has already checked.

@@ -37,6 +37,7 @@ extern SEXP C_test_n_words(SEXP);
 extern SEXP C_trie_streetType(SEXP);
 extern SEXP C_uint128_not_supported(SEXP);
 extern SEXP C_uniquePostcodes(SEXP);
+extern SEXP C_xFlatFirstLast(SEXP);
 extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP Cdigit256(SEXP, SEXP);
 extern SEXP CExtractPostcode(SEXP);
@@ -82,6 +83,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_trie_streetType",                (DL_FUNC) &C_trie_streetType,                1},
     {"C_uint128_not_supported",          (DL_FUNC) &C_uint128_not_supported,          1},
     {"C_uniquePostcodes",                (DL_FUNC) &C_uniquePostcodes,                1},
+    {"C_xFlatFirstLast",                 (DL_FUNC) &C_xFlatFirstLast,                 1},
     {"Cconcat_upper",                    (DL_FUNC) &Cconcat_upper,                    5},
     {"Cdigit256",                        (DL_FUNC) &Cdigit256,                        2},
     {"CExtractPostcode",                 (DL_FUNC) &CExtractPostcode,                 1},

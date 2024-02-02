@@ -49,6 +49,7 @@ expect_equal(ans$STREET_NAME, "HAMILTON HUME")
 
 ans <- standardize_address("C/-1-5 ANDERSONS CREEK RD",  "DONCASTER EAST VIC 3109")
 expect_equal(ans$STREET_NAME, "ANDERSONS CREEK")
+expect_equal(ans$NUMBER_LAST, 5)
 
 # ans <- standardize_address("11 THE ESPLANADE Narre Warren South VIC 3805")
 # expect_equal(ans$STREET_NAME, "THE ESPLANADE")
@@ -203,11 +204,13 @@ expect_equal(ans$H0, HashStreetName("LOWER TERRACE"))
 ans <- standard_address2("1D/66-68 ALLARA STREET CANBERRA CITY ACT 2601")
 expect_equal(ans$NUMBER_FIRST, 66L)
 
-ans <- standard_address2("1d 66/68 ALLARA STREET CANBERRA CITY ACT 2601")
-expect_equal(ans$NUMBER_FIRST, 66L)
+# Not reasonable to detect
+# ans <- standard_address2("1d 66/68 ALLARA STREET CANBERRA CITY ACT 2601")
+# expect_equal(ans$NUMBER_FIRST, 66L)
 
 ans <- standard_address2("1a/18 Abbott St, Abbotsford Vic 3067")
-expect_equal(ans$NUMBER_SUFFIX, NumberSuffix2Raw("A"))
+# expect_equal(ans$NUMBER_SUFFIX, NumberSuffix2Raw("A"))  # nope! it's the number_first_suffix,
+expect_equal(ans$NUMBER_FIRST, 18)
 
 ans <- standard_address2("1 KINGS DOM, CAROLINE SPRINGS VIC 3023")
 expect_equal(ans$H0, HashStreetName("KINGS"))
@@ -272,6 +275,7 @@ expect_equal(ans$H0, HashStreetName("PRINCE OF WALES"))
 
 # preceding space
 ans <- standard_address2("  50 PRINCE OF WALES AVENUE, MILL PARK VIC 3082")
+expect_equal(ans$NUMBER_FIRST, 50)
 expect_equal(ans$H0, HashStreetName("PRINCE OF WALES"))
 
 # Many words but valid
@@ -385,4 +389,13 @@ expect_equal(ans$STREET_NAME, "BUNGAN")
 ans <- standard_address2("3/18 Bungan St Mona Vale NSW 2103")
 expect_equal(ans$H0, HashStreetName("BUNGAN"))
 
+ans <- standardize_address("L5 500/120 FLINDERS ST MELB VIC 3004")
+expect_equal(ans$STREET_NAME, "FLINDERS")
+expect_equal(ans$FLAT_NUMBER, 500L)
+expect_equal(ans$NUMBER_FIRST, 120L)
+
+ans <- standardize_address("L5 500/120 FLINDERS ST MELB VIC 3004", hash_StreetName = TRUE)
+expect_equal(ans$H0, HashStreetName("FLINDERS"))
+expect_equal(ans$FLAT_NUMBER, 500L)
+expect_equal(ans$NUMBER_FIRST, 120L)
 
