@@ -3443,167 +3443,6 @@ int has_flat(WordData * wd) {
 }
 
 
-// LEVEL 123
-// 012345678  returns 9
-int where_LEVEL_exact_number_ends(const char * x, int n) {
-  if (x[0] == 'L' && x[1] == 'E' && x[2] == 'V' && x[3] == 'E' && x[4] == 'L' && (isdigit(x[5]) || isspace(x[5]))) {
-    int k = 5;
-    while (isspace(x[k])) {
-      ++k;
-    }
-    while (isdigit(x[k])) {
-      ++k;
-    }
-    return k;
-  }
-  for (int j = 1; j < n - 5; ++j) {
-    if (x[j - 1] != ' ') {
-      continue;
-    }
-    if (x[j] == 'L' &&
-        x[j + 1] == 'E' && x[j + 2] == 'V' &&
-        x[j + 3] == 'E' && x[j + 4] == 'L' && (isdigit(x[j + 5]) || isspace(x[j + 5]))) {
-      int k = j + 5;
-      while (isspace(x[k])) {
-        ++k;
-      }
-      while (isdigit(x[k])) {
-        ++k;
-      }
-      return k;
-    }
-  }
-  return 0;
-}
-
-int where_LEVEL_abbrev_number_ends(const char * x, int n) {
-  if (x[0] == 'L') {
-    int k = 1;
-    while (isspace(x[k])) {
-      ++k;
-    }
-    while (isdigit(x[k])) {
-      ++k;
-    }
-    return k;
-  }
-  for (int j = 1; j < n - 5; ++j) {
-    if (x[j - 1] != ' ') {
-      continue;
-    }
-    if (x[j] == 'L' &&
-        x[j + 1] == 'E' && x[j + 2] == 'V' &&
-        x[j + 3] == 'E' && x[j + 4] == 'L') {
-      int k = j + 5;
-      while (isspace(x[k])) {
-        ++k;
-      }
-      while (isdigit(x[k])) {
-        ++k;
-      }
-      return k;
-    }
-  }
-  return 0;
-}
-
-
-
-int flat_of(const char * x, int n, int J[1]) {
-  int k = 0; // position of digit starting flat
-  bool has_flat = false;
-
-  int j = 0;
-  for (; j < n; ++j) {
-    if (isdigit(x[j])) {
-      // if a digit but no 'flat' synonym encountered, we check for
-      // a slash to signify unit
-      k = j;
-      ++j;
-      while (isdigit(x[j])) {
-        ++j;
-      }
-      // possibly a suffix
-      if (isUPPER(x[j]) && x[j + 1] == '/') {
-        has_flat = true;
-        break;
-      }
-      while (isspace(x[j])) {
-        ++j;
-      }
-      if (x[j] == '/') {
-        has_flat = true;
-        break;
-      }
-      return 0;
-    }
-    if (j == 0 || x[j - 1] == ' ') {
-      if (x[j] == 'U') {
-        if (substring_within(x, j, n, "UNIT", 4)) {
-          k = j + 4;
-          while (isspace(x[k])) {
-            ++k;
-          }
-          if (isdigit(x[k])) {
-            has_flat = true;
-            break;
-          }
-          return 0; // Unusual, implies 'UNIT' followed by non digit
-        }
-        if ((x[j + 1] == ' ' && isdigit(x[j + 2]))) {
-          k = j + 2;
-          has_flat = true;
-          break;
-        } else if (isdigit(x[j + 1])) {
-          k = j + 1;
-          has_flat = true;
-          break;
-        } else {
-          return 0;
-        }
-      }
-      if (substring_within(x, j, n, "APARTMENT ", 10)) {
-        has_flat = true;
-        k = j + 10;
-        break;
-      }
-      if (substring_within(x, j, n, "FLAT ", 5)) {
-        has_flat = true;
-        k = j + 5;
-        break;
-      }
-      if (substring_within(x, j, n, "ROOM ", 5)) {
-        has_flat = true;
-        k = j + 5;
-        break;
-      }
-      // e.g. G05
-      if (x[j] == 'G') {
-        if (isdigit(x[j + 1])) {
-          has_flat = true;
-          k = j + 1;
-          break;
-        }
-        if (isspace(x[j + 1]) && isdigit(x[j + 2])) {
-          has_flat = true;
-          k = j + 2;
-          break;
-        }
-      }
-    }
-  }
-  int o = 0;
-  if (has_flat) {
-    while (isdigit(x[k])) {
-      o *= 10;
-      o += x[k] - '0';
-      ++k;
-    }
-  }
-  J[0] = k;
-  return o;
-}
-
 int next_word(int j, WordData * wd) {
   const int n_words = wd->n_words;
   for (int w = 1; w < n_words - 1; ++w) {
@@ -3615,19 +3454,6 @@ int next_word(int j, WordData * wd) {
 }
 
 // Popular resort seems to muck up disproprtionately the address numbers
-static int containsBIG4(const char * x, int n) {
-  // very unlikely to occur in final 10 chars
-  for (int j = 0; j < n - 10; ++j) {
-    if (j > 0 && x[j - 1] != ' ') {
-      continue;
-    }
-    if (x[j] == 'B' && x[j + 1] == 'I' && x[j + 2] == 'G' && x[j + 3] == '4') {
-      return j + 1;
-    }
-  }
-  return 0;
-}
-
 typedef union {
   char chars[4];
   uint32_t uint;
@@ -3668,96 +3494,6 @@ SEXP C_contains_BIG4(SEXP x) {
   }
   UNPROTECT(1);
   return ans;
-}
-
-
-
-int first_three_numbers(int ans[4], unsigned char suf[3], const char * x, int n) {
-  int i = 0; // index of number
-  int k = 0;
-  int j = 0;
-
-  unsigned char x0 = x[0];
-  if (!isdigit(x0)) {
-
-  } else {
-    ans[0] = x0 - '0';
-    ++j;
-    if (!isdigit(x[j])) {
-      suf[i] = x[j];
-      ++i;
-      k = j;
-    }
-  }
-
-  for (; j < n; ++j) {
-    unsigned char xj = x[j];
-    if (isdigit(xj)) {
-      ans[i] *= 10;
-      ans[i] += xj - '0';
-      if (!isdigit(x[j + 1])) {
-        suf[i] = x[j + 1];
-        ++i;
-        ++j;
-        k = j;
-        if (i == 3) {
-          break;
-        }
-      }
-    }
-
-  }
-  ans[3] = k;
-  if (ans[0] == 4 && containsBIG4(x, n)) {
-    ans[0] = 0;
-  }
-  return i;
-}
-
-void first_four_numbers(int ans[5], unsigned char suf[3], const char * x, int n) {
-  int i = 0; // index of number
-  int k = 0;
-  int j = 0;
-  unsigned char x0 = x[0];
-  if (!isdigit(x0)) {
-
-  } else {
-    ans[0] = x0 - '0';
-    ++j;
-    if (!isdigit(x[j])) {
-      suf[i] = x[j];
-      ++i;
-      k = j;
-    }
-  }
-
-  for (; j < n; ++j) {
-    unsigned char xj = x[j];
-    if (isdigit(xj)) {
-      ans[i] *= 10;
-      ans[i] += xj - '0';
-      if (!isdigit(x[j + 1])) {
-        // note i must be < 3, but if
-        // we have never entered this section
-        // where (i == 3) => break
-        // it can be at most 1
-        if (i < 3) {
-          suf[i] = x[j + 1];
-        }
-        ++i;
-        ++j;
-        k = j;
-        if (i == 4) {
-          break;
-        }
-      }
-    }
-
-  }
-  ans[4] = k;
-  if (ans[0] == 4 && containsBIG4(x, n)) {
-    ans[0] = 0;
-  }
 }
 
 void xFlatFirstLast(int FlatFirstLast[3], unsigned char * suf, WordData * wd, int * jj) {
@@ -4908,6 +4644,32 @@ SEXP C_check_address_input(SEXP x, SEXP mm) {
       int s = status_check_address(CHAR(xp[i]), length(xp[i]));
       error_or_warn_on_status("Address", i, s, CHAR(xp[i]), length(xp[i]));
     }
+  }
+  return ScalarInteger(0);
+}
+
+SEXP ScalarLength(R_xlen_t z) {
+  return (z <= INT_MAX) ? ScalarInteger(z) : ScalarReal(z);
+}
+
+SEXP C_which_first_strstr(SEXP x, SEXP p) {
+  errIfNotStr(x, "x");
+  errIfNotStr(p, "p");
+  R_xlen_t N = xlength(x);
+  const char * pp = CHAR(STRING_ELT(p, 0));
+  const SEXP * xp = STRING_PTR(x);
+  for (R_xlen_t i = 0; i < N; ++i) {
+    if (xp[i] == NA_STRING) {
+      continue;
+    }
+    const char * xpi = CHAR(xp[i]);
+    const int ni = length(xp[i]);
+    char * pos = strstr(xpi, pp);
+    if (pos == NULL) {
+      continue;
+    }
+    return ScalarLength(i + 1);
+
   }
   return ScalarInteger(0);
 }

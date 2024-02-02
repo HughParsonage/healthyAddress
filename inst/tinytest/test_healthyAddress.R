@@ -404,3 +404,15 @@ expect_equal(ans$NUMBER_FIRST, 120L)
 ans <- standardize_address("50 UNIT STREET FICTION 1999")
 expect_equal(ans$POSTCODE, -1)
 
+# FLAT
+ans <- standardize_address(c("WHITE LODGE RETIREMENT COMMUNITY FLAT 12 87 SEYMOUR ROAD ELSTERNWICK VIC 3185", "ROOM 11 54 HAMMOND ROAD DANDENONG VIC 3175", "CARPARK 1 101 SIMPSON STREET YARRAVILLE VIC 3013"))
+expect_equal(ans$FLAT_NUMBER, c(12, 11, 1))
+expect_equal(ans$NUMBER_FIRST, c(87, 54, 101))
+ans <- standardize_address(c("WHITE LODGE RETIREMENT COMMUNITY FLAT 12 87 SEYMOUR ROAD ELSTERNWICK VIC 3185", "ROOM 11 54 HAMMOND ROAD DANDENONG VIC 3175", "CARPARK 1 101 SIMPSON STREET YARRAVILLE VIC 3013"),
+                           hash_StreetName = TRUE)
+expect_equal(ans$FLAT_NUMBER, c(12, 11, 1))
+expect_equal(ans$NUMBER_FIRST, c(87, 54, 101))
+expect_equal(ans$H0, HashStreetName(c("SEYMOUR", "HAMMOND", "SIMPSON")))
+
+
+

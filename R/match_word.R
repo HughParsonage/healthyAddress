@@ -13,3 +13,7 @@ match_word <- function(x, tbl) {
   stopifnot(is.character(x), is.character(tbl))
   .Call("Cmatch_word", x, tbl, PACKAGE = packageName())
 }
+
+which_first_strstr <- function(x, p) {
+  .Call("C_which_first_strstr", x, p, PACKAGE = packageName())
+}
