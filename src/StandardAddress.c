@@ -3997,27 +3997,26 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   int16_t postcode = wd->postcode;
   ad.suffix = *suf;
 
-  if (postcode > 0 && postcode <= MAX_POSTCODE) {
-    int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
-    if (the_street > 0) {
-      the_street = H_THE_XXX[the_street - 1];
-    }
-
-    // THE STRAND is a hotel in Melbourne and not a street name
-    if (postcode >= 3000 && postcode <= 3004 && the_street == DJB2_THE_STRAND) {
-      the_street = 0;
-    }
-    if (the_street) {
-      ad.postcode = postcode;
-      ad.flat_number = numberFirstLast[0];
-      ad.number_first = numberFirstLast[1];
-      ad.number_last = numberFirstLast[2];
-      // assume such a street may not be hashed
-      ad.hashStreetName = the_street;
-      ad.street_type = 0;
-      return ad;
-    }
+  int the_street = THE_xxx3(root, wd, M_POSTCODE[postcode].THE_code);
+  if (the_street > 0) {
+    the_street = H_THE_XXX[the_street - 1];
   }
+
+  // THE STRAND is a hotel in Melbourne and not a street name
+  if (postcode >= 3000 && postcode <= 3004 && the_street == DJB2_THE_STRAND) {
+    the_street = 0;
+  }
+  if (the_street) {
+    ad.postcode = postcode;
+    ad.flat_number = numberFirstLast[0];
+    ad.number_first = numberFirstLast[1];
+    ad.number_last = numberFirstLast[2];
+    // assume such a street may not be hashed
+    ad.hashStreetName = the_street;
+    ad.street_type = 0;
+    return ad;
+  }
+
   int street_type[3] = {0};
   do_street_type(street_type, wd->x, wd->n, j, wd, postcode, m1);
   Street[1] = street_type[0];
@@ -4054,11 +4053,13 @@ Address do_standard_address(WordData * wd, unsigned char * m1,
   ad.number_first = numberFirstLast[1];
   ad.number_last = numberFirstLast[2];
   ad.street_type = Street[1];
+  // # nocov start
   if (ad.hashStreetName == 5381 && ad.street_type == ST_CODE_ESPLANADE) {
     // Strange quirk where 'ESPLANADE' is the street name
     ad.hashStreetName = DJB2_ESPLANADE;
     ad.street_type = 0;
   }
+  // # nocov end
 
   return ad;
 }
@@ -4079,6 +4080,7 @@ static void prepare_M1(unsigned char * M1) {
 SEXP C_do_standard_address(SEXP xx) {
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
+  // # nocov start
   // Memoiziation
   unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
   if (M1 == NULL) {
@@ -4091,12 +4093,11 @@ SEXP C_do_standard_address(SEXP xx) {
     free(root);
     error("Unable to allocate TrieNode*root.");
   }
+  // # nocov end
   insert_all(root);
   memoize_trie_postcodes(); // inserts the THE codes appropriately
 
-
   int np = 0;
-
   SEXP FlatNumber = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberFirst = PROTECT(allocVector(INTSXP, N)); np++;
   SEXP NumberLast  = PROTECT(allocVector(INTSXP, N)); np++;
@@ -4160,58 +4161,7 @@ SEXP C_do_standard_address(SEXP xx) {
   free(M1);
   freeTrie(root);
   return ans;
-
 }
-
-SEXP ZMatchStreetName(SEXP x) {
-  if (!isString(x)) {
-    error("x not a STRSXP."); // # nocov
-  }
-  R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
-  SEXP ans = PROTECT(allocVector(INTSXP, N));
-  int * restrict ansp = INTEGER(ans);
-
-  for (R_xlen_t i = 0; i < N; ++i) {
-    unsigned int o = 0;
-    int n = length(xp[i]);
-    if (n <= 2) {
-      ansp[i] = NA_INTEGER;
-      continue;
-    }
-    const char * xi = CHAR(xp[i]);
-    WordData wdi = word_data(xi, n);
-    bool matched = false;
-    for (int z = 0; z < 271; ++z) {
-      const char * zi = ZTZ[z]->x;
-      int zlen = ZTZ[z]->lenx;
-      int zcd = ZTZ[z]->cd;
-      for (int w = 0; w < wdi.n_words; ++w) {
-        int lhs_w = wdi.lhs[w];
-        int rhs_w = wdi.rhs[w];
-        int www_w = rhs_w - lhs_w;
-        if (www_w != zlen) {
-          continue;
-        }
-        matched = true;
-        for (int j = lhs_w; j < rhs_w; ++j) {
-          if (xi[j] != zi[j]) {
-            matched = false;
-            o = zcd;
-            break;
-          }
-        }
-        if (matched) {
-          break;
-        }
-      }
-    }
-    ansp[i] = o;
-  }
-  UNPROTECT(1);
-  return ans;
-}
-
 
 SEXP C_StaticAssert(SEXP x) {
   // Check ZTZ concordance with z0pos_by_len
@@ -4248,77 +4198,6 @@ SEXP C_StaticAssert(SEXP x) {
 
   return R_NilValue;
 }
-
-
-
-SEXP C_areST(SEXP x) {
-  if (!isString(x)) {
-    error("x must be a STRSXP."); // # nocov
-  }
-  const SEXP * xp = STRING_PTR(x);
-  R_xlen_t N = xlength(x);
-  SEXP ans = PROTECT(allocVector(LGLSXP, N));
-  int * restrict ansp = LOGICAL(ans);
-  for (R_xlen_t i = 0; i < N; ++i) {
-    int n = length(xp[i]);
-    ansp[i] = FALSE;
-    if (n < 2) {
-      continue;
-    }
-    const char * xi = CHAR(xp[i]);
-    if (n == 2) {
-      ansp[i] = xi[0] == 'S' && xi[1] == 'T';
-      continue;
-    }
-
-    int j = 0;
-    if (xi[j] == 'S' && xi[j + 1] == 'T' && !isalnum(xi[j + 2])) {
-      ansp[i] = 1;
-      continue;
-    }
-
-    bool o = false;
-    while (++j < n - 2) {
-      if (!isalnum(xi[j - 1]) && xi[j] == 'S') {
-        if (xi[j + 1] != 'T') {
-          ++j;
-          continue;
-        }
-        o = true;
-        break;
-      }
-    }
-    ansp[i] = o;
-  }
-  UNPROTECT(1);
-  return ans;
-}
-
-
-
-SEXP C_has_word(SEXP xx, SEXP ww) {
-  R_xlen_t N = xlength(xx);
-  const SEXP * xp = STRING_PTR(xx);
-  SEXP ans = PROTECT(allocVector(RAWSXP, N));
-  unsigned char * ansp = RAW(ans);
-  const int w = asInteger(ww);
-  for (R_xlen_t i = 0; i < N; ++i) {
-    int n = length(xp[i]);
-    const char * x = CHAR(xp[i]);
-    WordData wd = word_data(x, n);
-    switch(w) {
-    case 0:
-      ansp[i] = wd.n_words;
-      break;
-    case 1:
-      ansp[i] = has_LEVEL(&wd);
-    }
-  }
-  UNPROTECT(1);
-  return ans;
-
-}
-
 
 unsigned char get_suff(const char * x, int n) {
   unsigned char suf[3] = {0};
@@ -4410,10 +4289,14 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
     number_suffixp[i] = ad.suffix;
     if (keepStreetName) {
       int n_char_street_name = ad.street_name_rhs - ad.street_name_lhs;
+      // # nocov start
       if (n_char_street_name >= MAX_STREET_NAME_LEN) {
+        // Don't see how this could occur, but for safety's sake, allowing the
+        // condition to terminate gracefully here.
         SET_STRING_ELT(StreetName, i, mkCharCE("<EXCEEDED MAX_STREET_NAME_LEN>", CE_UTF8));
         continue;
       }
+      // # nocov end
       char SN[MAX_STREET_NAME_LEN];
       for (int snj = 0; snj < n_char_street_name; ++snj) {
         SN[snj] = x1pi[snj + ad.street_name_lhs];
@@ -4445,7 +4328,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
 
 SEXP Cget_suffix(SEXP x) {
   if (!isString(x)) {
-    return R_NilValue;
+    return R_NilValue; // # nocov
   }
   R_xlen_t N = xlength(x);
   const SEXP * xp = STRING_PTR(x);
