@@ -1,3 +1,6 @@
+# For debugging use only
+# nocov start
+
 get_StreetType <- function(x) {
   stopifnot(is.integer(x))
   .Call("C_get_StreetType", x, PACKAGE = packageName())
@@ -20,3 +23,4 @@ do_oZTC <- function() {
                    m = get_StreetCode(0:273))
   DT[, cat(strwrap(toString(order(m) - 1)), sep = "\n")]
 }
+# nocov end
