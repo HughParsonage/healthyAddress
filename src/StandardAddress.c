@@ -1240,20 +1240,30 @@ SEXP C_uniquePostcodes(SEXP xx) {
 }
 
 
-
-
 SEXP CToUpperBasic(SEXP x) {
   R_xlen_t N = xlength(x);
   errIfNotStr(x, "x");
   SEXP ans = PROTECT(allocVector(STRSXP, N));
+  const SEXP * xp = STRING_PTR(x);
+  bool warn_on_wide = true;
   for (R_xlen_t i = 0; i < N; ++i) {
-    SEXP xi = STRING_ELT(x, i);
+    SEXP xi = xp[i];
     if (xi == NA_STRING) {
       SET_STRING_ELT(ans, i, xi);
       continue;
     }
     int nchari = length(xi);
+    // if the nchar is too large we won't be able to work on the stack
+    if (nchari >= 32767) {
+      if (warn_on_wide) {
+        warning("Element %lld had width %d, exceeding 32767, so will not be set to uppercase.", (long long)i + 1, nchari);
+        warn_on_wide = false;
+      }
+      SET_STRING_ELT(ans, i, xi);
+      continue;
+    }
     const char * xpi = CHAR(xi);
+    // stack
     char anspi[nchari + 1];
     for (int j = 0; j < nchari; ++j) {
       unsigned char xpij = xpi[j];

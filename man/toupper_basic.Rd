@@ -9,6 +9,10 @@ toupper_basic(x)
 \arguments{
 \item{x}{A character vector}
 }
+\value{
+The same as \code{toupper(x)} for ASCII entries. For implementation
+reasons, strings wider than 32767 characters (bytes) will be ignored.
+}
 \description{
 Uppercase
 }
