@@ -6,9 +6,9 @@
 #'
 #'
 #'
-#'
-#' @export
+#' @noRd
 
+# nocov start
 encode_address <- function(StandardAddress) {
   AUS_FULL <- NULL
   stopifnot(is.data.table(StandardAddress))
@@ -49,4 +49,5 @@ encode_address <- function(StandardAddress) {
                          "NUMBER_FIRST_SUFFIX",
                          "FLAT_NUMBER")]
 }
+# nocov end
 
