@@ -2,6 +2,7 @@
 #' @description Ensures all elements of a character vector are uppercase;
 #' no lowercase characters.
 #' @param x A character vector, of ASCII elements.
+#' @param nThread Number of threads to use.
 #'
 #' @return
 #' \describe{
@@ -16,8 +17,8 @@
 #' @export
 
 
-nany_lowercase <- function(x) {
-  .Call("C_noLC", x, PACKAGE = packageName())
+nany_lowercase <- function(x, nThread = getOption("healthyAddress.nThread", 1L)) {
+  .Call("C_noLC", x, nThread, PACKAGE = packageName())
 }
 
 ensure_uppercase <- function(x) {

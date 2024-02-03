@@ -12,10 +12,11 @@ standardize_address(
   return.type = c("data.table", "integer"),
   integer_StreetType = FALSE,
   hash_StreetName = FALSE,
-  check = 1L
+  check = 1L,
+  nThread = getOption("healthyAddress.nThread", 1L)
 )
 
-standard_address2(Address)
+standard_address2(Address, nThread = getOption("healthyAddres.nThread", 1L))
 
 standard_address3(Line1, Line2, Postcode = NULL, KeepStreetName = FALSE)
 }
@@ -39,6 +40,8 @@ as in \code{\link{HashStreetName}}?}
 
 \item{check}{An integer, whether the inputs should be checked for possibly
 invalid addresses or addresses that may not be parsed correctly.}
+
+\item{nThread}{Number of threads to use.}
 
 \item{Line1, Line2, Postcode}{For addresses split by line. \code{Line1} is
 assumed to end with the street type. The second line is only used to determine

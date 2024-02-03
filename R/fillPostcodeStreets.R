@@ -1,3 +1,7 @@
+
+# functions to be executed on on load and unload
+
+# nocov start
 fillPostcodeStreets <- function(DT, test = 0L) {
   if (missing(DT)) {
     file.qs <-
@@ -24,3 +28,4 @@ fillPostcodeStreets <- function(DT, test = 0L) {
 freePostcodeStreets <- function() {
   .Call("C_freeALL_POSTCODE_STREETS", NULL, PACKAGE = packageName())
 }
+# nocov end
