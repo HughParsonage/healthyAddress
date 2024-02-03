@@ -9,9 +9,8 @@
 
 /* .Call calls */
 extern SEXP C_anyComma(SEXP, SEXP);
-extern SEXP C_check_address_input(SEXP, SEXP);
+extern SEXP C_check_address_input(SEXP, SEXP, SEXP);
 extern SEXP C_contains_BIG4(SEXP);
-extern SEXP C_do_standard_address(SEXP);
 extern SEXP C_do_standard_address3(SEXP, SEXP, SEXP, SEXP);
 extern SEXP C_do_the_xxx(SEXP, SEXP, SEXP);
 extern SEXP C_fillPostcodeStreets(SEXP, SEXP, SEXP, SEXP);
@@ -25,10 +24,11 @@ extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_isPostcode(SEXP);
 extern SEXP C_max_nchar(SEXP);
 extern SEXP C_multistate_postcodes(SEXP);
-extern SEXP C_noLC(SEXP);
+extern SEXP C_noLC(SEXP, SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
 extern SEXP C_standard_address_postcode_trie(SEXP);
+extern SEXP C_standard_address2(SEXP, SEXP);
 extern SEXP C_StaticAssert(SEXP);
 extern SEXP C_test_ALPHABET_ENC(SEXP);
 extern SEXP C_test_n_words(SEXP);
@@ -53,9 +53,8 @@ extern SEXP MAX_uN_STCDs(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"C_anyComma",                       (DL_FUNC) &C_anyComma,                       2},
-    {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            2},
+    {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            3},
     {"C_contains_BIG4",                  (DL_FUNC) &C_contains_BIG4,                  1},
-    {"C_do_standard_address",            (DL_FUNC) &C_do_standard_address,            1},
     {"C_do_standard_address3",           (DL_FUNC) &C_do_standard_address3,           4},
     {"C_do_the_xxx",                     (DL_FUNC) &C_do_the_xxx,                     3},
     {"C_fillPostcodeStreets",            (DL_FUNC) &C_fillPostcodeStreets,            4},
@@ -69,10 +68,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_isPostcode",                     (DL_FUNC) &C_isPostcode,                     1},
     {"C_max_nchar",                      (DL_FUNC) &C_max_nchar,                      1},
     {"C_multistate_postcodes",           (DL_FUNC) &C_multistate_postcodes,           1},
-    {"C_noLC",                           (DL_FUNC) &C_noLC,                           1},
+    {"C_noLC",                           (DL_FUNC) &C_noLC,                           2},
     {"C_NumberFirstLast",                (DL_FUNC) &C_NumberFirstLast,                1},
     {"C_NumberSuffix2Raw",               (DL_FUNC) &C_NumberSuffix2Raw,               1},
     {"C_standard_address_postcode_trie", (DL_FUNC) &C_standard_address_postcode_trie, 1},
+    {"C_standard_address2",              (DL_FUNC) &C_standard_address2,              2},
     {"C_StaticAssert",                   (DL_FUNC) &C_StaticAssert,                   1},
     {"C_test_ALPHABET_ENC",              (DL_FUNC) &C_test_ALPHABET_ENC,              1},
     {"C_test_n_words",                   (DL_FUNC) &C_test_n_words,                   1},

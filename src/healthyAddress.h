@@ -101,6 +101,9 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd);
 
 int isnt_sorted_asc(SEXP x);
 
+// omp_diagnose.c
+int as_nThread(SEXP nthreads);
+
 // trie
 #define N_THE_XXXS 703
 extern const char * THE_XXXs[N_THE_XXXS];

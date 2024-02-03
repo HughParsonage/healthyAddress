@@ -4,10 +4,12 @@
 \alias{nany_lowercase}
 \title{Uppercase character vectors}
 \usage{
-nany_lowercase(x)
+nany_lowercase(x, nThread = getOption("healthyAddress.nThread", 1L))
 }
 \arguments{
 \item{x}{A character vector, of ASCII elements.}
+
+\item{nThread}{Number of threads to use.}
 }
 \value{
 \describe{

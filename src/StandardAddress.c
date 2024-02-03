@@ -1492,11 +1492,11 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
   return ans;
 }
 
-bool noLC(SEXP x) {
+bool noLC(SEXP x, int nThread) {
   R_xlen_t N = xlength(x);
   bool char_array[256] = {0};
   const SEXP * xp = STRING_PTR(x);
-#pragma omp parallel for reduction(|| : char_array[:256])
+#pragma omp parallel for num_threads(nThread) reduction(|| : char_array[:256])
   for (R_xlen_t i = 0; i < N; ++i) {
     if (xp[i] == NA_STRING) {
       continue;
@@ -1510,7 +1510,7 @@ bool noLC(SEXP x) {
     }
   }
 
-  for (unsigned int c = 0; c < 255; ++c) {
+  for (unsigned int c = 1; c < 255; ++c) {
     unsigned char uc = (unsigned char)c;
     if (islower(uc) && char_array[c]) {
       return false;
@@ -1519,11 +1519,12 @@ bool noLC(SEXP x) {
   return true;
 }
 
-SEXP C_noLC(SEXP x) {
+SEXP C_noLC(SEXP x, SEXP nthreads) {
+  int nThread = as_nThread(nthreads);
   if (TYPEOF(x) != STRSXP) {
     error("Internal error(EnsureUC): TYPEOF(x) != STRSXP.");
   }
-  return ScalarLogical(noLC(x));
+  return ScalarLogical(noLC(x, nThread));
 }
 
 
@@ -3712,7 +3713,9 @@ static void prepare_M1(unsigned char * M1) {
   }
 }
 
-SEXP C_do_standard_address(SEXP xx) {
+SEXP C_standard_address2(SEXP xx, SEXP nthreads) {
+  int nThread = as_nThread(nthreads);
+  (void)nThread; // maybe unused in absence of OPENMP
   R_xlen_t N = xlength(xx);
   const SEXP * xp = STRING_PTR(xx);
   // # nocov start
@@ -3749,6 +3752,9 @@ SEXP C_do_standard_address(SEXP xx) {
   int * restrict pp = INTEGER(Postcode);
   unsigned char * restrict number_suffixp = RAW(NumberSuffix);
 
+#ifdef OPENMP_OK
+#pragma omp parallel for num_threads(nThread)
+#endif
   for (R_xlen_t i = 0; i < N; ++i) {
     int n = length(xp[i]);
     if (n <= 4) {
@@ -4501,7 +4507,9 @@ void error_or_warn_on_status(const char * v, R_xlen_t i, int status, const char 
 }
 
 
-SEXP C_check_address_input(SEXP x, SEXP mm) {
+SEXP C_check_address_input(SEXP x, SEXP mm, SEXP nthreads) {
+  int nThread = as_nThread(nthreads);
+  (void)nThread;
   errIfNotStr(x, "address");
   const int m = asInteger(mm);
   R_xlen_t N = xlength(x);
@@ -4568,7 +4576,6 @@ SEXP C_which_first_strstr(SEXP x, SEXP p) {
       continue;
     }
     const char * xpi = CHAR(xp[i]);
-    const int ni = length(xp[i]);
     char * pos = strstr(xpi, pp);
     if (pos == NULL) {
       continue;

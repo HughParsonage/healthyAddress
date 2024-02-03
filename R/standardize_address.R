@@ -29,6 +29,8 @@
 #' @param check An integer, whether the inputs should be checked for possibly
 #' invalid addresses or addresses that may not be parsed correctly.
 #'
+#' @param nThread Number of threads to use.
+#'
 #' @return A \code{data.table} containing columns indicating the components of the standard address:
 #'
 #' \describe{
@@ -82,10 +84,11 @@ standardize_address <- function(Address,
                                 return.type = c("data.table", "integer"),
                                 integer_StreetType = FALSE,
                                 hash_StreetName = FALSE,
-                                check = 1L) {
+                                check = 1L,
+                                nThread = getOption("healthyAddress.nThread", 1L)) {
   do_check <- !identical(check, 0L)
   if (do_check) {
-    Address_check <- check_address_input(Address, 1L)
+    Address_check <- check_address_input(Address, 1L, nThread = nThread)
     AddressLine2_check <- 0L
     if (!is.null(AddressLine2)) {
       AddressLine2_check <- check_address_input(AddressLine2, 1L)
@@ -100,7 +103,7 @@ standardize_address <- function(Address,
   Ans <-
     if (is.null(AddressLine2)) {
       if (hash_StreetName) {
-        standard_address2(Address)
+        standard_address2(Address, nThread = nThread)
       } else {
         standard_address_postcode_trie(Address)
       }
@@ -124,12 +127,12 @@ standardize_address <- function(Address,
 
 #' @rdname standardize_address
 #' @export
-standard_address2 <- function(Address) {
-  if (!nany_lowercase(Address)) {
+standard_address2 <- function(Address, nThread = getOption("healthyAddres.nThread", 1L)) {
+  if (!nany_lowercase(Address, nThread = nThread)) {
     Address <- toupper_basic(Address)
   }
   # 1.8 M addresses / s
-  Ans <- .Call("C_do_standard_address", Address)
+  Ans <- .Call("C_standard_address2", Address, nThread)
   setDT(Ans)
   setnames(Ans, c("FLAT_NUMBER", "NUMBER_FIRST", "NUMBER_LAST",
                   "NUMBER_SUFFIX",
