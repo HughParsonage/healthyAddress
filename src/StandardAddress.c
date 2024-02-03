@@ -547,23 +547,6 @@ unsigned int djb2_hash(const char * str, int n, int i) {
 #define DJB2_THE_PARKWAY 1033948411
 
 
-unsigned int djb2_hash_w1w2_only_letters(const char * str, WordData * wd, int w1, int w2) {
-  unsigned int hash = 5381;
-  for (int w = w1; w <= w2; ++w) {
-    for (int j = wd->lhs[w]; j < wd->rhs[w]; ++j) {
-      unsigned char xi = str[j];
-      if (isupper(xi)) {
-        hash = ((hash << 5) + hash) ^ xi;
-      }
-    }
-    if (w < w2) {
-      // include space between (so not after final, nor if only one word)
-      hash = ((hash << 5) + hash) ^ ' ';
-    }
-  }
-  return hash;
-}
-
 int construct_postcode(const char * x, const int n4) {
   int o = 0;
   const int ten4s[4] = {1000, 100, 10, 1};
@@ -823,6 +806,8 @@ WordData word_data(const char * x, int n) {
   return wd;
 }
 
+// # nocov start
+
 // This function was an attempt to encode the word_data positions a bit better
 // While it had technically better performance in the Ctest_WordData examples,
 // it could not be justified because of the refactor involved, the very marginal
@@ -837,6 +822,7 @@ uint64_t id_word_starts(const char * xi, int ni) {
   }
   return A;
 }
+// # nocov end
 
 SEXP Ctest_WordData(SEXP xx, SEXP rr) {
   if (!isString(xx)) {
@@ -1015,99 +1001,9 @@ bool substring_within(const char * x, int i, int n, const char * y, int m) {
   return true;
 }
 
-
-
-// 0 if no THE in word
-int THE_xxx(WordData wd) {
-  const char * x = wd.x;
-  int n = wd.n;
-  int n_words = wd.n_words;
-  for (int w = 0; w < n_words - 1; ++w) {
-    int lhs = wd.lhs[w];
-    int rhs = wd.rhs[w];
-    if (rhs - lhs != 3) {
-      continue;
-    }
-    int j = lhs;
-    if (x[j++] != 'T' || x[j++] != 'H' || x[j++] != 'E') {
-      continue;
-    }
-    lhs = wd.lhs[w + 1];
-    rhs = wd.rhs[w + 1];
-    // int width_next = rhs - lhs;
-    if (substring_within(x, lhs, n, "ESPLANADE", 9)) {
-      return ST_CODE_ESPLANADE;
-    }
-    if (substring_within(x, lhs, n, "AVENUE", 6)) {
-      return ST_CODE_AVENUE;
-    }
-    if (substring_within(x, lhs, n, "CRESCENT", 8)) {
-      return ST_CODE_CRESCENT;
-    }
-    // DE before D to avoid having to distinguish
-    if (substring_within(x, lhs, n, "BOULEVARDE", 10)) {
-      return ST_CODE_BOULEVARDE;
-    }
-    if (substring_within(x, lhs, n, "BOULEVARD", 9)) {
-      return ST_CODE_BOULEVARD;
-    }
-    if (substring_within(x, lhs, n, "PARADE", 6)) {
-      return ST_CODE_PARADE;
-    }
-    if (substring_within(x, lhs, n, "PROMENADE", 9)) {
-      return ST_CODE_PROMENADE;
-    }
-    if (substring_within(x, lhs, n, "TERRACE", 7)) {
-      return ST_CODE_TERRACE;
-    }
-    if (substring_within(x, lhs, n, "GROVE", 5)) {
-      return ST_CODE_GROVE;
-    }
-    if (substring_within(x, lhs, n, "STRAND", 6)) {
-      return DJB2_THE_STRAND;
-    }
-    if (substring_within(x, lhs, n, "RIGHI", 5)) {
-      return DJB2_THE_RIGHI;
-    }
-    if (substring_within(x, lhs, n, "PKWY", 4)) {
-      return DJB2_THE_PARKWAY;
-    }
-    if (substring_within(x, lhs, n, "PARK", 4)) {
-      if (substring_within(x, lhs, n, "PARKS", 5)) {
-        return DJB2_THE_PARKS;
-      }
-      if (substring_within(x, lhs, n, "PARKW", 5)) {
-        return DJB2_THE_PARKWAY;
-      }
-    }
-
-  }
-  return 0;
-}
-
-
-
-
-int ndigits_positive(int x) {
-  if (x == 0) return 0;
-  if (x < 10) return 1;
-  if (x < 100) return 2;
-  if (x < 1000) return 3;
-  if (x < 10000) return 4;
-  if (x < 100000) return 5;
-  if (x < 1000000) return 6;
-  if (x < 10000000) return 7;
-  if (x < 100000000) return 8;
-  if (x < 1000000000) return 9;
-  return 10;
-}
-
-
-
 // VIC->2
 int ste_as_int(const char * x, int ii) {
   int i = ii;
-  // we don't know
   while (!isUPPER(x[i])) {
     ++i;
   }
