@@ -6,7 +6,15 @@ Authors@R:
            family = "Parsonage",
            role = c("aut", "cre"),
            email = "hugh.parsonage@gmail.com")
-Description: What the package does (one paragraph).
+Description: Efficient tools for parsing and standardizing Australian 
+    addresses from textual data. It utilizes optimized algorithms to accurately identify and 
+    extract components of addresses, such as street names, types, and postcodes, especially  
+    for large batched data in contexts where sending addresses to internet services may be 
+    slow or inappropriate. The core functionality is built on fast, C-based string processing techniques 
+    to handle variations in address formats and abbreviations commonly found in Australian 
+    address data. Designed for data scientists, urban planners, and logistics analysts, the 
+    package facilitates the cleaning and normalization of address information, supporting 
+    better data integration and analysis in urban studies, geography, and related fields.
 License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -48,13 +48,6 @@ bool has_saint_name(unsigned int poa, unsigned char * res) {
   return pack32[poa_m];
 }
 
-static void memoize_saint_res(unsigned char * res) {
-  memset(res, 0, 8192);
-  for (int p = 812; p <= 7321; ++p) {
-    res[p] = has_saint_name(p, NULL);
-  }
-}
-
 SEXP C_has_saint_name(SEXP x, SEXP mm) {
   if (!isInteger(x) || !isInteger(mm)) {
     return R_NilValue;
