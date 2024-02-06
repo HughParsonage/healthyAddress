@@ -24,7 +24,6 @@ Hash a street name quickly and accurately
 }
 \examples{
 HashStreetName("FLINDERS")
-# HashStreetName("FLINDERS") |> unHashStreetName()
 
 
 }

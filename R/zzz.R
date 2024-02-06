@@ -2,7 +2,7 @@
   if (is.null(getOption("healthyAddress.data_env"))) {
     options(healthyAddress.data_env = new.env())
   }
-  if (startsWith(Sys.getenv("USERNAME"), "hugh")) {
+  if (isTRUE(startsWith(Sys.getenv("USERNAME"), "hugh"))) {
     .Call("C_StaticAssert", 0L, PACKAGE = packageName())
   }
   utils::globalVariables(".")

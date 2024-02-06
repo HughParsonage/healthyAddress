@@ -10,7 +10,6 @@
 #'
 #' @examples
 #' HashStreetName("FLINDERS")
-#' # HashStreetName("FLINDERS") |> unHashStreetName()
 #'
 #'
 #' @export

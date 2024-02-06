@@ -14,3 +14,5 @@
 ^inst/extdata/TAS_FULL_ADDRESS\.fst$
 ^inst/extdata/VIC_FULL_ADDRESS\.fst$
 ^inst/extdata/WA_FULL_ADDRESS\.fst$
+^CRAN-SUBMISSION$
+^cran-comments\.md$

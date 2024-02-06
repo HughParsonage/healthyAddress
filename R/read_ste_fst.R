@@ -4,14 +4,22 @@
 #' @param columns Character vector of columns to select. If \code{NULL}, all columns are selected.
 #' @param data_env The environment in which objects are cached. Mainly for
 #' internal use.
+#' @param data_dir The file directory into which the downloaded files should be
+#' stored. Defaults to a temporary directory. It is recommended to set the option
+#' `healthyAddress.data_dir` so that subsequent calls to this function do not
+#' result in unnecessary downloads.
 #' @param rbind Whether or not to bind the list result should multiple states
 #' be requested.
+#'
+#' @return
+#' A \code{data.table} containing all the addresses in the given states.
 #'
 #'
 #' @export
 read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "VIC", "WA"),
                          columns = NULL,
                          data_env = getOption("healthyAddress.data_env"),
+                         data_dir = getOption("healthyAddress.data_dir", tempfile()),
                          rbind = TRUE) {
   ste <- match.arg(ste, several.ok = TRUE)
 
@@ -24,11 +32,13 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
       return(hutils::selector(ans, cols = columns))
     }
 
-    file.fst <- paste0(tools::R_user_dir(packageName()), "/", ste, "_FULL_ADDRESS.fst")
+    file.fst <- file.path(data_dir, paste0(ste, "_FULL_ADDRESS.fst"))
     if (!file.exists(file.fst)) {
+      if (!nzchar(hutils::provide.file(file.fst))) {
+        stop("`data_dir` as specified cannot accommodate a file.")
+      }
       url <- sprintf("https://github.com/HughParsonage/healthyAddressData/raw/master/%s_FULL_ADDRESS.fst", ste)
-      file.fst <- file.path(tools::R_user_dir(packageName()), paste0(ste, "_FULL_ADDRESS.fst"))
-      hutils::provide.file(file.fst)
+
       status <- utils::download.file(url,
                                      mode = "wb",
                                      destfile = file.fst,
@@ -55,7 +65,8 @@ read_ste_fst <- function(ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "
 
 sys_fst <- function(NAME,
                     columns = NULL,
-                    data_env = getOption("healthyAddress.data_env")) {
+                    data_env = getOption("healthyAddress.data_env"),
+                    data_dir = getOption("healthyAddress.data_dir", tempfile())) {
 
   if (.Exists(NAME, columns, data_env)) {
     return(.Get(NAME, columns, data_env))
@@ -68,7 +79,7 @@ sys_fst <- function(NAME,
       return(hutils::selector(full, cols = columns))
     }
   }
-  file.fst <- paste0(tools::R_user_dir(packageName()), "/", NAME, ".fst")
+  file.fst <- paste0(data_dir, "/", NAME, ".fst")
   if (!file.exists(file.fst)) {
     file.fst <- system.file("extdata", paste0(NAME, ".fst"), package = packageName())
   }

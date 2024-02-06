@@ -6,7 +6,7 @@
 \alias{healthyAddress-package}
 \title{Package for address standardization}
 \description{
-Efficient tools for parsing and standardizing Australian addresses from textual data. It utilizes optimized algorithms to accurately identify and extract components of addresses, such as street names, types, and postcodes, especially for large batched data in contexts where sending addresses to internet services may be slow or inappropriate. The core functionality is built on fast, C-based string processing techniques to handle variations in address formats and abbreviations commonly found in Australian address data. Designed for data scientists, urban planners, and logistics analysts, the package facilitates the cleaning and normalization of address information, supporting better data integration and analysis in urban studies, geography, and related fields.
+Efficient tools for parsing and standardizing Australian addresses from textual data. It utilizes optimized algorithms to accurately identify and extract components of addresses, such as street names, types, and postcodes, especially for large batched data in contexts where sending addresses to internet services may be slow or inappropriate. The core functionality is built on fast string processing techniques to handle variations in address formats and abbreviations commonly found in Australian address data. Designed for data scientists, urban planners, and logistics analysts, the package facilitates the cleaning and normalization of address information, supporting better data integration and analysis in urban studies, geography, and related fields.
 }
 \author{
 \strong{Maintainer}: Hugh Parsonage \email{hugh.parsonage@gmail.com}

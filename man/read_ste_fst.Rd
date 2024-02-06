@@ -8,6 +8,7 @@ read_ste_fst(
   ste = c("ACT", "NSW", "NT", "OT", "QLD", "SA", "TAS", "VIC", "WA"),
   columns = NULL,
   data_env = getOption("healthyAddress.data_env"),
+  data_dir = getOption("healthyAddress.data_dir", tempfile()),
   rbind = TRUE
 )
 }
@@ -19,8 +20,16 @@ read_ste_fst(
 \item{data_env}{The environment in which objects are cached. Mainly for
 internal use.}
 
+\item{data_dir}{The file directory into which the downloaded files should be
+stored. Defaults to a temporary directory. It is recommended to set the option
+\code{healthyAddress.data_dir} so that subsequent calls to this function do not
+result in unnecessary downloads.}
+
 \item{rbind}{Whether or not to bind the list result should multiple states
 be requested.}
+}
+\value{
+A \code{data.table} containing all the addresses in the given states.
 }
 \description{
 Get internal data
