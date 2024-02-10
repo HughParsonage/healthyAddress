@@ -222,6 +222,22 @@ for (i in 1:nrow(PAZ)) {
 }
 cat("}\n", file = "src/ZT.c", append = TRUE)
 
+PSMA_PATH <- "G:/PSMA-202311/G-NAF/G-NAF NOVEMBER 2023/Standard/"
+.ste_chars <- c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT")
+AY <-
+  lapply(.ste_chars, function(ste) {
+    ad <- dir(PSMA_PATH, pattern = paste0(ste, ".*ADDRESS_DETAIL.*psv$"), full.names = TRUE)
+    st <- dir(PSMA_PATH, pattern = paste0(ste, ".*_STREET_LOCALITY_psv.*psv$"), full.names = TRUE)
+
+    adf <- fread(file = ad, sep = "|", select = c("STREET_LOCALITY_PID", "POSTCODE"))
+    stf <- fread(file = st, sep = "|", select = c("STREET_LOCALITY_PID", "STREET_NAME", "STREET_TYPE_CODE"))
+    stf[, STREET_TYPE_CODE := chmatch(STREET_TYPE_CODE, healthyAddress:::.permitted_street_type_ord())]
+    merge(unique(adf), unique(stf), by = "STREET_LOCALITY_PID")[, STREET_LOCALITY_PID := NULL]
+  }) |>
+  rbindlist(use.names = TRUE, fill = TRUE) |>
+  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) |>
+  setcolorder()
+
 AZ <-
   read_ste_fst() %>%
   .[, .(POSTCODE, STREET_TYPE_CODE, STREET_NAME)] %>%
@@ -229,7 +245,7 @@ AZ <-
   setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
   .[]
 
-qs::qsave(AZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+qs::qsave(AY, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
 
 
 

@@ -3983,7 +3983,7 @@ void freeALL_POSTCODE_STREETS(void) {
 void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
   R_xlen_t N = xlength(Postcode);
   const int test = asInteger(Test);
-  if (N > 500e3 || test < -1) {
+  if (N > 1000e3 || test < -1) {
     return; // # nocov
   }
   err_if_nchar_geq(STREET_NAME, (int)UINT8_MAX, "STREET_NAME");
