@@ -4200,6 +4200,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   if (ALL_POSTCODE_STREETS == NULL) {
     error("(Internal error)ALL_POSTCODE_STREETS was NULL, aborting."); // # nocov
   }
+  Rprintf("====");
 
   // This is an important efficiency step for converting postcodes to internl
   // Prepares a lookup table
