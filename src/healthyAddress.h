@@ -27,7 +27,7 @@
 
 // This is true, but not necessarily the longest
 // word one might find in an address string
-#define MAX_STREET_NAME_LEN 41
+#define MAX_STREET_NAME_LEN 42
 
 typedef struct {
   unsigned int THE_code : 2;
