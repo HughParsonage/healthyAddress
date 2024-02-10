@@ -235,7 +235,8 @@ AY <-
     merge(unique(adf), unique(stf), by = "STREET_LOCALITY_PID")[, STREET_LOCALITY_PID := NULL]
   }) |>
   rbindlist(use.names = TRUE, fill = TRUE) |>
-  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) |>
+  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
+  unique(by = key(.)) %>%
   setcolorder()
 
 AZ <-
