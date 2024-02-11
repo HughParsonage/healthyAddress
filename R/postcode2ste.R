@@ -31,7 +31,8 @@ postcode2ste <- function(Postcodes, result = c("integer", "character")) {
     stopifnot(is.numeric(Postcodes))
     Postcodes <- as.integer(Postcodes)
   }
-  Postcodes <- unique_Postcodes(Postcodes)
+  # Some postcodes are not
+  Postcodes <- unique_Postcodes(Postcodes, strict = FALSE)
   if (!length(Postcodes)) {
     return(switch(result, integer = integer(0), character = character(0)))
   }

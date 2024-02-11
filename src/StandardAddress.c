@@ -1103,10 +1103,12 @@ unsigned char number_suffix2raw(char x0, char x1) {
 
 
 
-SEXP C_uniquePostcodes(SEXP xx) {
+SEXP C_uniquePostcodes(SEXP xx, SEXP Strict, SEXP Retlen) {
   if (!isInteger(xx)) {
     error("`x` was type '%s' but must be integer.", type2char(TYPEOF(xx)));
   }
+  const bool strict = asLogical(Strict);
+  const bool retlen = asLogical(Retlen);
   R_xlen_t N = xlength(xx);
   const int * xp = INTEGER(xx);
 
@@ -1120,15 +1122,35 @@ SEXP C_uniquePostcodes(SEXP xx) {
   }
   int n_out = 0; // number of unique postcodes
   // i = 1, we don't want to include zero
-  for (int i = 1; i < SUP_POSTCODES; ++i) {
-    n_out += postcode_tbl[i];
+  if (strict) {
+    for (int i = 1; i < SUP_POSTCODES; ++i) {
+      if (is_postcode(i)) {
+        n_out += postcode_tbl[i];
+      }
+    }
+  } else {
+    for (int i = 1; i < SUP_POSTCODES; ++i) {
+      n_out += postcode_tbl[i];
+    }
+  }
+  if (retlen) {
+    return ScalarInteger(n_out);
   }
   SEXP ans = PROTECT(allocVector(INTSXP, n_out));
   int * restrict ansp = INTEGER(ans);
-  for (int i = 1, j = 0; i < SUP_POSTCODES; ++i) {
-    if (postcode_tbl[i]) {
-      ansp[j] = i;
-      ++j;
+  if (strict) {
+    for (int i = 1, j = 0; i < SUP_POSTCODES; ++i) {
+      if (postcode_tbl[i] && is_postcode(i)) {
+        ansp[j] = i;
+        ++j;
+      }
+    }
+  } else {
+    for (int i = 1, j = 0; i < SUP_POSTCODES; ++i) {
+      if (postcode_tbl[i]) {
+        ansp[j] = i;
+        ++j;
+      }
     }
   }
   UNPROTECT(1);
