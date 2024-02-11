@@ -4093,18 +4093,6 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
   }
 }
 
-// # nocov start
-SEXP C_fillPostcodeStreets(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
-  fillALL_POSTCODE_STREETS(Postcode, STREET_NAME, STREET_TYPE_CODE, Test);
-  return R_NilValue;
-}
-
-SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
-  freeALL_POSTCODE_STREETS();
-  return R_NilValue;
-}
-// # nocov end
-
 TrieNode* postcodeTries[N_POSTCODES][N_STREET_TYPES] = {NULL};
 bool postcodeTriePopulated = false;
 
@@ -4143,9 +4131,6 @@ void freePopTries(void) {
 }
 
 void populate_postcodeTries(void) {
-  if (postcodeTriePopulated) {
-    freePopTries(); // # nocov
-  }
   int k = 0; // the internal postcode
   for (int p = 800; p <= MAX_POSTCODE; ++p) {
     if (!is_postcode(p)) {
@@ -4168,7 +4153,6 @@ void populate_postcodeTries(void) {
       populateTrieForPostcode(p, P_k->street_names[i], P_k->street_code[i], i + 1);
     }
   }
-  postcodeTriePopulated = true;
 }
 
 
@@ -4210,6 +4194,21 @@ int searchPostcodeTries(unsigned int postcode, unsigned int streetCode, const ch
   return 0; // Indicate word not found
 }
 
+// # nocov start
+SEXP C_fillPostcodeStreets(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_CODE, SEXP Test) {
+  fillALL_POSTCODE_STREETS(Postcode, STREET_NAME, STREET_TYPE_CODE, Test);
+  prep_postcode2tinrnl();
+  populate_postcodeTries();
+  return R_NilValue;
+}
+
+SEXP C_freeALL_POSTCODE_STREETS(SEXP x) {
+  freePopTries();
+  freeALL_POSTCODE_STREETS();
+  return R_NilValue;
+}
+// # nocov end
+
 
 
 SEXP C_standard_address_postcode_trie(SEXP x) {
@@ -4226,13 +4225,13 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
 
   // This is an important efficiency step for converting postcodes to internl
   // Prepares a lookup table
-  prep_postcode2tinrnl();
+  // prep_postcode2tinrnl();
 
   // Prepare the trie that will be used to search street names
   // after identify the locations and types from C_trie_streetType
 
   // This is quite time-intensive (about 500ms)
-  populate_postcodeTries();
+  // populate_postcodeTries();
 
   SEXP StreetTypeTrie = PROTECT(C_trie_streetType(x));
   int * restrict stt = INTEGER(VECTOR_ELT(StreetTypeTrie, 0));
@@ -4338,7 +4337,6 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
 
   }
 
-  freePopTries();
   SEXP ans = PROTECT(allocVector(VECSXP, 7));
   SET_VECTOR_ELT(ans, 0, StreetType);
   SET_VECTOR_ELT(ans, 1, StreetName);
