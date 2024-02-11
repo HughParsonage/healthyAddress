@@ -246,7 +246,22 @@ AZ <-
   setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
   .[]
 
-qs::qsave(AY, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+AZZ <-
+  rbind(AY, AZ) %>%
+  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
+  unique(by = key(.)) %>%
+  setcolorder()
+
+# We want to retain old addresses too
+ORIG <- qs::qread("./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+
+AZZZ <-
+  rbind(AZZ, ORIG) %>%
+  setkey(POSTCODE, STREET_TYPE_CODE, STREET_NAME) %>%
+  unique(by = key(.)) %>%
+  setcolorder()
+
+qs::qsave(AZZZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
 
 
 
