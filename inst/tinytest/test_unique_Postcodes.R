@@ -10,7 +10,7 @@ expect_equal(unique_Postcodes(x),
 
 expect_equal(unique_Postcodes(c(1L, 800L), strict = TRUE), 800L)
 expect_equal(uniqueN_Postcodes(1:9999), healthyAddress:::get_N_POSTCODES())
-expect_equal(last(unique_Postcodes(1:9999)), healthyAddress:::get_MAX_POSTCODE())
+expect_equal(data.table::last(unique_Postcodes(1:9999)), healthyAddress:::get_MAX_POSTCODE())
 
 
 
