@@ -1,6 +1,7 @@
 # 0.3.0
 
 * Updated to Nov 2023 data
+* `unique_Postcodes` gains a `strict` argument, to include only real postcodes
 
 # healthyAddress 0.0.4
 

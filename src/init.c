@@ -23,7 +23,9 @@ extern SEXP C_has_saint_name(SEXP, SEXP);
 extern SEXP C_HashStreetName(SEXP);
 extern SEXP C_isPostcode(SEXP);
 extern SEXP C_max_nchar(SEXP);
+extern SEXP C_MAX_POSTCODE(SEXP);
 extern SEXP C_multistate_postcodes(SEXP);
+extern SEXP C_N_POSTCODES(SEXP);
 extern SEXP C_noLC(SEXP, SEXP);
 extern SEXP C_NumberFirstLast(SEXP);
 extern SEXP C_NumberSuffix2Raw(SEXP);
@@ -34,7 +36,7 @@ extern SEXP C_test_ALPHABET_ENC(SEXP);
 extern SEXP C_test_n_words(SEXP);
 extern SEXP C_trie_streetType(SEXP);
 extern SEXP C_uint128_not_supported(SEXP);
-extern SEXP C_uniquePostcodes(SEXP);
+extern SEXP C_uniquePostcodes(SEXP, SEXP, SEXP);
 extern SEXP C_which_first_strstr(SEXP, SEXP);
 extern SEXP C_xFlatFirstLast(SEXP);
 extern SEXP Cconcat_upper(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -67,7 +69,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_HashStreetName",                 (DL_FUNC) &C_HashStreetName,                 1},
     {"C_isPostcode",                     (DL_FUNC) &C_isPostcode,                     1},
     {"C_max_nchar",                      (DL_FUNC) &C_max_nchar,                      1},
+    {"C_MAX_POSTCODE",                   (DL_FUNC) &C_MAX_POSTCODE,                   1},
     {"C_multistate_postcodes",           (DL_FUNC) &C_multistate_postcodes,           1},
+    {"C_N_POSTCODES",                    (DL_FUNC) &C_N_POSTCODES,                    1},
     {"C_noLC",                           (DL_FUNC) &C_noLC,                           2},
     {"C_NumberFirstLast",                (DL_FUNC) &C_NumberFirstLast,                1},
     {"C_NumberSuffix2Raw",               (DL_FUNC) &C_NumberSuffix2Raw,               1},
@@ -78,7 +82,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"C_test_n_words",                   (DL_FUNC) &C_test_n_words,                   1},
     {"C_trie_streetType",                (DL_FUNC) &C_trie_streetType,                1},
     {"C_uint128_not_supported",          (DL_FUNC) &C_uint128_not_supported,          1},
-    {"C_uniquePostcodes",                (DL_FUNC) &C_uniquePostcodes,                1},
+    {"C_uniquePostcodes",                (DL_FUNC) &C_uniquePostcodes,                3},
     {"C_which_first_strstr",             (DL_FUNC) &C_which_first_strstr,             2},
     {"C_xFlatFirstLast",                 (DL_FUNC) &C_xFlatFirstLast,                 1},
     {"Cconcat_upper",                    (DL_FUNC) &Cconcat_upper,                    5},

@@ -2,15 +2,25 @@
 % Please edit documentation in R/unique_Postcodes.R
 \name{unique_Postcodes}
 \alias{unique_Postcodes}
+\alias{uniqueN_Postcodes}
 \title{Unique postcodes of}
 \usage{
-unique_Postcodes(x)
+unique_Postcodes(x, strict = TRUE)
+
+uniqueN_Postcodes(x, strict = TRUE)
 }
 \arguments{
 \item{x}{An integer vector of postcodes.}
+
+\item{strict}{(logical, default: \code{TRUE}) If \code{TRUE}, only
+postcodes (at time of package development) with actual addresses are returned.
+Otherwise, any postcode in the range 1:8192 are returned.}
 }
 \value{
-A (sorted) integer vector of the unique, non-NA values in \code{x}.
+\describe{
+\item{\code{unique_Postcodes}}{A (sorted) integer vector of the unique, non-NA values in \code{x}.}
+\item{\code{uniqueN_Postcodes}}{The number of unique postcodes.}
+}
 }
 \description{
 Unique postcodes of
