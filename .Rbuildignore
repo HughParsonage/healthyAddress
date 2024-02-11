@@ -16,3 +16,4 @@
 ^inst/extdata/WA_FULL_ADDRESS\.fst$
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
+^inst/extdata/vba_building_approval_database\.csv$
