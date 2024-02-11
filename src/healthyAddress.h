@@ -16,7 +16,7 @@
 
 
 // Empirical data / known features of Australian postcodes
-#define N_POSTCODES 2640
+#define N_POSTCODES 2642
 #define SUP_POSTCODES 8192
 #define SUP_POSTCODE_ 8191
 #define MAX_NUMBER_STREET_TYPES_ANY_POSTCODE 64
