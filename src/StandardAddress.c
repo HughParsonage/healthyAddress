@@ -4015,8 +4015,8 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
       continue;
     }
     // # nocov start
-    if (k > N_POSTCODES) {
-      warning("Internal error: k = %d > N_POSTCODES = %d.", k, N_POSTCODES);
+    if (k >= N_POSTCODES) {
+      warning("Internal error: k = %d > N_POSTCODES = %d. (i = %lld)", k, N_POSTCODES, (long long)i + 1);
       break;
     }
     // # nocov end
