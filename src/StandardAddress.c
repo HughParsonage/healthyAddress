@@ -4100,7 +4100,7 @@ void populateTrieForPostcode(unsigned int opostcode, const char *streetName, uns
   // Check for valid postcode and street code
   if (opostcode >= SUP_POSTCODES || streetCode >= N_STREET_TYPES) {
     // Handle error or invalid input
-    return;
+    return; // # nocov
   }
   unsigned int postcode = postcode2intrnl(opostcode);
 
@@ -4109,7 +4109,7 @@ void populateTrieForPostcode(unsigned int opostcode, const char *streetName, uns
     postcodeTries[postcode][streetCode] = getNode();
     if (postcodeTries[postcode][streetCode] == NULL) {
       // Handle memory allocation failure
-      return;
+      return; // # nocov
     }
   }
 
