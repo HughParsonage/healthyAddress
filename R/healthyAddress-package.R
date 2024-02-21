@@ -8,6 +8,7 @@
 #' @importFrom hutilscpp isntConstant
 #' @importFrom hutilscpp fmatchp
 #' @importFrom hutilscpp coalesce0
+#' @importFrom hutilscpp minmax
 #' @importFrom hutils coalesce
 #' @importFrom magrittr %>%
 #' @importFrom tools R_user_dir
