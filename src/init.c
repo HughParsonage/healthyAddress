@@ -10,7 +10,9 @@
 /* .Call calls */
 extern SEXP C_anyComma(SEXP, SEXP);
 extern SEXP C_check_address_input(SEXP, SEXP, SEXP);
+extern SEXP C_compress_latlon(SEXP, SEXP, SEXP);
 extern SEXP C_contains_BIG4(SEXP);
+extern SEXP C_decompress_latlon(SEXP, SEXP);
 extern SEXP C_do_standard_address3(SEXP, SEXP, SEXP, SEXP);
 extern SEXP C_do_the_xxx(SEXP, SEXP, SEXP);
 extern SEXP C_fillPostcodeStreets(SEXP, SEXP, SEXP, SEXP);
@@ -56,7 +58,9 @@ extern SEXP MAX_uN_STCDs(SEXP);
 static const R_CallMethodDef CallEntries[] = {
     {"C_anyComma",                       (DL_FUNC) &C_anyComma,                       2},
     {"C_check_address_input",            (DL_FUNC) &C_check_address_input,            3},
+    {"C_compress_latlon",                (DL_FUNC) &C_compress_latlon,                3},
     {"C_contains_BIG4",                  (DL_FUNC) &C_contains_BIG4,                  1},
+    {"C_decompress_latlon",              (DL_FUNC) &C_decompress_latlon,              2},
     {"C_do_standard_address3",           (DL_FUNC) &C_do_standard_address3,           4},
     {"C_do_the_xxx",                     (DL_FUNC) &C_do_the_xxx,                     3},
     {"C_fillPostcodeStreets",            (DL_FUNC) &C_fillPostcodeStreets,            4},

@@ -14,6 +14,20 @@
 #include "streetcodes.h"
 #include <ctype.h>
 
+#if defined _OPENMP && _OPENMP >= 201511
+#define FORLOOP(content)                                                \
+int nThread = as_nThread(nthreads);                                     \
+_Pragma("omp parallel for num_threads(nThread)")                        \
+  for (R_xlen_t i = 0; i < N; ++i) {                                    \
+    content                                                             \
+  }
+#else
+#define FORLOOP(content)                                       \
+for (R_xlen_t i = 0; i < N; ++i) {                             \
+  content                                                      \
+}
+#endif
+
 
 // Empirical data / known features of Australian postcodes
 #define N_POSTCODES 2642
@@ -130,6 +144,7 @@ void verifyEquiStr4(SEXP x, const char * xx,
                     SEXP z, const char * zz,
                     SEXP w, const char * ww);
 void errifNotTF(SEXP x, const char * v);
+void verifyEquiDouble(SEXP x, const char * xx, SEXP y, const char * yy);
 
 // xnumbers
 int n_numbers(const char * x, int n);
