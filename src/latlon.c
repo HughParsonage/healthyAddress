@@ -126,6 +126,20 @@ uint32_t compress_latlon_arbitrary(double lat, double lon, const double latr[2],
   return compressed;
 }
 
+void decompress_latlon_general(uint32_t compressed, double *lat, double *lon, const double latr[2], const double lonr[2]) {
+  // Extract 16-bit values for latitude and longitude
+  uint16_t lat_16bit = (compressed >> 16) & 0xFFFF;
+  uint16_t lon_16bit = compressed & 0xFFFF;
+
+  // Normalize to 0-1 scale
+  double normalized_lat = lat_16bit / 65535.0;
+  double normalized_lon = lon_16bit / 65535.0;
+
+  // Map back to original latitude and longitude ranges
+  *lat = latr[0] + (normalized_lat * (latr[1] - latr[0]));
+  *lon = lonr[0] + (normalized_lon * (lonr[1] - lonr[0]));
+}
+
 SEXP C_compress_latlon(SEXP Lat, SEXP Lon, SEXP nthreads) {
   verifyEquiDouble(Lat, "lat", Lon, "lon");
   const double * lat = REAL(Lat);
@@ -177,6 +191,32 @@ SEXP C_compress_latlon_general(SEXP Lat, SEXP Lon, SEXP minmaxLat, SEXP minmaxLo
     ansp[i] = compress_latlon_arbitrary(lat[i], lon[i], minmax_lat, minmax_lon);
   })
   UNPROTECT(1);
+  return ans;
+}
+
+SEXP C_decompress_latlon_general(SEXP x, SEXP minmaxLat, SEXP minmaxLon, SEXP nthreads) {
+  if (!isInteger(x)) {
+    error("`x` was type '%s' but must be type integer.", type2char(TYPEOF(x))); // # nocov
+  }
+  if (xlength(minmaxLat) != 2 || xlength(minmaxLon) != 2) {
+    error("(C_compress_latlon_general internal error)minmaxLat or minmaxLon not length-2.");
+  }
+  R_xlen_t N = xlength(x);
+  const int * xp = INTEGER(x);
+  const double * latr = REAL(minmaxLat);
+  const double * lonr = REAL(minmaxLon);
+  SEXP Lat = PROTECT(allocVector(REALSXP, N));
+  SEXP Lon = PROTECT(allocVector(REALSXP, N));
+  double * restrict lat = REAL(Lat);
+  double * restrict lon = REAL(Lon);
+  FORLOOP({
+    decompress_latlon_general(xp[i], &lat[i], &lon[i], latr, lonr);
+  })
+
+  SEXP ans = PROTECT(allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(ans, 0, Lat);
+  SET_VECTOR_ELT(ans, 1, Lon);
+  UNPROTECT(3);
   return ans;
 }
 
