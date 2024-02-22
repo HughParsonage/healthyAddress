@@ -21,7 +21,10 @@ mutate_latlon <- function(DT, data_dir = getOption("healthyAddress.data_dir")) {
   .stes <- c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT")[postcode2ste(unique_Postcodes(.subset2(DT, "POSTCODE")))]
   .load_latlon_data(.stes)
   DT[, c("lat", "lon") := list(NA_real_, NA_real_)]
-  STREET_NAME <- hSTREET_NAME <- NULL
+  STREET_NAME <- hSTREET_NAME <- H0 <- NULL
+  if (hasName(DT, "H0")) {
+    DT[, hSTREET_NAME := H0]
+  }
   if (!hasName(DT, "hSTREET_NAME")) {
     if (!hasName(DT, "STREET_NAME")) {
       stop("DT does not have columns 'hSTREET_NAME' or 'STREET_NAME'")
