@@ -33,6 +33,7 @@ mutate_latlon <- function(DT, data_dir = getOption("healthyAddress.data_dir")) {
   }
   for (..ste in .stes) {
     ste_latlon <- get0(paste0(..ste, "latlon"), envir = ENV, inherits = FALSE)
+    i.lat <- i.lon <- NULL
     DT[ste_latlon, c("lat", "lon") := list(i.lat, i.lon), on = c("POSTCODE", "NUMBER_FIRST", "hSTREET_NAME", "STREET_TYPE_CODE")]
   }
   DT[]
