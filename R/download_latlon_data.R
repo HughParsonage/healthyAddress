@@ -59,7 +59,7 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
     if (!isTRUE(overwrite) && exists(obj_name, data_env, inherits = FALSE)) {
       next
     }
-    dat <- qs::qread(file.path(data_dir, "latlon", paste0(.ste, ".qs")))
+    dat <- qs::qread(file.path(data_dir, "latlon", paste0(..ste, ".qs")))
     dat[, c("lat", "lon") := decompress_latlon_general(c_latlon)]
     setnames(dat, "STREET_NAME", "hSTREET_NAME")
     assign(obj_name, value = dat, envir = data_env, inherits = FALSE)
