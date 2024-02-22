@@ -1,5 +1,7 @@
 #' Add latitude and longitude columns to a standard address
 #' @param DT A \code{data.table} from \code{standardize_address}
+#' @param data_dir The directory in which the latitude longitude data has been
+#' downloaded. (See \code{\link{download_latlon_data}}.)
 #'
 #' @return
 #' \code{DT} with the columns \code{lat} and \code{lon} added, by reference,

@@ -8,6 +8,9 @@ mutate_latlon(DT, data_dir = getOption("healthyAddress.data_dir"))
 }
 \arguments{
 \item{DT}{A \code{data.table} from \code{standardize_address}}
+
+\item{data_dir}{The directory in which the latitude longitude data has been
+downloaded. (See \code{\link{download_latlon_data}}.)}
 }
 \value{
 \code{DT} with the columns \code{lat} and \code{lon} added, by reference,
