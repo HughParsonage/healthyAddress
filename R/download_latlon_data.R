@@ -49,3 +49,20 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
   vapply(.ste, download_latlon_data, "")
 }
 
+.load_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
+                              data_dir = getOption("healthyAddress.data_dir"),
+                              data_env = getOption("healthyAddress.data_env"),
+                              overwrite = FALSE) {
+  stopifnot(dir.exists(data_dir), is.environment(data_env))
+  for (..ste in .ste) {
+    obj_name <- paste0(..ste, "latlon")
+    if (!isTRUE(overwrite) && exists(obj_name, data_env, inherits = FALSE)) {
+      next
+    }
+    dat <- qs::qread(file.path(data_dir, "latlon", paste0(.ste, ".qs")))
+    dat[, c("lat", "lon") := decompress_latlon_general(c_latlon)]
+    setnames(dat, "STREET_NAME", "hSTREET_NAME")
+    assign(obj_name, value = dat, envir = data_env, inherits = FALSE)
+  }
+}
+

@@ -3,8 +3,9 @@
 #'
 #' @rawNamespace import(data.table, except = "%notin%")
 #' @importFrom fastmatch %fin%
-#' @importFrom hutils %notin%
 #' @importFrom fastmatch fmatch
+#' @importFrom hutils %notin%
+#' @importFrom hutils provide.dir
 #' @importFrom hutilscpp isntConstant
 #' @importFrom hutilscpp fmatchp
 #' @importFrom hutilscpp coalesce0
