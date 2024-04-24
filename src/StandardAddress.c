@@ -3904,6 +3904,10 @@ SEXP Cget_suffix(SEXP x) {
 SEXP C_trie_streetType(SEXP x) {
   errIfNotStr(x, "x");
   R_xlen_t N = xlength(x);
+  TrieNode * root = getNode();
+  if (root == NULL) {
+    return R_NilValue; // # nocov
+  }
 
   // The street types
   SEXP ans0 = PROTECT(allocVector(INTSXP, N));
@@ -3913,11 +3917,7 @@ SEXP C_trie_streetType(SEXP x) {
   SEXP ans1 = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp1 = INTEGER(ans1);
 
-  TrieNode * root = getNode();
-  if (root == NULL) {
-    UNPROTECT(1); // # nocov
-    return R_NilValue; // # nocov
-  }
+
   for (int i = 0; i < NZ; ++i) {
     insert(root, ZTZ[i]->x, ZTZ[i]->cd);
   }
