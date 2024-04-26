@@ -5,6 +5,8 @@
    - `compress_latlon` provides compression to 32-bit integers of lat-lon coordinates while
       retaining reasonably high precision.
    - `mutate_latlon` takes a standardized address data.table and adds the lat-lon coordinates
+* Bug fix:
+   - UNPROTECT correctly positioned
 
 # 0.3.0
 
