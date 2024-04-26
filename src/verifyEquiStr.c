@@ -66,7 +66,7 @@ void errifNotTF(SEXP x, const char * v) {
 void verifyEquiDouble(SEXP x, const char * xx, SEXP y, const char * yy) {
   if (xlength(x) != xlength(y)) {
     error("xlength(%s) = %lld, yet xlength(%s) = %lld. Lengths must be equal.",
-          xx, xlength(x), yy, xlength(y));
+          xx, (long long)xlength(x), yy, (long long)xlength(y));
   }
   if (!isReal(x)) {
     error("`%s` was type '%s' but must be double", xx, type2char(TYPEOF(x)));
