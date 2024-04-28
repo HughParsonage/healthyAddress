@@ -77,7 +77,7 @@ uint32_t compress_latlon(double lat, double lon) {
   uint16_t lon_16bit = (uint16_t)(normalized_lon * 65535);
 
   // Combine into a single 32-bit integer
-  uint32_t compressed = (lat_16bit << 16) | lon_16bit;
+  uint32_t compressed = ((uint32_t)lat_16bit << 16) | lon_16bit;
 
   return compressed;
 }
@@ -106,7 +106,7 @@ uint32_t compress_latlon_mainland(double lat, double lon) {
   uint16_t lon_16bit = (uint16_t)(normalized_lon * 65535);
 
   // Combine into a single 32-bit integer
-  uint32_t compressed = (lat_16bit << 16) | lon_16bit;
+  uint32_t compressed = ((uint32_t)lat_16bit << 16) | lon_16bit;
 
   return compressed;
 }
