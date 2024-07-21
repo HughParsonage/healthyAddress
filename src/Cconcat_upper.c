@@ -257,10 +257,10 @@ SEXP Cconcat_upper(SEXP xx1, SEXP xx2, SEXP xx3, SEXP xx4, SEXP ssep) {
   if (TYPEOF(xx4) == NILSXP) {
     return Cconcat_upper3(xx1, xx2, xx3, sep);
   }
-  SEXP * x1p = STRING_PTR_RO(xx1);
-  SEXP * x2p = STRING_PTR_RO(xx2);
-  SEXP * x3p = STRING_PTR_RO(xx3);
-  SEXP * x4p = STRING_PTR_RO(xx4);
+  const SEXP * x1p = STRING_PTR_RO(xx1);
+  const SEXP * x2p = STRING_PTR_RO(xx2);
+  const SEXP * x3p = STRING_PTR_RO(xx3);
+  const SEXP * x4p = STRING_PTR_RO(xx4);
   // int m2 = 0;
   const bool comma_sep = sep == SEP_COMMA_SPACE;
   // if (comma_sep) {
