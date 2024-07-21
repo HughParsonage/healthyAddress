@@ -636,7 +636,7 @@ SEXP C_do_the_xxx(SEXP x, SEXP Postcode, SEXP Hash) {
   errIfNotStr(x, "x");
   const bool do_hash = asLogical(Hash);
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   bool postcode_was_null = !isInteger(Postcode);
   const int * postcodep = postcode_was_null ? NULL : INTEGER(Postcode);
   if (!postcode_was_null) {

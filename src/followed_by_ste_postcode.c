@@ -40,7 +40,7 @@ bool followed_by_STE_POSTCODE(int w_i, WordData * wd) {
 
 SEXP Cfollowed_by_STE_POSTCODE(SEXP Wi, SEXP x) {
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   const int * wip = INTEGER(Wi);
   errIfNotLen(Wi, "wi", N);
   SEXP ans = PROTECT(allocVector(LGLSXP, N));
