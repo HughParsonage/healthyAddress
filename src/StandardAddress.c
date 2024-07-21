@@ -618,7 +618,7 @@ int n_words(const char * x, int n) {
 SEXP C_test_n_words(SEXP x) {
   errIfNotStr(x, "x");
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
   for (R_xlen_t i = 0; i < N; ++i) {
@@ -656,7 +656,7 @@ SEXP C_anyComma(SEXP x, SEXP oo) {
   // # nocov end
   const int o = asInteger(oo);
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   if (o == 1) {
     for (R_xlen_t i = 0; i < N; ++i) {
       // if (has_comma(CHAR(xp[i]), length(xp[i]))) {
@@ -856,7 +856,7 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
     // Performance
     int m = 0;
     R_xlen_t N = xlength(xx);
-    const SEXP * xp = STRING_PTR(xx);
+    const SEXP * xp = STRING_PTR_RO(xx);
     for (R_xlen_t i = 0; i < N; ++i) {
       WordData wdi = word_data(CHAR(xp[i]), length(xp[i]));
       if (wdi.n > m) {
@@ -867,7 +867,7 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
   }
   case 4: {
     R_xlen_t N = xlength(xx);
-    const SEXP * xp = STRING_PTR(xx);
+    const SEXP * xp = STRING_PTR_RO(xx);
 
     uint64_t * A = malloc(sizeof(uint64_t) * N);
     uint64_t * B = malloc(sizeof(uint64_t) * N);
@@ -963,7 +963,7 @@ SEXP C_HashStreetName(SEXP x) {
     error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(x)));
   }
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
 
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
@@ -1162,7 +1162,7 @@ SEXP CToUpperBasic(SEXP x) {
   R_xlen_t N = xlength(x);
   errIfNotStr(x, "x");
   SEXP ans = PROTECT(allocVector(STRSXP, N));
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   bool warn_on_wide = true;
   for (R_xlen_t i = 0; i < N; ++i) {
     SEXP xi = xp[i];
@@ -1202,7 +1202,7 @@ SEXP CToUpperBasic(SEXP x) {
 
 SEXP CExtractPostcode(SEXP x) {
   R_xlen_t N = xlength(x);
-  const SEXP * xpp = STRING_PTR(x);
+  const SEXP * xpp = STRING_PTR_RO(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
 // pragma omp parallel for
@@ -1310,7 +1310,7 @@ SEXP C_NumberFirstLast(SEXP xx) {
     error("`address` was type '%s' but must be a character vector.", type2char(TYPEOF(xx)));
   }
   R_xlen_t N = xlength(xx);
-  const SEXP * xp = STRING_PTR(xx);
+  const SEXP * xp = STRING_PTR_RO(xx);
   int np = 0;
   SEXP n_unit = PROTECT(allocVector(INTSXP, N)); ++np;
   SEXP nfirst = PROTECT(allocVector(INTSXP, N)); ++np;
@@ -1517,7 +1517,7 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
 bool noLC(SEXP x, int nThread) {
   R_xlen_t N = xlength(x);
   bool char_array[256] = {0};
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
 #pragma omp parallel for num_threads(nThread) reduction(|| : char_array[:256])
   for (R_xlen_t i = 0; i < N; ++i) {
     if (xp[i] == NA_STRING) {
@@ -1654,7 +1654,7 @@ SEXP Cmatch_StreetType_Line1(SEXP xx, SEXP mm, SEXP jPos) {
   const unsigned int m2 = m == 2 ? 65536 : 0;
   const bool hasNumberPosition = isInteger(jPos) && xlength(jPos) == N;
   const int * last_number_p = hasNumberPosition ? INTEGER(jPos) : INTEGER(mm);
-  const SEXP * xp = STRING_PTR(xx);
+  const SEXP * xp = STRING_PTR_RO(xx);
 
   SEXP ans = PROTECT(allocVector(INTSXP, N)); np++;
   int * restrict ansp = INTEGER(ans);
@@ -2581,7 +2581,7 @@ SEXP C_NumberSuffix2Raw(SEXP xx) {
     error("`x` was type '%s' but must be a character vector.", type2char(TYPEOF(xx))); // # nocov
   }
   R_xlen_t N = xlength(xx);
-  const SEXP * xp = STRING_PTR(xx);
+  const SEXP * xp = STRING_PTR_RO(xx);
   SEXP ans = PROTECT(allocVector(RAWSXP, N));
   unsigned char * ansp = RAW(ans);
   for (R_xlen_t i = 0; i < N; ++i) {
@@ -3277,7 +3277,7 @@ static int dontainsBIG4(const char * x, int n, CharUInt32Union big4Union) {
 SEXP C_contains_BIG4(SEXP x) {
   errIfNotStr(x, "x");
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   SEXP ans = PROTECT(allocVector(INTSXP, N));
   int * restrict ansp = INTEGER(ans);
 
@@ -3628,7 +3628,7 @@ SEXP C_standard_address2(SEXP xx, SEXP nthreads) {
   int nThread = as_nThread(nthreads);
   (void)nThread; // maybe unused in absence of OPENMP
   R_xlen_t N = xlength(xx);
-  const SEXP * xp = STRING_PTR(xx);
+  const SEXP * xp = STRING_PTR_RO(xx);
   // # nocov start
   // Memoiziation
   unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
@@ -3778,7 +3778,7 @@ SEXP C_do_standard_address3(SEXP Line1, SEXP Line2, SEXP Postcode, SEXP KeepStre
   const bool keepStreetName = asLogical(KeepStreetName);
 
   const int * postcode = INTEGER(Postcode);
-  const SEXP * x1p = STRING_PTR(Line1);
+  const SEXP * x1p = STRING_PTR_RO(Line1);
 
   unsigned char * M1 = malloc(sizeof(char) * SUP_POSTCODES);
   if (M1 == NULL) {
@@ -3883,7 +3883,7 @@ SEXP Cget_suffix(SEXP x) {
     return R_NilValue; // # nocov
   }
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   SEXP ans = PROTECT(allocVector(RAWSXP, N));
   unsigned char * ansp = RAW(ans);
 
@@ -3921,7 +3921,7 @@ SEXP C_trie_streetType(SEXP x) {
   for (int i = 0; i < NZ; ++i) {
     insert(root, ZTZ[i]->x, ZTZ[i]->cd);
   }
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
 
   for (R_xlen_t i = 0; i < N; ++i) {
     ansp[i] = 0;
@@ -4018,7 +4018,7 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
 
   errIfNotLen(STREET_NAME, "STREET_NAME", N);
   errIfNotLen(STREET_TYPE_CODE, "STREET_TYPE_CODE", N);
-  const SEXP * xp = STRING_PTR(STREET_NAME);
+  const SEXP * xp = STRING_PTR_RO(STREET_NAME);
   const int * street_typep = INTEGER(STREET_TYPE_CODE);
   if (ALL_POSTCODE_STREETS == NULL) {
     ALL_POSTCODE_STREETS = malloc(sizeof(PostcodeStreets) * N_POSTCODES);
@@ -4217,7 +4217,7 @@ SEXP C_standard_address_postcode_trie(SEXP x) {
   // Returns a list of two vectors: street type (as int) and street name (as a string)
   errIfNotStr(x, "x");
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   if (ALL_POSTCODE_STREETS == NULL) {
     error("(Internal error)ALL_POSTCODE_STREETS was NULL, aborting."); // # nocov
   }
@@ -4423,7 +4423,7 @@ SEXP C_check_address_input(SEXP x, SEXP mm, SEXP nthreads) {
   errIfNotStr(x, "address");
   const int m = asInteger(mm);
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   if (m == 0) {
     SEXP ans = PROTECT(allocVector(INTSXP, N));
     int * restrict ansp = INTEGER(ans);
@@ -4480,7 +4480,7 @@ SEXP C_which_first_strstr(SEXP x, SEXP p) {
   errIfNotStr(p, "p");
   R_xlen_t N = xlength(x);
   const char * pp = CHAR(STRING_ELT(p, 0));
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   for (R_xlen_t i = 0; i < N; ++i) {
     if (xp[i] == NA_STRING) {
       continue;

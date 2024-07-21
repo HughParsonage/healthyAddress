@@ -56,7 +56,7 @@ __uint128_t xnumber_128(const char * x, int n) {
 
 SEXP Cxnumber128(SEXP x) {
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   SEXP ans1 = PROTECT(allocVector(INTSXP, N));
   SEXP ans2 = PROTECT(allocVector(INTSXP, N));
   SEXP ans3 = PROTECT(allocVector(INTSXP, N));
@@ -103,7 +103,7 @@ int n_numbers(const char * x, int n) {
 
 SEXP Cxnumber(SEXP x) {
   R_xlen_t N = xlength(x);
-  const SEXP * xp = STRING_PTR(x);
+  const SEXP * xp = STRING_PTR_RO(x);
   SEXP ans1 = PROTECT(allocVector(INTSXP, N));
   SEXP ans2 = PROTECT(allocVector(INTSXP, N));
   SEXP ans3 = PROTECT(allocVector(INTSXP, N));
