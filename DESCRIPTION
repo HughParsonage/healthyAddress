@@ -1,6 +1,6 @@
 Package: healthyAddress
 Title: Convert Addresses to Standard Inputs 
-Version: 0.4.2
+Version: 0.4.3
 Authors@R: 
     person(given = "Hugh",
            family = "Parsonage",
