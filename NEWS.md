@@ -1,3 +1,8 @@
+# 0.4.3
+
+* Internal
+   - `STRING_PTR` to `STRING_PTR_RO` due to new CRAN C API enforcement
+
 # 0.4.0
 
 * New latlon support (#1):
