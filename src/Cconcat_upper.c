@@ -261,12 +261,8 @@ SEXP Cconcat_upper(SEXP xx1, SEXP xx2, SEXP xx3, SEXP xx4, SEXP ssep) {
   const SEXP * x2p = STRING_PTR_RO(xx2);
   const SEXP * x3p = STRING_PTR_RO(xx3);
   const SEXP * x4p = STRING_PTR_RO(xx4);
-  // int m2 = 0;
-  const bool comma_sep = sep == SEP_COMMA_SPACE;
-  // if (comma_sep) {
-  //   m2 = 2;
-  // }
 
+  const bool comma_sep = sep == SEP_COMMA_SPACE;
 
   if (xlength(xx2) == 1 ||
       xlength(xx3) == 1 ||
