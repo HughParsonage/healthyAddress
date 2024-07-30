@@ -2,6 +2,7 @@
 
 * Internal
    - `STRING_PTR` to `STRING_PTR_RO` due to new CRAN C API enforcement
+   - New repo "https://github.com/HughParsonage/PSMA-202405" supported
 
 # 0.4.0
 

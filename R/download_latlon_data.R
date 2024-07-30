@@ -2,7 +2,8 @@
 #' @param .ste The jurisdiction to download. Default is to download all.
 #' @param data_dir The directory for \code{healthyAddress}. Data will be downloaded into a
 #' subdirector \code{latlon} thereof.
-#' @param repo The repository from which data will be downloaded. Currently only the default is supported.
+#' @param repo The repository from which data will be downloaded. Currently only the default is supported,
+#' and \code{"https://github.com/HughParsonage/PSMA-202405"} are supported.
 #' @param overwrite \code{logical(1)} Applicable only if the file already exists
 #' prior to invoking the function. If \code{FALSE}, an error is raised. If \code{NA},
 #' the default, the file is returned, with a message. Set to \code{TRUE} if you wish to
