@@ -12,4 +12,6 @@ healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
 healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
 .test()
 
+typeof(vector(mode = "list", length = 2.4e9))
+
 
