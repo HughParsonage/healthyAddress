@@ -1,3 +1,5 @@
+
+typeof(vector(mode = "list", length = 2.4e9))
 library(tinytest)
 library(healthyAddress)
 .test <- function (filter = NULL, ...) {
@@ -12,6 +14,6 @@ healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
 healthyAddress:::standard_address2("47/174 ESPLANADE WEST PORT MELBOURNE 3207")
 .test()
 
-typeof(vector(mode = "list", length = 2.4e9))
+
 
 
