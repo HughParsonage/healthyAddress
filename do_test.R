@@ -1,5 +1,3 @@
-
-typeof(vector(mode = "list", length = 2.4e9))
 library(tinytest)
 library(healthyAddress)
 .test <- function (filter = NULL, ...) {
