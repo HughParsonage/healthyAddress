@@ -4093,7 +4093,7 @@ void fillALL_POSTCODE_STREETS(SEXP Postcode, SEXP STREET_NAME, SEXP STREET_TYPE_
   }
 }
 // # nocov start
-TrieNode* postcodeTries[N_POSTCODES][N_STREET_TYPES] = {NULL};
+TrieNode* postcodeTries[N_POSTCODES][N_STREET_TYPES] = {{NULL}};
 bool postcodeTriePopulated = false;
 
 void populateTrieForPostcode(unsigned int opostcode, const char *streetName, unsigned int streetCode, int ii) {
