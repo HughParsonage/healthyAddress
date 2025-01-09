@@ -1,3 +1,9 @@
+# 0.4.4
+
+* Internal
+  - Use `{{NULL}}` as advised by clang19
+  - RM unused variable k in internal function
+
 # 0.4.3
 
 * Internal
