@@ -1,4 +1,4 @@
-This is a package update, fixing the STRING_PTR issue 
+This is a package update, potentially fixing the LLVM compiler warnings/errors
 
 ## R CMD check results
 
