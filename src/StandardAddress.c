@@ -875,7 +875,6 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
       return R_NilValue;
     }
 
-    int k = 0;
     for (R_xlen_t i = 0; i < N; ++i) {
       A[i] = 0;
       B[i] = 0;
@@ -888,7 +887,6 @@ SEXP Ctest_WordData(SEXP xx, SEXP rr) {
           }
         }
       } else {
-        ++k;
         for (uint64_t j = 1; j < 64; ++j) {
           if (xi[j - 1] == ' ' && isUPPER(xi[j])) {
             A[i] |= ((uint64_t)1 << j);
