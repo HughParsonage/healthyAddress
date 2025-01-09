@@ -1514,7 +1514,7 @@ SEXP CFindSentence(SEXP xx, SEXP W1, SEXP W2) {
 
 bool noLC(SEXP x, int nThread) {
   R_xlen_t N = xlength(x);
-  bool char_array[256] = {0};
+  unsigned int char_array[256] = {0};
   const SEXP * xp = STRING_PTR_RO(x);
 #pragma omp parallel for num_threads(nThread) reduction(|| : char_array[:256])
   for (R_xlen_t i = 0; i < N; ++i) {
