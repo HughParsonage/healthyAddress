@@ -3,6 +3,11 @@ library(data.table)
 library(magrittr)
 library(hutils)
 library(hutilscpp)
+convert_qs_to_qs2 <- function(file.qs) {
+  qs2::qd_save(qs::qread(file.qs), sub("\\.qs$", ".qdata", file.qs))
+}
+sapply(dir("./inst/extdata/", pattern = "\\.qs$", full.names = TRUE), convert_qs_to_qs2)
+
 stopifnot(dir.exists("data-raw"), file.exists("DESCRIPTION"),
           desc::desc_get("Package") == "healthyAddress")
 devtools::load_all()
