@@ -8,7 +8,7 @@ if (!requireNamespace("data.table")) {
 if (!requireNamespace("tinytest")) {
   install.packages("tinytest", quiet=TRUE)
 }
-pkgs <- c("magrittr", "fst", "qs", "hutils", "hutilscpp", "fastmatch")
+pkgs <- c("magrittr", "fst", "qs2", "hutils", "hutilscpp", "fastmatch")
 if (any(!sapply(pkgs, requireNamespace))) {
   install.packages(pkgs, quiet = TRUE)
 }
