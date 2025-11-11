@@ -1,4 +1,4 @@
-This is a package update, potentially fixing the LLVM compiler warnings/errors
+This is a package update, fixing upcoming qs2 package and qs deprecation.
 
 ## R CMD check results
 
