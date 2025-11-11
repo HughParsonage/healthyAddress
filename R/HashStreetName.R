@@ -32,14 +32,14 @@ all_STREET_NAME <- function() {
   if (is.environment(hash_env) && exists("noms", hash_env, inherits = FALSE)) {
     get0("noms", hash_env, inherits = FALSE)
   } else {
-    file.qs <-
-      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs", package = packageName())
+    file.qdata <-
+      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata", package = packageName())
 
-    if (!file.exists(file.qs) || file.access(file.qs, mode = 4L)) {
-      stop("file.qs below not found or readable\n\t", file.qs)
+    if (!file.exists(file.qdata) || file.access(file.qdata, mode = 4L)) {
+      stop("file.qdata below not found or readable\n\t", file.qdata)
     }
 
-    DT <- qs::qread(file.qs)
+    DT <- qs2::qd_read(file.qdata)
     assign("noms",
            envir = hash_env,
            value = unique(.subset2(DT, "STREET_NAME")))
