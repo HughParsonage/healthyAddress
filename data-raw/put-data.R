@@ -258,7 +258,7 @@ AZZ <-
   setcolorder()
 
 # We want to retain old addresses too
-ORIG <- qs::qread("./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+ORIG <- qs2::qd_read("./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata")
 
 AZZZ <-
   rbind(AZZ, ORIG) %>%
@@ -266,7 +266,7 @@ AZZZ <-
   unique(by = key(.)) %>%
   setcolorder()
 
-qs::qsave(AZZZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+qs2::qd_save(AZZZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata")
 
 
 

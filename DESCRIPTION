@@ -1,6 +1,6 @@
 Package: healthyAddress
 Title: Convert Addresses to Standard Inputs 
-Version: 0.5.0
+Version: 0.5.1
 Authors@R: 
     person(given = "Hugh",
            family = "Parsonage",
@@ -28,7 +28,6 @@ Imports:
     hutils,
     hutilscpp,
     magrittr,
-    qs,
     qs2,
     utils
 Suggests: 

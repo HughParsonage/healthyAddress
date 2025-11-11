@@ -1,5 +1,5 @@
 
 
 read_locality_by_postcode <- function() {
-  qs::qread(system.file("extdata", "LOCALITY_BY_POSTCODE.qs", package = packageName()))
+  qs2::qd_read(system.file("extdata", "LOCALITY_BY_POSTCODE.qdata", package = packageName()))
 }

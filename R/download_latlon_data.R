@@ -30,22 +30,22 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
     repo <- sub("/$", "", repo)
   }
   if (length(.ste) == 1) {
-    surl <- sprintf("%s/raw/master/%s_latlon.qs", repo, .ste)
-    file.qs <- file.path(data_dir, "latlon", paste0(.ste, ".qs"))
-    if (file.exists(file.qs)) {
+    surl <- sprintf("%s/raw/master/%s_latlon.qdata", repo, .ste)
+    file.qdata <- file.path(data_dir, "latlon", paste0(.ste, ".qdata"))
+    if (file.exists(file.qdata)) {
       if (isFALSE(overwrite)) {
-        stop("overwrite = FALSE yet file.qs = ", file.qs, " exists.")
+        stop("overwrite = FALSE yet file.qdata = ", file.qdata, " exists.")
       }
       if (!isTRUE(overwrite)) {
-        message(file.qs, " already exists so will not be downloaded. (Set overwrite = TRUE to force the download.)")
-        return(file.qs)
+        message(file.qdata, " already exists so will not be downloaded. (Set overwrite = TRUE to force the download.)")
+        return(file.qdata)
       }
     }
-    status <- download.file(surl, destfile = file.qs, mode = "wb")
+    status <- download.file(surl, destfile = file.qdata, mode = "wb")
     if (status) {
       stop("download failed for ", .ste, " with status code ", status)
     }
-    return(file.qs)
+    return(file.qdata)
   }
   vapply(.ste, download_latlon_data, "")
 }
@@ -60,7 +60,7 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
     if (!isTRUE(overwrite) && exists(obj_name, data_env, inherits = FALSE)) {
       next
     }
-    dat <- qs::qread(file.path(data_dir, "latlon", paste0(..ste, ".qs")))
+    dat <- qs2::qd_read(file.path(data_dir, "latlon", paste0(..ste, ".qdata")))
     stopifnot(hasName(dat, "c_latlon"))
     c_latlon <- NULL
     dat[, c("lat", "lon") := decompress_latlon_general(c_latlon)]
