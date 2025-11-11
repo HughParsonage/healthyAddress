@@ -7,7 +7,7 @@
 download_latlon_data(
   .ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
   data_dir = getOption("healthyAddress.data_dir"),
-  repo = "https://github.com/HughParsonage/PSMA-202311",
+  repo = "https://github.com/HughParsonage/PSMA-202508",
   overwrite = NA
 )
 }
@@ -15,10 +15,9 @@ download_latlon_data(
 \item{.ste}{The jurisdiction to download. Default is to download all.}
 
 \item{data_dir}{The directory for \code{healthyAddress}. Data will be downloaded into a
-subdirector \code{latlon} thereof.}
+subdirectory \code{latlon} thereof.}
 
-\item{repo}{The repository from which data will be downloaded. Currently only the default is supported,
-and \code{"https://github.com/HughParsonage/PSMA-202405"} are supported.}
+\item{repo}{The repository from which data will be downloaded. Currently only the default is supported.}
 
 \item{overwrite}{\code{logical(1)} Applicable only if the file already exists
 prior to invoking the function. If \code{FALSE}, an error is raised. If \code{NA},

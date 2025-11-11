@@ -4,15 +4,15 @@
 # nocov start
 fillPostcodeStreets <- function(DT, test = 0L) {
   if (missing(DT)) {
-    file.qs <-
-      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs", package = packageName())
+    file.qdata <-
+      system.file("extdata", "POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata", package = packageName())
 
-    if (!file.exists(file.qs) || file.access(file.qs, mode = 4L)) {
-      message("file.qs below not found or readable\n\t", file.qs)
+    if (!file.exists(file.qdata) || file.access(file.qdata, mode = 4L)) {
+      message("file.qdata below not found or readable\n\t", file.qdata)
       return(invisible(NULL))
     }
 
-    DT <- qs::qread(file.qs)
+    DT <- qs2::qd_read(file.qdata)
   }
   if (!haskey(DT) || identical(key(DT)[1], "POSTCODE")) {
     setkeyv(DT, "POSTCODE")

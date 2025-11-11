@@ -40,6 +40,6 @@ LOCALITY_BY_POSTCODE <-
 
 if (file.exists("./healthyAddress.Rproj") && dir.exists("./inst/extdata/") &&
     !file.exists("./inst/extdata/LOCALITY_BY_POSTCODE.fst")) {
-  qs::qsave(LOCALITY_BY_POSTCODE, "./inst/extdata/LOCALITY_BY_POSTCODE.qs")
+  qs2::qd_save(LOCALITY_BY_POSTCODE, "./inst/extdata/LOCALITY_BY_POSTCODE.qdata")
 }
 

@@ -1,9 +1,8 @@
 #' Download latitude longitude data by address
 #' @param .ste The jurisdiction to download. Default is to download all.
 #' @param data_dir The directory for \code{healthyAddress}. Data will be downloaded into a
-#' subdirector \code{latlon} thereof.
-#' @param repo The repository from which data will be downloaded. Currently only the default is supported,
-#' and \code{"https://github.com/HughParsonage/PSMA-202405"} are supported.
+#' subdirectory \code{latlon} thereof.
+#' @param repo The repository from which data will be downloaded. Currently only the default is supported.
 #' @param overwrite \code{logical(1)} Applicable only if the file already exists
 #' prior to invoking the function. If \code{FALSE}, an error is raised. If \code{NA},
 #' the default, the file is returned, with a message. Set to \code{TRUE} if you wish to
@@ -15,7 +14,7 @@
 #' @export
 download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
                                  data_dir = getOption("healthyAddress.data_dir"),
-                                 repo = "https://github.com/HughParsonage/PSMA-202311",
+                                 repo = "https://github.com/HughParsonage/PSMA-202508",
                                  overwrite = NA) {
   if (!is.character(data_dir) || length(data_dir) != 1 || anyNA(data_dir) || !dir.exists(data_dir)) {
     stop("data_dir must be set to an extant directory, preferably via\n\toptions(healthyAddress.data_dir = <>) ")
@@ -30,22 +29,22 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
     repo <- sub("/$", "", repo)
   }
   if (length(.ste) == 1) {
-    surl <- sprintf("%s/raw/master/%s_latlon.qs", repo, .ste)
-    file.qs <- file.path(data_dir, "latlon", paste0(.ste, ".qs"))
-    if (file.exists(file.qs)) {
+    surl <- sprintf("%s/raw/master/%s_latlon.qdata", repo, .ste)
+    file.qdata <- file.path(data_dir, "latlon", paste0(.ste, ".qdata"))
+    if (file.exists(file.qdata)) {
       if (isFALSE(overwrite)) {
-        stop("overwrite = FALSE yet file.qs = ", file.qs, " exists.")
+        stop("overwrite = FALSE yet file.qdata = ", file.qdata, " exists.")
       }
       if (!isTRUE(overwrite)) {
-        message(file.qs, " already exists so will not be downloaded. (Set overwrite = TRUE to force the download.)")
-        return(file.qs)
+        message(file.qdata, " already exists so will not be downloaded. (Set overwrite = TRUE to force the download.)")
+        return(file.qdata)
       }
     }
-    status <- download.file(surl, destfile = file.qs, mode = "wb")
+    status <- download.file(surl, destfile = file.qdata, mode = "wb")
     if (status) {
       stop("download failed for ", .ste, " with status code ", status)
     }
-    return(file.qs)
+    return(file.qdata)
   }
   vapply(.ste, download_latlon_data, "")
 }
@@ -60,7 +59,7 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
     if (!isTRUE(overwrite) && exists(obj_name, data_env, inherits = FALSE)) {
       next
     }
-    dat <- qs::qread(file.path(data_dir, "latlon", paste0(..ste, ".qs")))
+    dat <- qs2::qd_read(file.path(data_dir, "latlon", paste0(..ste, ".qdata")))
     stopifnot(hasName(dat, "c_latlon"))
     c_latlon <- NULL
     dat[, c("lat", "lon") := decompress_latlon_general(c_latlon)]

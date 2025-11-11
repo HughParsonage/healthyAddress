@@ -1,3 +1,7 @@
+# 0.5.0
+
+Uses the qs2 format
+
 # 0.4.4
 
 * Internal

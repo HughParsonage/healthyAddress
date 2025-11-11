@@ -57,4 +57,5 @@ vignettes/*.pdf
 inst/extdata/*S.fst
 !NEWS.md
 !inst/extdata/*.qs
+!inst/extdata/*.qdata
 !cran-comments.md

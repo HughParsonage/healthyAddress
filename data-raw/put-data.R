@@ -3,6 +3,11 @@ library(data.table)
 library(magrittr)
 library(hutils)
 library(hutilscpp)
+convert_qs_to_qs2 <- function(file.qs) {
+  qs2::qd_save(qs::qread(file.qs), sub("\\.qs$", ".qdata", file.qs))
+}
+sapply(dir("./inst/extdata/", pattern = "\\.qs$", full.names = TRUE), convert_qs_to_qs2)
+
 stopifnot(dir.exists("data-raw"), file.exists("DESCRIPTION"),
           desc::desc_get("Package") == "healthyAddress")
 devtools::load_all()
@@ -253,7 +258,7 @@ AZZ <-
   setcolorder()
 
 # We want to retain old addresses too
-ORIG <- qs::qread("./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+ORIG <- qs2::qd_read("./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata")
 
 AZZZ <-
   rbind(AZZ, ORIG) %>%
@@ -261,7 +266,7 @@ AZZZ <-
   unique(by = key(.)) %>%
   setcolorder()
 
-qs::qsave(AZZZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qs")
+qs2::qd_save(AZZZ, "./inst/extdata/POSTCODE-STREET_TYPE_CODE-STREET_NAME.qdata")
 
 
 
