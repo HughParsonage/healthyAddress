@@ -14,6 +14,7 @@ fillPostcodeStreets <- function(DT, test = 0L) {
 
     DT <- qs2::qd_read(file.qdata)
   }
+  setDT(DT)
   if (!haskey(DT) || identical(key(DT)[1], "POSTCODE")) {
     setkeyv(DT, "POSTCODE")
   }

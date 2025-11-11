@@ -60,6 +60,7 @@ download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS"
       next
     }
     dat <- qs2::qd_read(file.path(data_dir, "latlon", paste0(..ste, ".qdata")))
+    setDT(dat)
     stopifnot(hasName(dat, "c_latlon"))
     c_latlon <- NULL
     dat[, c("lat", "lon") := decompress_latlon_general(c_latlon)]
