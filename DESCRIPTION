@@ -33,4 +33,4 @@ Imports:
 Suggests: 
     tinytest
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.1.0)
