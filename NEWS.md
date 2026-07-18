@@ -1,3 +1,8 @@
+# 0.5.2
+
+* Internal
+  - Preserve `const` qualification for `strstr()` results to support GCC 16.
+
 # 0.5.1
 
 Uses the qs2 format
