@@ -766,7 +766,7 @@ WordData word_data(const char * x, int n) {
   }
 
   // shift the lhs of 'care of' word forward
-  char * cpos_careof = strstr(x, "C/-");
+  const char * cpos_careof = strstr(x, "C/-");
   if (cpos_careof == NULL) {
     cpos_careof = strstr(x, "C/O");
   }
@@ -2776,7 +2776,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     }
   }
   if (Postcode == 2289) {
-    char * pos = strstr(x, "GARDEN GROVE ");
+    const char * pos = strstr(x, "GARDEN GROVE ");
     if (pos != NULL) {
       ans[0] = ST_CODE_PARADE;
       ans[1] = pos - x;
@@ -2785,7 +2785,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     }
   }
   if (Postcode == 3082) {
-    char * pos = strstr(x, "GARDEN GROVE ");
+    const char * pos = strstr(x, "GARDEN GROVE ");
     if (pos != NULL) {
       ans[0] = ST_CODE_DRIVE;
       ans[1] = pos - x;
@@ -2794,7 +2794,7 @@ void do_street_type(int ans[3], const char * x, int n, int j__ /*Position after 
     }
   }
   if (Postcode == 4817) {
-    char * pos = strstr(x, "GARDEN GROVE ");
+    const char * pos = strstr(x, "GARDEN GROVE ");
     if (pos != NULL) {
       ans[0] = ST_CODE_CRESCENT;
       ans[1] = pos - x;
@@ -4484,7 +4484,7 @@ SEXP C_which_first_strstr(SEXP x, SEXP p) {
       continue;
     }
     const char * xpi = CHAR(xp[i]);
-    char * pos = strstr(xpi, pp);
+    const char * pos = strstr(xpi, pp);
     if (pos == NULL) {
       continue;
     }
@@ -4493,7 +4493,6 @@ SEXP C_which_first_strstr(SEXP x, SEXP p) {
   }
   return ScalarInteger(0);
 }
-
 
 
 
