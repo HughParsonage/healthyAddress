@@ -11,7 +11,7 @@ jobs:
       - name: Install Package Dependencies
         run: |-
           Rscript setup.R
-          Rscript -e "install.packages(c('rcmdcheck', 'covr'), repos = 'https://cloud.r-project.org')"
+          Rscript -e "install.packages(c('rcmdcheck', 'covr', 'remotes'), repos = 'https://cloud.r-project.org')"
           Rscript -e "remotes::install_deps(dependencies = TRUE, repos = 'https://cloud.r-project.org')"
       - name: codecov
         run: Rscript -e "covr::codecov(quiet = FALSE)"
@@ -28,25 +28,19 @@ jobs:
             Rscript -e "install.packages(c('rcmdcheck', 'remotes'), repos = 'https://cloud.r-project.org')"
             Rscript -e "remotes::install_deps(dependencies = TRUE, repos = 'https://cloud.r-project.org')"
       - name: Run Check
-        run: Rscript -e "rcmdcheck::rcmdcheck(build_args = '--no-manual', error_on = 'note')"
+        run: Rscript -e "rcmdcheck::rcmdcheck(args = '--no-manual', error_on = 'note')"
     container: rocker/verse:latest
   test-r-sanitizers:
     name: ASAN-UBSAN
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: rhub/rocker-gcc-san
+      image: ghcr.io/r-hub/containers/gcc-asan:latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 5
-          submodules: true
-      - name: Install packages
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: Install dependencies
         run: |
-          Rdevel -q -f setup.R
-          Rdevel CMD build .
-          Rdevel CMD INSTALL --install-tests *.tar.gz
-          Rdevel -d "valgrind --tool=memcheck --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1" --vanilla -f do_test.R
-          Rdevel -q -f do_test.R
+          R -q -e 'pak::pkg_install(c("deps::.", "any::rcmdcheck"), dependencies = TRUE)'
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual")'
