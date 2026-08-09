@@ -14,7 +14,7 @@
 #' @export
 download_latlon_data <- function(.ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
                                  data_dir = getOption("healthyAddress.data_dir"),
-                                 repo = "https://github.com/HughParsonage/PSMA-202508",
+                                 repo = "https://github.com/HughParsonage/PSMA-202605",
                                  overwrite = NA) {
   if (!is.character(data_dir) || length(data_dir) != 1 || anyNA(data_dir) || !dir.exists(data_dir)) {
     stop("data_dir must be set to an extant directory, preferably via\n\toptions(healthyAddress.data_dir = <>) ")

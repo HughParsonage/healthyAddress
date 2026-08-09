@@ -7,7 +7,7 @@
 download_latlon_data(
   .ste = c("NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "OT"),
   data_dir = getOption("healthyAddress.data_dir"),
-  repo = "https://github.com/HughParsonage/PSMA-202508",
+  repo = "https://github.com/HughParsonage/PSMA-202605",
   overwrite = NA
 )
 }

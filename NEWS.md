@@ -1,5 +1,7 @@
 # 0.5.2
 
+* `download_latlon_data` now defaults to the May 2026 G-NAF release
+  (repo `PSMA-202605`).
 * Internal
   - Preserve `const` qualification for `strstr()` results to support GCC 16.
 

@@ -1,5 +1,5 @@
 Package: healthyAddress
-Title: Convert Addresses to Standard Inputs 
+Title: Convert Addresses to Standard Inputs
 Version: 0.5.2
 Authors@R: 
     person(given = "Hugh",
@@ -20,7 +20,6 @@ Encoding: UTF-8
 URL: https://github.com/HughParsonage/healthyAddress
 BugReports: https://github.com/HughParsonage/healthyAddress/issues
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Imports: 
     data.table,
     fastmatch,
@@ -34,3 +33,4 @@ Suggests:
     tinytest
 Depends: 
     R (>= 4.1.0)
+Config/roxygen2/version: 8.0.0
